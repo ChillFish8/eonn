@@ -9,6 +9,10 @@ fn dot<T: DistanceOps>(a: &T, b: &T) -> f32 {
     unsafe { a.dot(b) }
 }
 
+fn dumb_dot<T: DistanceOps>(a: &T, b: &T) -> f32 {
+    unsafe { a.cosine(b) }
+}
+
 fn basic_dot(a: &[f32], b: &[f32]) -> f32 {
     let len = a.len();
     let mut acc = 0.0;
@@ -28,7 +32,7 @@ fn simsimd_dot(a: &[f32], b: &[f32]) -> f32 {
 }
 
 fn criterion_benchmark(c: &mut Criterion) {
-    c.bench_function("dot autovec", |b| {
+    c.bench_function("dot autovec 1024 auto", |b| {
         let mut v1 = Vec::new();
         let mut v2 = Vec::new();
         for _ in 0..1024 {
@@ -38,7 +42,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         
         b.iter(|| basic_dot(black_box(&v1), black_box(&v2)))
     });
-    c.bench_function("dot simsimd", |b| {
+    c.bench_function("dot simsimd 1024 auto", |b| {
         let mut v1 = Vec::new();
         let mut v2 = Vec::new();
         for _ in 0..1024 {
@@ -73,6 +77,19 @@ fn criterion_benchmark(c: &mut Criterion) {
         let v2 = Vector::<Avx2, X1024, f32, Fma>(v2, PhantomData);
 
         b.iter(|| dot(black_box(&v1), black_box(&v2)))
+    });
+    c.bench_function("dot avx2 1024 fma dumb", |b| {
+        let mut v1 = Vec::new();
+        let mut v2 = Vec::new();
+        for _ in 0..1024 {
+            v1.push(rand::random());
+            v2.push(rand::random());
+        }
+
+        let v1 = Vector::<Avx2, X1024, f32, Fma>(v1, PhantomData);
+        let v2 = Vector::<Avx2, X1024, f32, Fma>(v2, PhantomData);
+
+        b.iter(|| dumb_dot(black_box(&v1), black_box(&v2)))
     });
 }
 

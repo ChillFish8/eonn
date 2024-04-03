@@ -37,7 +37,7 @@ impl DistanceOps for Vector<Avx2, X1024, f32, Fma> {
     }
 
     unsafe fn cosine(&self, other: &Self) -> f32 {
-        todo!()
+        dumb_f32_avx2_fma_dot::<1024>(&self.0, &other.0)        
     }
 
     unsafe fn euclidean(&self, other: &Self) -> f32 {
@@ -215,6 +215,31 @@ unsafe fn f32_avx2_fma_dot<const DIMS: usize>(a: &[f32], b: &[f32]) -> f32 {
 
     sum_avx2(acc1)
 }
+
+#[inline]
+/// AVX2 dot product implementation for f32 vectors.
+///
+/// This implementation assumes no FMA is enabled.
+unsafe fn dumb_f32_avx2_fma_dot<const DIMS: usize>(a: &[f32], b: &[f32]) -> f32 {
+    let a_ptr = a.as_ptr();
+    let b_ptr = b.as_ptr();
+
+    let mut acc1 = _mm256_set1_ps(0.0);
+
+    // iters = num_dims / (lane_size_for_f32 * chunk size)
+    for i in 0..DIMS / (8 * 1) {
+        // Step * num per lane * groups of 
+        let base_offset = i * 8 * 1;
+
+        let a1 = _mm256_loadu_ps(a_ptr.add(base_offset));
+        let b1 = _mm256_loadu_ps(b_ptr.add(base_offset));
+
+        acc1 = _mm256_fmadd_ps(acc1, a1, b1);
+    }
+
+    sum_avx2(acc1)
+}
+
 
 #[inline]
 unsafe fn sum_avx2(v: __m256) -> f32 {
