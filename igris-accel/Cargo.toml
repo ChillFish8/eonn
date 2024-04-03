@@ -14,6 +14,7 @@ fast-math = []
 
 [dev-dependencies]
 rand = "0.8.5"
+simsimd = "4.2.2"
 
 [target.'cfg(not(windows))'.dev-dependencies]
 criterion = { version = "0.5.1", features = ["html_reports"] }

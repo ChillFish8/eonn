@@ -9,7 +9,7 @@ pub use float32::*;
 pub use arch::*;
 
 /// A specialised vector wrapper
-pub struct Vector<Arch, Dims, T>(pub Vec<T>, pub PhantomData<(Arch, Dims)>);
+pub struct Vector<Arch, Dims, T=f32, Fma=NoFma>(pub Vec<T>, pub PhantomData<(Arch, Dims, Fma)>);
 
 
 /// Core vector space distance calculations
