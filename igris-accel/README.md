@@ -7,105 +7,125 @@ Various specialised vector operations
 #### Cosine
 ```
 cosine autovec 1024 nofma
-                        time:   [654.31 ns 655.00 ns 655.81 ns]
-                        change: [-1.1757% -0.9772% -0.7994%] (p = 0.00 < 0.05)
-                        Change within noise threshold.
-Found 7 outliers among 100 measurements (7.00%)
-  4 (4.00%) high mild
+                        time:   [664.06 ns 665.48 ns 667.22 ns]
+                        change: [+1.6391% +2.2367% +3.1483%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 9 outliers among 100 measurements (9.00%)
+  6 (6.00%) high mild
   3 (3.00%) high severe
 
-cosine autovec 1024 fma time:   [859.07 ns 860.87 ns 862.83 ns]
-                        change: [-5.4110% -3.1033% -1.2530%] (p = 0.00 < 0.05)
-                        Performance has improved.
-Found 3 outliers among 100 measurements (3.00%)
-  2 (2.00%) high mild
-  1 (1.00%) high severe
+cosine autovec 1024 fma time:   [858.76 ns 859.38 ns 860.08 ns]
+                        change: [+0.3664% +0.5924% +0.7998%] (p = 0.00 < 0.05)
+                        Change within noise threshold.
+Found 8 outliers among 100 measurements (8.00%)
+  1 (1.00%) low mild
+  3 (3.00%) high mild
+  4 (4.00%) high severe
 
 cosine simsimd 1024 auto
-                        time:   [666.04 ns 667.75 ns 669.64 ns]
-                        change: [+0.4133% +0.6906% +0.9642%] (p = 0.00 < 0.05)
-                        Change within noise threshold.
+                        time:   [658.23 ns 658.90 ns 659.66 ns]
+                        change: [-1.9375% -1.6116% -1.3082%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 11 outliers among 100 measurements (11.00%)
+  7 (7.00%) high mild
+  4 (4.00%) high severe
 
-cosine avx2 1024 nofma  time:   [98.541 ns 98.839 ns 99.136 ns]
-                        change: [+0.0274% +0.2303% +0.4521%] (p = 0.03 < 0.05)
-                        Change within noise threshold.
-Found 5 outliers among 100 measurements (5.00%)
-  4 (4.00%) high mild
+cosine avx2 1024 nofma  time:   [86.846 ns 86.907 ns 86.974 ns]
+                        change: [-17.776% -17.418% -17.100%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 4 outliers among 100 measurements (4.00%)
+  2 (2.00%) low mild
+  1 (1.00%) high mild
   1 (1.00%) high severe
 
-cosine avx2 1024 fma    time:   [88.000 ns 88.179 ns 88.417 ns]
-                        change: [-6.6581% -6.4573% -6.2083%] (p = 0.00 < 0.05)
+cosine avx2 1024 fma    time:   [78.376 ns 78.458 ns 78.551 ns]
+                        change: [-11.037% -10.928% -10.816%] (p = 0.00 < 0.05)
                         Performance has improved.
-Found 8 outliers among 100 measurements (8.00%)
-  5 (5.00%) high mild
+Found 4 outliers among 100 measurements (4.00%)
+  1 (1.00%) high mild
   3 (3.00%) high severe
 ```
 
 #### Dot Product
 ```
-dot simsimd 1024 auto   time:   [622.74 ns 624.67 ns 626.63 ns]
-                        change: [-0.2335% -0.0002% +0.2353%] (p = 1.00 > 0.05)
-                        No change in performance detected.
-
-dot fallback 1024 nofma time:   [640.86 ns 643.04 ns 645.18 ns]
-                        change: [+0.7937% +1.0353% +1.2542%] (p = 0.00 < 0.05)
+dot ndarray 1024 auto   time:   [45.813 ns 45.839 ns 45.868 ns]
+                        change: [-0.9838% -0.7848% -0.6020%] (p = 0.00 < 0.05)
                         Change within noise threshold.
+Found 3 outliers among 100 measurements (3.00%)
+  2 (2.00%) high mild
+  1 (1.00%) high severe
 
-dot fallback 1024 fma   time:   [840.15 ns 841.00 ns 842.00 ns]
-                        change: [-0.0655% +0.1866% +0.4248%] (p = 0.13 > 0.05)
+dot simsimd 1024 auto   time:   [623.84 ns 624.95 ns 626.19 ns]
+                        change: [-0.1856% +0.0046% +0.1989%] (p = 0.96 > 0.05)
                         No change in performance detected.
-
-dot avx2 1024 nofma     time:   [41.678 ns 41.783 ns 41.896 ns]
-                        change: [+0.8655% +0.9965% +1.1517%] (p = 0.00 < 0.05)
-                        Change within noise threshold.
 Found 5 outliers among 100 measurements (5.00%)
-  3 (3.00%) high mild
-  2 (2.00%) high severe
+  5 (5.00%) high mild
 
-dot avx2 1024 fma       time:   [35.280 ns 35.350 ns 35.443 ns]
-                        change: [-4.2100% -4.0410% -3.8628%] (p = 0.00 < 0.05)
+dot fallback 1024 nofma time:   [634.03 ns 634.56 ns 635.20 ns]
+                        change: [-1.9555% -1.7268% -1.4988%] (p = 0.00 < 0.05)
                         Performance has improved.
+Found 12 outliers among 100 measurements (12.00%)
+  9 (9.00%) high mild
+  3 (3.00%) high severe
+
+dot fallback 1024 fma   time:   [838.73 ns 839.32 ns 840.01 ns]
+                        change: [-0.9247% -0.6865% -0.4746%] (p = 0.00 < 0.05)
+                        Change within noise threshold.
+Found 13 outliers among 100 measurements (13.00%)
+  7 (7.00%) high mild
+  6 (6.00%) high severe
+
+dot avx2 1024 nofma     time:   [41.393 ns 41.415 ns 41.438 ns]
+                        change: [+0.3461% +0.4237% +0.4978%] (p = 0.00 < 0.05)
+                        Change within noise threshold.
+Found 4 outliers among 100 measurements (4.00%)
+  3 (3.00%) high mild
+  1 (1.00%) high severe
+
+dot avx2 1024 fma       time:   [36.822 ns 36.855 ns 36.892 ns]
+                        change: [+5.2839% +5.3934% +5.5023%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 4 outliers among 100 measurements (4.00%)
+  4 (4.00%) high mild
 ```
 
 #### Euclidean
 ```
 euclidean autovec 1024 nofma
-                        time:   [640.13 ns 641.09 ns 642.21 ns]
-                        change: [+0.6032% +0.8656% +1.1820%] (p = 0.00 < 0.05)
+                        time:   [641.46 ns 642.78 ns 644.09 ns]
+                        change: [+0.2768% +0.4417% +0.5957%] (p = 0.00 < 0.05)
                         Change within noise threshold.
-Found 8 outliers among 100 measurements (8.00%)
-  7 (7.00%) high mild
-  1 (1.00%) high severe
+Found 9 outliers among 100 measurements (9.00%)
+  6 (6.00%) high mild
+  3 (3.00%) high severe
 
 euclidean autovec 1024 fma
-                        time:   [848.70 ns 852.44 ns 856.34 ns]
-                        change: [-2.0355% -1.6956% -1.3499%] (p = 0.00 < 0.05)
-                        Performance has improved.
-Found 8 outliers among 100 measurements (8.00%)
-  6 (6.00%) high mild
-  2 (2.00%) high severe
+                        time:   [847.76 ns 849.99 ns 852.76 ns]
+                        change: [+0.9907% +1.2895% +1.5777%] (p = 0.00 < 0.05)
+                        Change within noise threshold.
+Found 3 outliers among 100 measurements (3.00%)
+  3 (3.00%) high mild
 
 euclidean simsimd 1024 auto
-                        time:   [624.09 ns 625.18 ns 626.64 ns]
-                        change: [-1.4581% -1.1684% -0.8933%] (p = 0.00 < 0.05)
-                        Change within noise threshold.
-Found 8 outliers among 100 measurements (8.00%)
-  4 (4.00%) high mild
-  4 (4.00%) high severe
-
-euclidean avx2 1024 nofma
-                        time:   [41.972 ns 41.995 ns 42.018 ns]
-                        change: [-20.838% -18.647% -16.927%] (p = 0.00 < 0.05)
-                        Performance has improved.
-Found 3 outliers among 100 measurements (3.00%)
-  2 (2.00%) low mild
+                        time:   [643.85 ns 645.70 ns 647.49 ns]
+                        change: [+1.9857% +2.2779% +2.5745%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 1 outliers among 100 measurements (1.00%)
   1 (1.00%) high mild
 
-euclidean avx2 1024 fma time:   [41.229 ns 41.263 ns 41.307 ns]
-                        change: [-18.592% -17.681% -16.916%] (p = 0.00 < 0.05)
-                        Performance has improved.
-Found 8 outliers among 100 measurements (8.00%)
-  2 (2.00%) low mild
-  3 (3.00%) high mild
-  3 (3.00%) high severe
+euclidean avx2 1024 nofma
+                        time:   [42.749 ns 43.011 ns 43.292 ns]
+                        change: [+1.5659% +2.0110% +2.4906%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 10 outliers among 100 measurements (10.00%)
+  6 (6.00%) high mild
+  4 (4.00%) high severe
+
+euclidean avx2 1024 fma time:   [41.554 ns 41.702 ns 41.862 ns]
+                        change: [+1.6153% +1.8232% +2.0577%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 9 outliers among 100 measurements (9.00%)
+  1 (1.00%) low mild
+  6 (6.00%) high mild
+  2 (2.00%) high severe
 ```
