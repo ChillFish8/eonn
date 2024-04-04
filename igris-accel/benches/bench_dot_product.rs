@@ -1,7 +1,6 @@
 extern crate blas_src;
 
 use std::hint::black_box;
-use std::marker::PhantomData;
 
 use criterion::{criterion_group, criterion_main, Criterion};
 use igris_accel::vector_ops::{Avx2, DistanceOps, Fallback, Fma, NoFma, Vector, X1024};
@@ -44,7 +43,7 @@ fn criterion_benchmark(c: &mut Criterion) {
 
         b.iter(|| simsimd_dot(black_box(&v1), black_box(&v2)))
     });
-    c.bench_function("dot fallback 1024 nofma", |b| {
+    c.bench_function("dot fallback 1024 nofma", |b| unsafe {
         let mut v1 = Vec::new();
         let mut v2 = Vec::new();
         for _ in 0..1024 {
@@ -52,12 +51,12 @@ fn criterion_benchmark(c: &mut Criterion) {
             v2.push(rand::random());
         }
 
-        let v1 = Vector::<Fallback, X1024, f32, NoFma>(v1, PhantomData);
-        let v2 = Vector::<Fallback, X1024, f32, NoFma>(v2, PhantomData);
+        let v1 = Vector::<Fallback, X1024, f32, NoFma>::from_vec_unchecked(v1);
+        let v2 = Vector::<Fallback, X1024, f32, NoFma>::from_vec_unchecked(v2);
 
         b.iter(|| dot(black_box(&v1), black_box(&v2)))
     });
-    c.bench_function("dot fallback 1024 fma", |b| {
+    c.bench_function("dot fallback 1024 fma", |b| unsafe {
         let mut v1 = Vec::new();
         let mut v2 = Vec::new();
         for _ in 0..1024 {
@@ -65,12 +64,12 @@ fn criterion_benchmark(c: &mut Criterion) {
             v2.push(rand::random());
         }
 
-        let v1 = Vector::<Fallback, X1024, f32, Fma>(v1, PhantomData);
-        let v2 = Vector::<Fallback, X1024, f32, Fma>(v2, PhantomData);
+        let v1 = Vector::<Fallback, X1024, f32, Fma>::from_vec_unchecked(v1);
+        let v2 = Vector::<Fallback, X1024, f32, Fma>::from_vec_unchecked(v2);
 
         b.iter(|| dot(black_box(&v1), black_box(&v2)))
     });
-    c.bench_function("dot avx2 1024 nofma", |b| {
+    c.bench_function("dot avx2 1024 nofma", |b| unsafe {
         let mut v1 = Vec::new();
         let mut v2 = Vec::new();
         for _ in 0..1024 {
@@ -78,12 +77,12 @@ fn criterion_benchmark(c: &mut Criterion) {
             v2.push(rand::random());
         }
 
-        let v1 = Vector::<Avx2, X1024, f32, NoFma>(v1, PhantomData);
-        let v2 = Vector::<Avx2, X1024, f32, NoFma>(v2, PhantomData);
+        let v1 = Vector::<Avx2, X1024, f32, NoFma>::from_vec_unchecked(v1);
+        let v2 = Vector::<Avx2, X1024, f32, NoFma>::from_vec_unchecked(v2);
 
         b.iter(|| dot(black_box(&v1), black_box(&v2)))
     });
-    c.bench_function("dot avx2 1024 fma", |b| {
+    c.bench_function("dot avx2 1024 fma", |b| unsafe {
         let mut v1 = Vec::new();
         let mut v2 = Vec::new();
         for _ in 0..1024 {
@@ -91,8 +90,8 @@ fn criterion_benchmark(c: &mut Criterion) {
             v2.push(rand::random());
         }
 
-        let v1 = Vector::<Avx2, X1024, f32, Fma>(v1, PhantomData);
-        let v2 = Vector::<Avx2, X1024, f32, Fma>(v2, PhantomData);
+        let v1 = Vector::<Avx2, X1024, f32, Fma>::from_vec_unchecked(v1);
+        let v2 = Vector::<Avx2, X1024, f32, Fma>::from_vec_unchecked(v2);
 
         b.iter(|| dot(black_box(&v1), black_box(&v2)))
     });
