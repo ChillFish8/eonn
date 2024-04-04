@@ -1,5 +1,6 @@
-use super::Math;
 use core::intrinsics;
+
+use super::Math;
 
 /// Basic math operations backed by fast-math intrinsics.
 ///

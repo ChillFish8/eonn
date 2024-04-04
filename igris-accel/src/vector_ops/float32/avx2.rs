@@ -1,6 +1,17 @@
-use crate::math::{FastMath, Math, StdMath};
-use crate::vector_ops::{Avx2, DistanceOps, Fma, NoFma, Vector, VectorView, X1024, X512, X768};
 use std::arch::x86_64::*;
+
+use crate::math::{FastMath, Math, StdMath};
+use crate::vector_ops::{
+    Avx2,
+    DistanceOps,
+    Fma,
+    NoFma,
+    Vector,
+    VectorView,
+    X1024,
+    X512,
+    X768,
+};
 
 impl DistanceOps for Vector<Avx2, X1024, f32, NoFma> {
     #[inline]
@@ -915,7 +926,9 @@ mod tests {
     use super::*;
     use crate::math::{FastMath, StdMath};
     use crate::vector_ops::float32::fallback::{
-        fallback_cosine, fallback_dot_product, fallback_euclidean,
+        fallback_cosine,
+        fallback_dot_product,
+        fallback_euclidean,
     };
 
     #[test]

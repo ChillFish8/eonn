@@ -1,5 +1,15 @@
 use crate::math::{FastMath, Math, StdMath};
-use crate::vector_ops::{DistanceOps, Fallback, Fma, NoFma, Vector, VectorView, X1024, X512, X768};
+use crate::vector_ops::{
+    DistanceOps,
+    Fallback,
+    Fma,
+    NoFma,
+    Vector,
+    VectorView,
+    X1024,
+    X512,
+    X768,
+};
 
 impl DistanceOps for Vector<Fallback, X1024, f32, NoFma> {
     #[inline]
@@ -206,7 +216,10 @@ impl<'a> DistanceOps for VectorView<'a, Fallback, X512, f32, Fma> {
 }
 
 #[inline]
-pub(super) unsafe fn fallback_dot_product<M: Math, const DIMS: usize>(a: &[f32], b: &[f32]) -> f32 {
+pub(super) unsafe fn fallback_dot_product<M: Math, const DIMS: usize>(
+    a: &[f32],
+    b: &[f32],
+) -> f32 {
     debug_assert_eq!(
         b.len(),
         DIMS,
@@ -230,7 +243,10 @@ pub(super) unsafe fn fallback_dot_product<M: Math, const DIMS: usize>(a: &[f32],
 }
 
 #[inline]
-pub(super) unsafe fn fallback_cosine<M: Math, const DIMS: usize>(a: &[f32], b: &[f32]) -> f32 {
+pub(super) unsafe fn fallback_cosine<M: Math, const DIMS: usize>(
+    a: &[f32],
+    b: &[f32],
+) -> f32 {
     debug_assert_eq!(
         b.len(),
         DIMS,
@@ -265,7 +281,10 @@ pub(super) unsafe fn fallback_cosine<M: Math, const DIMS: usize>(a: &[f32], b: &
 }
 
 #[inline]
-pub(super) unsafe fn fallback_euclidean<M: Math, const DIMS: usize>(a: &[f32], b: &[f32]) -> f32 {
+pub(super) unsafe fn fallback_euclidean<M: Math, const DIMS: usize>(
+    a: &[f32],
+    b: &[f32],
+) -> f32 {
     debug_assert_eq!(
         b.len(),
         DIMS,

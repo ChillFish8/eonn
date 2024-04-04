@@ -28,7 +28,3 @@ harness = false
 [[bench]]
 name = "bench_euclidean"
 harness = false
-
-[[bench]]
-name = "bench_bruteforce_index"
-harness = false

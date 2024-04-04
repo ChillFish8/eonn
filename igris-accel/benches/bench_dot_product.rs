@@ -4,8 +4,8 @@ use std::hint::black_box;
 use std::marker::PhantomData;
 
 use criterion::{criterion_group, criterion_main, Criterion};
-use ndarray::{Array1, ArrayView1};
 use igris_accel::vector_ops::{Avx2, DistanceOps, Fallback, Fma, NoFma, Vector, X1024};
+use ndarray::Array1;
 use simsimd::SpatialSimilarity;
 
 fn dot<T: DistanceOps>(a: &T, b: &T) -> f32 {
@@ -28,7 +28,7 @@ fn criterion_benchmark(c: &mut Criterion) {
             v1.push(rand::random());
             v2.push(rand::random());
         }
-        
+
         let v1 = Array1::from_shape_vec((1024,), v1).unwrap();
         let v2 = Array1::from_shape_vec((1024,), v2).unwrap();
 
