@@ -1,14 +1,6 @@
 use std::arch::x86_64::*;
+use crate::vector_ops::{Avx2, DistanceOps, Fma, NoFma, Vector, X1024, X512, X768};
 
-use super::arch::Avx2;
-use super::{DistanceOps, Fma, NoFma, Vector};
-
-/// Float 32 vectors with 512 dimensions.
-pub struct X1024;
-/// Float 32 vectors with 512 dimensions.
-pub struct X768;
-/// Float 32 vectors with 512 dimensions.
-pub struct X512;
 
 impl DistanceOps for Vector<Avx2, X1024, f32, NoFma> {
     /// AVX2 enabled dot product.
@@ -279,6 +271,142 @@ unsafe fn f32_avx2_dot<const DIMS: usize>(a: &[f32], b: &[f32]) -> f32 {
     acc1 = _mm256_add_ps(acc1, acc3);
 
     sum_avx2(acc1)
+}
+
+#[inline]
+/// AVX2 cosine distance implementation for f32 vectors.
+///
+/// This implementation assumes no FMA is enabled.
+///
+/// Since it is more likely than not that an FMA enabled CPU is available now days,
+/// this implementation is not as heavily inlined or unrolled to save some space.
+unsafe fn f32_avx2_cosine<const DIMS: usize>(a: &[f32], b: &[f32]) -> f32 {
+    let a_ptr = a.as_ptr();
+    let b_ptr = b.as_ptr();
+
+    let mut acc1 = _mm256_set1_ps(0.0);
+    let mut acc2 = _mm256_set1_ps(0.0);
+    let mut acc3 = _mm256_set1_ps(0.0);
+    let mut acc4 = _mm256_set1_ps(0.0);
+
+    let mut norm_acc_a1 = _mm256_set1_ps(0.0);
+    let mut norm_acc_a2 = _mm256_set1_ps(0.0);
+    let mut norm_acc_a3 = _mm256_set1_ps(0.0);
+    let mut norm_acc_a4 = _mm256_set1_ps(0.0);
+
+    let mut norm_acc_b1 = _mm256_set1_ps(0.0);
+    let mut norm_acc_b2 = _mm256_set1_ps(0.0);
+    let mut norm_acc_b3 = _mm256_set1_ps(0.0);
+    let mut norm_acc_b4 = _mm256_set1_ps(0.0);
+
+    // iters = num_dims / num_elements computer per pass
+    for i in 0..DIMS / 64 {
+        // Step * num per lane * groups of
+        let base_offset = i * 64;
+
+        let [a1, a2, a3, a4] = offsets(a_ptr, base_offset);
+        let [a5, a6, a7, a8] = offsets(a_ptr, base_offset + 32);
+
+        let [b1, b2, b3, b4] = offsets(b_ptr, base_offset);
+        let [b5, b6, b7, b8] = offsets(b_ptr, base_offset + 32);
+
+        let a1 = _mm256_loadu_ps(a1);
+        let a2 = _mm256_loadu_ps(a2);
+        let a3 = _mm256_loadu_ps(a3);
+        let a4 = _mm256_loadu_ps(a4);
+        let a5 = _mm256_loadu_ps(a5);
+        let a6 = _mm256_loadu_ps(a6);
+        let a7 = _mm256_loadu_ps(a7);
+        let a8 = _mm256_loadu_ps(a8);
+
+        let b1 = _mm256_loadu_ps(b1);
+        let b2 = _mm256_loadu_ps(b2);
+        let b3 = _mm256_loadu_ps(b3);
+        let b4 = _mm256_loadu_ps(b4);
+        let b5 = _mm256_loadu_ps(b5);
+        let b6 = _mm256_loadu_ps(b6);
+        let b7 = _mm256_loadu_ps(b7);
+        let b8 = _mm256_loadu_ps(b8);
+
+        // Compute the dot product for lanes 1-8
+        let r1 = _mm256_mul_ps(a1, b1);
+        let r2 = _mm256_mul_ps(a2, b2);
+        let r3 = _mm256_mul_ps(a3, b3);
+        let r4 = _mm256_mul_ps(a4, b4);
+        let r5 = _mm256_mul_ps(a5, b5);
+        let r6 = _mm256_mul_ps(a6, b6);
+        let r7 = _mm256_mul_ps(a7, b7);
+        let r8 = _mm256_mul_ps(a8, b8);
+
+        // Compute the squared norm for lanes A 1-8
+        let norm_a1 = _mm256_mul_ps(a1, a1);
+        let norm_a2 = _mm256_mul_ps(a2, a2);
+        let norm_a3 = _mm256_mul_ps(a3, a3);
+        let norm_a4 = _mm256_mul_ps(a4, a4);
+        let norm_a5 = _mm256_mul_ps(a5, a5);
+        let norm_a6 = _mm256_mul_ps(a6, a6);
+        let norm_a7 = _mm256_mul_ps(a7, a7);
+        let norm_a8 = _mm256_mul_ps(a8, a8);
+
+        // Compute the squared norm for lanes B 1-8
+        let norm_b1 = _mm256_mul_ps(b1, b1);
+        let norm_b2 = _mm256_mul_ps(b2, b2);
+        let norm_b3 = _mm256_mul_ps(b3, b3);
+        let norm_b4 = _mm256_mul_ps(b4, b4);
+        let norm_b5 = _mm256_mul_ps(b5, b5);
+        let norm_b6 = _mm256_mul_ps(b6, b6);
+        let norm_b7 = _mm256_mul_ps(b7, b7);
+        let norm_b8 = _mm256_mul_ps(b8, b8);
+
+        // Accumulate dot product
+        acc1 = _mm256_add_ps(acc1, r1);
+        acc2 = _mm256_add_ps(acc2, r2);
+        acc3 = _mm256_add_ps(acc3, r3);
+        acc4 = _mm256_add_ps(acc4, r4);
+        acc1 = _mm256_add_ps(acc1, r5);
+        acc2 = _mm256_add_ps(acc2, r6);
+        acc3 = _mm256_add_ps(acc3, r7);
+        acc4 = _mm256_add_ps(acc4, r8);
+
+        // Accumulate norm A
+        norm_acc_a1 = _mm256_add_ps(norm_acc_a1, norm_a1);
+        norm_acc_a2 = _mm256_add_ps(norm_acc_a2, norm_a2);
+        norm_acc_a3 = _mm256_add_ps(norm_acc_a3, norm_a3);
+        norm_acc_a4 = _mm256_add_ps(norm_acc_a4, norm_a4);
+        norm_acc_a1 = _mm256_add_ps(norm_acc_a1, norm_a5);
+        norm_acc_a2 = _mm256_add_ps(norm_acc_a2, norm_a6);
+        norm_acc_a3 = _mm256_add_ps(norm_acc_a3, norm_a7);
+        norm_acc_a4 = _mm256_add_ps(norm_acc_a4, norm_a8);
+
+        // Accumulate norm B
+        norm_acc_b1 = _mm256_add_ps(norm_acc_b1, norm_b1);
+        norm_acc_b2 = _mm256_add_ps(norm_acc_b2, norm_b2);
+        norm_acc_b3 = _mm256_add_ps(norm_acc_b3, norm_b3);
+        norm_acc_b4 = _mm256_add_ps(norm_acc_b4, norm_b4);
+        norm_acc_b1 = _mm256_add_ps(norm_acc_b1, norm_b5);
+        norm_acc_b2 = _mm256_add_ps(norm_acc_b2, norm_b6);
+        norm_acc_b3 = _mm256_add_ps(norm_acc_b3, norm_b7);
+        norm_acc_b4 = _mm256_add_ps(norm_acc_b4, norm_b8);
+    }
+
+    acc1 = _mm256_add_ps(acc1, acc2);
+    acc3 = _mm256_add_ps(acc3, acc4);
+
+    norm_acc_a1 = _mm256_add_ps(norm_acc_a1, norm_acc_a2);
+    norm_acc_a3 = _mm256_add_ps(norm_acc_a3, norm_acc_a4);
+
+    norm_acc_b1 = _mm256_add_ps(norm_acc_b1, norm_acc_b2);
+    norm_acc_b3 = _mm256_add_ps(norm_acc_b3, norm_acc_b4);
+
+    acc1 = _mm256_add_ps(acc1, acc3);
+    norm_acc_a1 = _mm256_add_ps(norm_acc_a1, norm_acc_a3);
+    norm_acc_b1 = _mm256_add_ps(norm_acc_b1, norm_acc_b3);
+
+    let result = sum_avx2(acc1);
+    let norm_a = sum_avx2(norm_acc_a1);
+    let norm_b = sum_avx2(norm_acc_b1);
+
+    1.0 - (result / (norm_a * norm_b).sqrt())
 }
 
 #[inline]

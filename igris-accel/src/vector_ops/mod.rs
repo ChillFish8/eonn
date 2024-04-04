@@ -11,6 +11,13 @@ pub use float32::*;
 /// A specialised vector wrapper
 pub struct Vector<Arch, Dims, T = f32, Fma = NoFma>(pub Vec<T>, pub PhantomData<(Arch, Dims, Fma)>);
 
+/// Vector dimensions of 1024
+pub struct X1024;
+/// Vector dimensions of 768
+pub struct X768;
+/// Vector dimensions of 512
+pub struct X512;
+
 /// Core vector space distance calculations
 pub trait DistanceOps {
     /// Calculates the dot product distance.
