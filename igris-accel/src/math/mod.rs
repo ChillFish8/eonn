@@ -1,9 +1,7 @@
 mod default;
-#[cfg(feature = "fast-math")]
 mod fast_math;
 
 pub use default::StdMath;
-#[cfg(feature = "fast-math")]
 pub use fast_math::FastMath;
 
 /// Core simple math operations that can be adjusted for certain features

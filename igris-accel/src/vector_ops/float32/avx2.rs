@@ -1,3 +1,4 @@
+use crate::math::{FastMath, Math, StdMath};
 use crate::vector_ops::{Avx2, DistanceOps, Fma, NoFma, Vector, X1024, X512, X768};
 use std::arch::x86_64::*;
 
@@ -10,7 +11,7 @@ impl DistanceOps for Vector<Avx2, X1024, f32, NoFma> {
     }
 
     unsafe fn cosine(&self, other: &Self) -> f32 {
-        f32_avx2_cosine::<1024>(&self.0, &other.0)
+        f32_avx2_cosine::<StdMath, 1024>(&self.0, &other.0)
     }
 
     unsafe fn euclidean(&self, other: &Self) -> f32 {
@@ -27,7 +28,7 @@ impl DistanceOps for Vector<Avx2, X768, f32, NoFma> {
     }
 
     unsafe fn cosine(&self, other: &Self) -> f32 {
-        todo!()
+        f32_avx2_cosine::<StdMath, 768>(&self.0, &other.0)
     }
 
     unsafe fn euclidean(&self, other: &Self) -> f32 {
@@ -44,7 +45,7 @@ impl DistanceOps for Vector<Avx2, X512, f32, NoFma> {
     }
 
     unsafe fn cosine(&self, other: &Self) -> f32 {
-        todo!()
+        f32_avx2_cosine::<StdMath, 512>(&self.0, &other.0)
     }
 
     unsafe fn euclidean(&self, other: &Self) -> f32 {
@@ -61,7 +62,7 @@ impl DistanceOps for Vector<Avx2, X1024, f32, Fma> {
     }
 
     unsafe fn cosine(&self, other: &Self) -> f32 {
-        todo!()
+        f32_avx2_fma_cosine::<FastMath, 1024>(&self.0, &other.0)
     }
 
     unsafe fn euclidean(&self, other: &Self) -> f32 {
@@ -78,7 +79,7 @@ impl DistanceOps for Vector<Avx2, X768, f32, Fma> {
     }
 
     unsafe fn cosine(&self, other: &Self) -> f32 {
-        todo!()
+        f32_avx2_fma_cosine::<FastMath, 768>(&self.0, &other.0)
     }
 
     unsafe fn euclidean(&self, other: &Self) -> f32 {
@@ -95,7 +96,7 @@ impl DistanceOps for Vector<Avx2, X512, f32, Fma> {
     }
 
     unsafe fn cosine(&self, other: &Self) -> f32 {
-        todo!()
+        f32_avx2_fma_cosine::<FastMath, 512>(&self.0, &other.0)
     }
 
     unsafe fn euclidean(&self, other: &Self) -> f32 {
@@ -279,7 +280,7 @@ unsafe fn f32_avx2_dot<const DIMS: usize>(a: &[f32], b: &[f32]) -> f32 {
 ///
 /// Since it is more likely than not that an FMA enabled CPU is available now days,
 /// this implementation is not as heavily inlined or unrolled to save some space.
-unsafe fn f32_avx2_cosine<const DIMS: usize>(a: &[f32], b: &[f32]) -> f32 {
+unsafe fn f32_avx2_cosine<M: Math, const DIMS: usize>(a: &[f32], b: &[f32]) -> f32 {
     let a_ptr = a.as_ptr();
     let b_ptr = b.as_ptr();
 
@@ -410,7 +411,116 @@ unsafe fn f32_avx2_cosine<const DIMS: usize>(a: &[f32], b: &[f32]) -> f32 {
     } else if norm_a == 0.0 || norm_b == 0.0 {
         1.0
     } else {
-        1.0 - (result / (norm_a * norm_b).sqrt())
+        M::sub(1.0, M::div(result, M::mul(norm_a, norm_b).sqrt()))
+    }
+}
+
+#[inline]
+/// AVX2 cosine distance implementation for f32 vectors.
+///
+/// This implementation assumes FMA is enabled.
+unsafe fn f32_avx2_fma_cosine<M: Math, const DIMS: usize>(a: &[f32], b: &[f32]) -> f32 {
+    let a_ptr = a.as_ptr();
+    let b_ptr = b.as_ptr();
+
+    let mut acc1 = _mm256_set1_ps(0.0);
+    let mut acc2 = _mm256_set1_ps(0.0);
+    let mut acc3 = _mm256_set1_ps(0.0);
+    let mut acc4 = _mm256_set1_ps(0.0);
+
+    let mut norm_acc_a1 = _mm256_set1_ps(0.0);
+    let mut norm_acc_a2 = _mm256_set1_ps(0.0);
+    let mut norm_acc_a3 = _mm256_set1_ps(0.0);
+    let mut norm_acc_a4 = _mm256_set1_ps(0.0);
+
+    let mut norm_acc_b1 = _mm256_set1_ps(0.0);
+    let mut norm_acc_b2 = _mm256_set1_ps(0.0);
+    let mut norm_acc_b3 = _mm256_set1_ps(0.0);
+    let mut norm_acc_b4 = _mm256_set1_ps(0.0);
+
+    // iters = num_dims / num_elements computer per pass
+    for i in 0..DIMS / 64 {
+        // Step * num per lane * groups of
+        let base_offset = i * 64;
+
+        let [a1, a2, a3, a4] = offsets(a_ptr, base_offset);
+        let [a5, a6, a7, a8] = offsets(a_ptr, base_offset + 32);
+
+        let [b1, b2, b3, b4] = offsets(b_ptr, base_offset);
+        let [b5, b6, b7, b8] = offsets(b_ptr, base_offset + 32);
+
+        let a1 = _mm256_loadu_ps(a1);
+        let a2 = _mm256_loadu_ps(a2);
+        let a3 = _mm256_loadu_ps(a3);
+        let a4 = _mm256_loadu_ps(a4);
+        let a5 = _mm256_loadu_ps(a5);
+        let a6 = _mm256_loadu_ps(a6);
+        let a7 = _mm256_loadu_ps(a7);
+        let a8 = _mm256_loadu_ps(a8);
+
+        let b1 = _mm256_loadu_ps(b1);
+        let b2 = _mm256_loadu_ps(b2);
+        let b3 = _mm256_loadu_ps(b3);
+        let b4 = _mm256_loadu_ps(b4);
+        let b5 = _mm256_loadu_ps(b5);
+        let b6 = _mm256_loadu_ps(b6);
+        let b7 = _mm256_loadu_ps(b7);
+        let b8 = _mm256_loadu_ps(b8);
+
+        // Accumulate dot product
+        acc1 = _mm256_fmadd_ps(a1, b1, acc1);
+        acc2 = _mm256_fmadd_ps(a2, b2, acc2);
+        acc3 = _mm256_fmadd_ps(a3, b3, acc3);
+        acc4 = _mm256_fmadd_ps(a4, b4, acc4);
+        acc1 = _mm256_fmadd_ps(a5, b5, acc1);
+        acc2 = _mm256_fmadd_ps(a6, b6, acc2);
+        acc3 = _mm256_fmadd_ps(a7, b7, acc3);
+        acc4 = _mm256_fmadd_ps(a8, b8, acc4);
+
+        // Accumulate norm A
+        norm_acc_a1 = _mm256_fmadd_ps(a1, a1, norm_acc_a1);
+        norm_acc_a2 = _mm256_fmadd_ps(a2, a2, norm_acc_a2);
+        norm_acc_a3 = _mm256_fmadd_ps(a3, a3, norm_acc_a3);
+        norm_acc_a4 = _mm256_fmadd_ps(a4, a4, norm_acc_a4);
+        norm_acc_a1 = _mm256_fmadd_ps(a5, a5, norm_acc_a1);
+        norm_acc_a2 = _mm256_fmadd_ps(a6, a6, norm_acc_a2);
+        norm_acc_a3 = _mm256_fmadd_ps(a7, a7, norm_acc_a3);
+        norm_acc_a4 = _mm256_fmadd_ps(a8, a8, norm_acc_a4);
+
+        // Accumulate norm B
+        norm_acc_b1 = _mm256_fmadd_ps(b1, b1, norm_acc_b1);
+        norm_acc_b2 = _mm256_fmadd_ps(b2, b2, norm_acc_b2);
+        norm_acc_b3 = _mm256_fmadd_ps(b3, b3, norm_acc_b3);
+        norm_acc_b4 = _mm256_fmadd_ps(b4, b4, norm_acc_b4);
+        norm_acc_b1 = _mm256_fmadd_ps(b5, b5, norm_acc_b1);
+        norm_acc_b2 = _mm256_fmadd_ps(b6, b6, norm_acc_b2);
+        norm_acc_b3 = _mm256_fmadd_ps(b7, b7, norm_acc_b3);
+        norm_acc_b4 = _mm256_fmadd_ps(b8, b8, norm_acc_b4);
+    }
+
+    acc1 = _mm256_add_ps(acc1, acc2);
+    acc3 = _mm256_add_ps(acc3, acc4);
+
+    norm_acc_a1 = _mm256_add_ps(norm_acc_a1, norm_acc_a2);
+    norm_acc_a3 = _mm256_add_ps(norm_acc_a3, norm_acc_a4);
+
+    norm_acc_b1 = _mm256_add_ps(norm_acc_b1, norm_acc_b2);
+    norm_acc_b3 = _mm256_add_ps(norm_acc_b3, norm_acc_b4);
+
+    acc1 = _mm256_add_ps(acc1, acc3);
+    norm_acc_a1 = _mm256_add_ps(norm_acc_a1, norm_acc_a3);
+    norm_acc_b1 = _mm256_add_ps(norm_acc_b1, norm_acc_b3);
+
+    let result = sum_avx2(acc1);
+    let norm_a = sum_avx2(norm_acc_a1);
+    let norm_b = sum_avx2(norm_acc_b1);
+
+    if norm_a == 0.0 && norm_b == 0.0 {
+        0.0
+    } else if norm_a == 0.0 || norm_b == 0.0 {
+        1.0
+    } else {
+        M::sub(1.0, M::div(result, M::mul(norm_a, norm_b).sqrt()))
     }
 }
 
@@ -537,33 +647,8 @@ unsafe fn offsets(ptr: *const f32, offset: usize) -> [*const f32; 4] {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    fn basic_dot_impl(a: &[f32], b: &[f32]) -> f32 {
-        let mut result = 0.0;
-        for i in 0..a.len() {
-            result += a[i] * b[i];
-        }
-        result
-    }
-
-    fn basic_cosine_impl(a: &[f32], b: &[f32]) -> f32 {
-        let mut result = 0.0;
-        let mut norm_a = 0.0;
-        let mut norm_b = 0.0;
-        for i in 0..a.len() {
-            result += a[i] * b[i];
-            norm_a += a[i] * a[i];
-            norm_b += b[i] * b[i];
-        }
-
-        if norm_a == 0.0 && norm_b == 0.0 {
-            0.0
-        } else if norm_a == 0.0 || norm_b == 0.0 {
-            1.0
-        } else {
-            1.0 - (result / (norm_a * norm_b).sqrt())
-        }
-    }
+    use crate::math::{FastMath, StdMath};
+    use crate::vector_ops::float32::fallback::{fallback_cosine, fallback_dot_product};
 
     #[test]
     fn test_avx2_rollup_sum() {
@@ -586,7 +671,8 @@ mod tests {
         }
 
         let v = unsafe { f32_avx2_dot::<1024>(&v1, &v2) };
-        println!("Av2: {v} vs {}", basic_dot_impl(&v1, &v2));
+        let expected = unsafe { fallback_dot_product::<StdMath, 1024>(&v1, &v2) };
+        println!("Av2 DOT: {v} vs {expected}");
     }
 
     #[test]
@@ -599,7 +685,8 @@ mod tests {
         }
 
         let v = unsafe { f32_avx2_fma_dot_x1024(&v1, &v2) };
-        println!("FMA: {v} vs {}", basic_dot_impl(&v1, &v2));
+        let expected = unsafe { fallback_dot_product::<StdMath, 1024>(&v1, &v2) };
+        println!("FMA DOT: {v} vs {expected}");
     }
 
     #[test]
@@ -611,7 +698,22 @@ mod tests {
             v2.push(rand::random());
         }
 
-        let v = unsafe { f32_avx2_cosine::<1024>(&v1, &v2) };
-        println!("Av2: {v} vs {}", basic_cosine_impl(&v1, &v2));
+        let v = unsafe { f32_avx2_cosine::<StdMath, 1024>(&v1, &v2) };
+        let expected = unsafe { fallback_cosine::<StdMath, 1024>(&v1, &v2) };
+        println!("Av2 COSINE: {v} vs {expected}");
+    }
+
+    #[test]
+    fn test_avx2_fma_cosine() {
+        let mut v1 = Vec::with_capacity(1024);
+        let mut v2 = Vec::with_capacity(1024);
+        for _ in 0..1024 {
+            v1.push(rand::random());
+            v2.push(rand::random());
+        }
+
+        let v = unsafe { f32_avx2_fma_cosine::<FastMath, 1024>(&v1, &v2) };
+        let expected = unsafe { fallback_cosine::<FastMath, 1024>(&v1, &v2) };
+        println!("FMA COSINE: {v} vs {expected}");
     }
 }

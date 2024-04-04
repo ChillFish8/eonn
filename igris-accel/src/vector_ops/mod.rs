@@ -5,8 +5,7 @@ use std::marker::PhantomData;
 mod arch;
 mod float32;
 
-pub use arch::*;
-pub use float32::*;
+pub use arch::{Avx2, Avx512, Fallback, Fma, NoFma};
 
 /// A specialised vector wrapper
 pub struct Vector<Arch, Dims, T = f32, Fma = NoFma>(pub Vec<T>, pub PhantomData<(Arch, Dims, Fma)>);

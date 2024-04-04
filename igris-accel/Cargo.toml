@@ -8,10 +8,6 @@ description = "Accelerated operations for the igris service"
 
 [dependencies]
 
-[features]
-# Enables fast-math operations.
-fast-math = []
-
 [dev-dependencies]
 rand = "0.8.5"
 simsimd = "4.2.2"

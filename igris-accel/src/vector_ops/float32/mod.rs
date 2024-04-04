@@ -1,3 +1,2 @@
 mod avx2;
-
-pub use avx2::*;
+pub(super) mod fallback;
