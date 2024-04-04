@@ -7,7 +7,7 @@ mod arch;
 mod dims;
 mod float32;
 
-pub use arch::{Avx2, Avx512, Fallback, Fma, NoFma};
+pub use arch::*;
 pub use dims::{X1024, X512, X768};
 
 use crate::vector_ops::dims::Dim;
