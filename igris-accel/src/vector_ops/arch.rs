@@ -1,3 +1,7 @@
+#[cfg(all(
+    any(target_arch = "x86_64", target_arch = "x86"),
+    target_feature = "avx2"
+))]
 /// AVX2 enabled architectures.
 pub struct Avx2;
 /// AVX512 enabled architectures.

@@ -11,11 +11,18 @@ description = "Accelerated operations for the igris service"
 [dev-dependencies]
 rand = "0.8.5"
 simsimd = "4.2.2"
+
+criterion = { version = "0.5.1", features = ["html_reports"] }
+
+[target.'cfg(unix)'.dev-dependencies]
 ndarray = { version = "0.15.6", features = ["blas"] }
 blas-src = { version = "0.8", features = ["openblas"] }
 openblas-src = { version = "0.10", features = ["cblas", "system"] }
 
-criterion = { version = "0.5.1", features = ["html_reports"] }
+[features]
+# Enables all architecture specific code regardless of if the code is being
+# compiled with the required code. This is only really meant to be used for testing and IDEs.
+bypass-arch-flags = []
 
 [[bench]]
 name = "bench_dot_product"

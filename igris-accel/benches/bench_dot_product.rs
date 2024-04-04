@@ -1,10 +1,10 @@
+#[cfg(unix)]
 extern crate blas_src;
 
 use std::hint::black_box;
 
 use criterion::{criterion_group, criterion_main, Criterion};
 use igris_accel::vector_ops::{Avx2, DistanceOps, Fallback, Fma, NoFma, Vector, X1024};
-use ndarray::Array1;
 use simsimd::SpatialSimilarity;
 
 fn dot<T: DistanceOps>(a: &T, b: &T) -> f32 {
@@ -15,12 +15,19 @@ fn simsimd_dot(a: &[f32], b: &[f32]) -> f32 {
     f32::dot(a, b).unwrap_or_default() as f32
 }
 
-fn ndarray_dot(a: &Array1<f32>, b: &Array1<f32>) -> f32 {
+#[cfg(unix)]
+fn ndarray_dot(a: &ndarray::Array1<f32>, b: &ndarray::Array1<f32>) -> f32 {
     a.dot(b)
 }
 
 fn criterion_benchmark(c: &mut Criterion) {
+    // Hey, this code is disabled because I cannot use ndarray with openblas on my Windows machine
+    // via my IDE. If you want to get Windows working with ndarray and blas then feel free to
+    // re-enable this benchmark, otherwise, only run this benchmark if you're on linux or mac.
+    #[cfg(unix)]
     c.bench_function("dot ndarray 1024 auto", |b| {
+        use ndarray::Array1;
+
         let mut v1 = Vec::new();
         let mut v2 = Vec::new();
         for _ in 0..1024 {
