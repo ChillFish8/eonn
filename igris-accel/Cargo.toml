@@ -11,6 +11,9 @@ description = "Accelerated operations for the igris service"
 [dev-dependencies]
 rand = "0.8.5"
 simsimd = "4.2.2"
+ndarray = { version = "0.15.6", features = ["blas"] }
+blas-src = { version = "0.8", features = ["openblas"] }
+openblas-src = { version = "0.10", features = ["cblas", "system"] }
 
 criterion = { version = "0.5.1", features = ["html_reports"] }
 
@@ -24,4 +27,8 @@ harness = false
 
 [[bench]]
 name = "bench_euclidean"
+harness = false
+
+[[bench]]
+name = "bench_bruteforce_index"
 harness = false

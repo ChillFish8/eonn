@@ -1,5 +1,5 @@
 use crate::math::{FastMath, Math, StdMath};
-use crate::vector_ops::{DistanceOps, Fallback, Fma, NoFma, Vector, X1024, X512, X768};
+use crate::vector_ops::{DistanceOps, Fallback, Fma, NoFma, Vector, VectorView, X1024, X512, X768};
 
 impl DistanceOps for Vector<Fallback, X1024, f32, NoFma> {
     #[inline]
@@ -100,6 +100,108 @@ impl DistanceOps for Vector<Fallback, X512, f32, Fma> {
     #[inline]
     unsafe fn euclidean(&self, other: &Self) -> f32 {
         fallback_euclidean::<FastMath, 512>(&self.0, &other.0)
+    }
+}
+
+impl<'a> DistanceOps for VectorView<'a, Fallback, X1024, f32, NoFma> {
+    #[inline]
+    unsafe fn dot(&self, other: &Self) -> f32 {
+        fallback_dot_product::<StdMath, 1024>(self.0, other.0)
+    }
+
+    #[inline]
+    unsafe fn cosine(&self, other: &Self) -> f32 {
+        fallback_cosine::<StdMath, 1024>(self.0, other.0)
+    }
+
+    #[inline]
+    unsafe fn euclidean(&self, other: &Self) -> f32 {
+        fallback_euclidean::<StdMath, 1024>(self.0, other.0)
+    }
+}
+
+impl<'a> DistanceOps for VectorView<'a, Fallback, X768, f32, NoFma> {
+    #[inline]
+    unsafe fn dot(&self, other: &Self) -> f32 {
+        fallback_dot_product::<StdMath, 768>(self.0, other.0)
+    }
+
+    #[inline]
+    unsafe fn cosine(&self, other: &Self) -> f32 {
+        fallback_cosine::<StdMath, 768>(self.0, other.0)
+    }
+
+    #[inline]
+    unsafe fn euclidean(&self, other: &Self) -> f32 {
+        fallback_euclidean::<StdMath, 768>(self.0, other.0)
+    }
+}
+
+impl<'a> DistanceOps for VectorView<'a, Fallback, X512, f32, NoFma> {
+    #[inline]
+    unsafe fn dot(&self, other: &Self) -> f32 {
+        fallback_dot_product::<StdMath, 512>(self.0, other.0)
+    }
+
+    #[inline]
+    unsafe fn cosine(&self, other: &Self) -> f32 {
+        fallback_cosine::<StdMath, 512>(self.0, other.0)
+    }
+
+    #[inline]
+    unsafe fn euclidean(&self, other: &Self) -> f32 {
+        fallback_euclidean::<StdMath, 512>(self.0, other.0)
+    }
+}
+
+impl<'a> DistanceOps for VectorView<'a, Fallback, X1024, f32, Fma> {
+    #[inline]
+    unsafe fn dot(&self, other: &Self) -> f32 {
+        fallback_dot_product::<FastMath, 1024>(self.0, other.0)
+    }
+
+    #[inline]
+    unsafe fn cosine(&self, other: &Self) -> f32 {
+        fallback_cosine::<FastMath, 1024>(self.0, other.0)
+    }
+
+    #[inline]
+    unsafe fn euclidean(&self, other: &Self) -> f32 {
+        fallback_euclidean::<FastMath, 1024>(self.0, other.0)
+    }
+}
+
+impl<'a> DistanceOps for VectorView<'a, Fallback, X768, f32, Fma> {
+    #[inline]
+    unsafe fn dot(&self, other: &Self) -> f32 {
+        fallback_dot_product::<FastMath, 768>(self.0, other.0)
+    }
+
+    #[inline]
+    unsafe fn cosine(&self, other: &Self) -> f32 {
+        fallback_cosine::<FastMath, 768>(self.0, other.0)
+    }
+
+    #[inline]
+    unsafe fn euclidean(&self, other: &Self) -> f32 {
+        fallback_euclidean::<FastMath, 768>(self.0, other.0)
+    }
+}
+
+impl<'a> DistanceOps for VectorView<'a, Fallback, X512, f32, Fma> {
+    #[inline]
+    unsafe fn dot(&self, other: &Self) -> f32 {
+        fallback_dot_product::<FastMath, 512>(self.0, other.0)
+    }
+
+    #[inline]
+    unsafe fn cosine(&self, other: &Self) -> f32 {
+        fallback_cosine::<FastMath, 512>(self.0, other.0)
+    }
+
+    #[inline]
+    unsafe fn euclidean(&self, other: &Self) -> f32 {
+        fallback_euclidean::<FastMath, 512>(self.0, other.0)
     }
 }
 

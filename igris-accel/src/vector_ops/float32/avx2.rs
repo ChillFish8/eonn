@@ -1,5 +1,5 @@
 use crate::math::{FastMath, Math, StdMath};
-use crate::vector_ops::{Avx2, DistanceOps, Fma, NoFma, Vector, X1024, X512, X768};
+use crate::vector_ops::{Avx2, DistanceOps, Fma, NoFma, Vector, VectorView, X1024, X512, X768};
 use std::arch::x86_64::*;
 
 impl DistanceOps for Vector<Avx2, X1024, f32, NoFma> {
@@ -101,6 +101,108 @@ impl DistanceOps for Vector<Avx2, X512, f32, Fma> {
     #[inline]
     unsafe fn euclidean(&self, other: &Self) -> f32 {
         f32_avx2_fma_euclidean::<512>(&self.0, &other.0)
+    }
+}
+
+impl<'a> DistanceOps for VectorView<'a, Avx2, X1024, f32, NoFma> {
+    #[inline]
+    unsafe fn dot(&self, other: &Self) -> f32 {
+        f32_avx2_dot::<1024>(self.0, other.0)
+    }
+
+    #[inline]
+    unsafe fn cosine(&self, other: &Self) -> f32 {
+        f32_avx2_cosine::<StdMath, 1024>(self.0, other.0)
+    }
+
+    #[inline]
+    unsafe fn euclidean(&self, other: &Self) -> f32 {
+        f32_avx2_euclidean::<1024>(self.0, other.0)
+    }
+}
+
+impl<'a> DistanceOps for VectorView<'a, Avx2, X768, f32, NoFma> {
+    #[inline]
+    unsafe fn dot(&self, other: &Self) -> f32 {
+        f32_avx2_dot::<768>(self.0, other.0)
+    }
+
+    #[inline]
+    unsafe fn cosine(&self, other: &Self) -> f32 {
+        f32_avx2_cosine::<StdMath, 768>(self.0, other.0)
+    }
+
+    #[inline]
+    unsafe fn euclidean(&self, other: &Self) -> f32 {
+        f32_avx2_euclidean::<768>(self.0, other.0)
+    }
+}
+
+impl<'a> DistanceOps for VectorView<'a, Avx2, X512, f32, NoFma> {
+    #[inline]
+    unsafe fn dot(&self, other: &Self) -> f32 {
+        f32_avx2_dot::<512>(self.0, other.0)
+    }
+
+    #[inline]
+    unsafe fn cosine(&self, other: &Self) -> f32 {
+        f32_avx2_cosine::<StdMath, 512>(self.0, other.0)
+    }
+
+    #[inline]
+    unsafe fn euclidean(&self, other: &Self) -> f32 {
+        f32_avx2_euclidean::<512>(self.0, other.0)
+    }
+}
+
+impl<'a> DistanceOps for VectorView<'a, Avx2, X1024, f32, Fma> {
+    #[inline]
+    unsafe fn dot(&self, other: &Self) -> f32 {
+        f32_avx2_fma_dot_x1024(self.0, other.0)
+    }
+
+    #[inline]
+    unsafe fn cosine(&self, other: &Self) -> f32 {
+        f32_avx2_fma_cosine::<FastMath, 1024>(self.0, other.0)
+    }
+
+    #[inline]
+    unsafe fn euclidean(&self, other: &Self) -> f32 {
+        f32_avx2_fma_euclidean::<1024>(self.0, other.0)
+    }
+}
+
+impl<'a> DistanceOps for VectorView<'a, Avx2, X768, f32, Fma> {
+    #[inline]
+    unsafe fn dot(&self, other: &Self) -> f32 {
+        f32_avx2_fma_dot_x768(self.0, other.0)
+    }
+
+    #[inline]
+    unsafe fn cosine(&self, other: &Self) -> f32 {
+        f32_avx2_fma_cosine::<FastMath, 768>(self.0, other.0)
+    }
+
+    #[inline]
+    unsafe fn euclidean(&self, other: &Self) -> f32 {
+        f32_avx2_fma_euclidean::<768>(self.0, other.0)
+    }
+}
+
+impl<'a> DistanceOps for VectorView<'a, Avx2, X512, f32, Fma> {
+    #[inline]
+    unsafe fn dot(&self, other: &Self) -> f32 {
+        f32_avx2_fma_dot_x512(self.0, other.0)
+    }
+
+    #[inline]
+    unsafe fn cosine(&self, other: &Self) -> f32 {
+        f32_avx2_fma_cosine::<FastMath, 512>(self.0, other.0)
+    }
+
+    #[inline]
+    unsafe fn euclidean(&self, other: &Self) -> f32 {
+        f32_avx2_fma_euclidean::<512>(self.0, other.0)
     }
 }
 
