@@ -45,7 +45,6 @@ fn bench_avx2_x1024_fma(bencher: Bencher) {
 }
 
 
-
 fn dot<T: DistanceOps>(a: &T, b: &T) -> f32 {
     unsafe { a.dot(b) }
 }
