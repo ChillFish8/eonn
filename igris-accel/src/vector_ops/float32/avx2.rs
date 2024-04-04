@@ -812,7 +812,9 @@ unsafe fn offsets(ptr: *const f32, offset: usize) -> [*const f32; 4] {
 mod tests {
     use super::*;
     use crate::math::{FastMath, StdMath};
-    use crate::vector_ops::float32::fallback::{fallback_cosine, fallback_dot_product, fallback_euclidean};
+    use crate::vector_ops::float32::fallback::{
+        fallback_cosine, fallback_dot_product, fallback_euclidean,
+    };
 
     #[test]
     fn test_avx2_rollup_sum() {
