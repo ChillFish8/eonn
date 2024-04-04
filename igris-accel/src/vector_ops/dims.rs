@@ -5,14 +5,28 @@ pub struct X768;
 /// Vector dimensions of 512
 pub struct X512;
 
-impl X1024 {
-    pub const OFFSET: usize = 1024;
+/// Dimension specification information.
+pub trait Dim {
+    /// The size of the dim.
+    ///
+    /// This is used for validation, not compute.
+    fn size() -> usize;
 }
 
-impl X768 {
-    pub const OFFSET: usize = 768;
+impl Dim for X1024 {
+    fn size() -> usize {
+        1024
+    }
 }
 
-impl X512 {
-    pub const OFFSET: usize = 512;
+impl Dim for X768 {
+    fn size() -> usize {
+        768
+    }
+}
+
+impl Dim for X512 {
+    fn size() -> usize {
+        512
+    }
 }
