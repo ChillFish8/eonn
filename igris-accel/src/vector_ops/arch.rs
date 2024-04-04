@@ -10,8 +10,8 @@ pub struct Avx2;
 #[cfg(any(
     feature = "bypass-arch-flags",
     all(
-    any(target_arch = "x86_64", target_arch = "x86"),
-    target_feature = "avx512",
+        any(target_arch = "x86_64", target_arch = "x86"),
+        target_feature = "avx512",
     )
 ))]
 /// AVX512 enabled architectures.
