@@ -2,15 +2,14 @@
 
 use std::marker::PhantomData;
 
-mod float32;
 mod arch;
+mod float32;
 
-pub use float32::*;
 pub use arch::*;
+pub use float32::*;
 
 /// A specialised vector wrapper
-pub struct Vector<Arch, Dims, T=f32, Fma=NoFma>(pub Vec<T>, pub PhantomData<(Arch, Dims, Fma)>);
-
+pub struct Vector<Arch, Dims, T = f32, Fma = NoFma>(pub Vec<T>, pub PhantomData<(Arch, Dims, Fma)>);
 
 /// Core vector space distance calculations
 pub trait DistanceOps {
@@ -20,4 +19,4 @@ pub trait DistanceOps {
     unsafe fn cosine(&self, other: &Self) -> f32;
     /// Calculates the Euclidean distance.
     unsafe fn euclidean(&self, other: &Self) -> f32;
-} 
+}

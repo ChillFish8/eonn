@@ -24,4 +24,3 @@ impl Math for StdMath {
         a / b
     }
 }
-

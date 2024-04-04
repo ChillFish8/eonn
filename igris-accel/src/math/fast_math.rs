@@ -1,9 +1,8 @@
-use core::intrinsics;
 use super::Math;
-
+use core::intrinsics;
 
 /// Basic math operations backed by fast-math intrinsics.
-/// 
+///
 /// WARNING:
 /// These operations can assume all values are finite, there is no
 /// guaranteed behaviour if this condition is breached.
