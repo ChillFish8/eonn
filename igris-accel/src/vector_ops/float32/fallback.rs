@@ -1,4 +1,4 @@
-use crate::math::{Math, StdMath};
+use crate::math::{FastMath, Math, StdMath};
 use crate::vector_ops::{DistanceOps, Fallback, Fma, NoFma, Vector, X1024, X512, X768};
 
 impl DistanceOps for Vector<Fallback, X1024, f32, NoFma> {
@@ -14,7 +14,7 @@ impl DistanceOps for Vector<Fallback, X1024, f32, NoFma> {
 
     #[inline]
     unsafe fn euclidean(&self, other: &Self) -> f32 {
-        todo!()
+        fallback_euclidean::<StdMath, 1024>(&self.0, &other.0)
     }
 }
 
@@ -31,7 +31,7 @@ impl DistanceOps for Vector<Fallback, X768, f32, NoFma> {
 
     #[inline]
     unsafe fn euclidean(&self, other: &Self) -> f32 {
-        todo!()
+        fallback_euclidean::<StdMath, 768>(&self.0, &other.0)
     }
 }
 
@@ -48,64 +48,58 @@ impl DistanceOps for Vector<Fallback, X512, f32, NoFma> {
 
     #[inline]
     unsafe fn euclidean(&self, other: &Self) -> f32 {
-        todo!()
+        fallback_euclidean::<StdMath, 512>(&self.0, &other.0)
     }
 }
 
 impl DistanceOps for Vector<Fallback, X1024, f32, Fma> {
     #[inline]
     unsafe fn dot(&self, other: &Self) -> f32 {
-        use crate::math::FastMath;
         fallback_dot_product::<FastMath, 1024>(&self.0, &other.0)
     }
 
     #[inline]
     unsafe fn cosine(&self, other: &Self) -> f32 {
-        use crate::math::FastMath;
         fallback_cosine::<FastMath, 1024>(&self.0, &other.0)
     }
 
     #[inline]
     unsafe fn euclidean(&self, other: &Self) -> f32 {
-        todo!()
+        fallback_euclidean::<FastMath, 1024>(&self.0, &other.0)
     }
 }
 
 impl DistanceOps for Vector<Fallback, X768, f32, Fma> {
     #[inline]
     unsafe fn dot(&self, other: &Self) -> f32 {
-        use crate::math::FastMath;
         fallback_dot_product::<FastMath, 768>(&self.0, &other.0)
     }
 
     #[inline]
     unsafe fn cosine(&self, other: &Self) -> f32 {
-        use crate::math::FastMath;
         fallback_cosine::<FastMath, 768>(&self.0, &other.0)
     }
 
     #[inline]
     unsafe fn euclidean(&self, other: &Self) -> f32 {
-        todo!()
+        fallback_euclidean::<FastMath, 768>(&self.0, &other.0)
     }
 }
 
 impl DistanceOps for Vector<Fallback, X512, f32, Fma> {
     #[inline]
     unsafe fn dot(&self, other: &Self) -> f32 {
-        use crate::math::FastMath;
         fallback_dot_product::<FastMath, 512>(&self.0, &other.0)
     }
 
     #[inline]
     unsafe fn cosine(&self, other: &Self) -> f32 {
-        use crate::math::FastMath;
         fallback_cosine::<FastMath, 512>(&self.0, &other.0)
     }
 
     #[inline]
     unsafe fn euclidean(&self, other: &Self) -> f32 {
-        todo!()
+        fallback_euclidean::<FastMath, 512>(&self.0, &other.0)
     }
 }
 
@@ -168,6 +162,31 @@ pub(super) unsafe fn fallback_cosine<M: Math, const DIMS: usize>(a: &[f32], b: &
     }
 }
 
+#[inline]
+pub(super) unsafe fn fallback_euclidean<M: Math, const DIMS: usize>(a: &[f32], b: &[f32]) -> f32 {
+    debug_assert_eq!(
+        b.len(),
+        DIMS,
+        "Improper implementation detected, vectors must match constant"
+    );
+    debug_assert_eq!(
+        a.len(),
+        DIMS,
+        "Improper implementation detected, vectors must match constant"
+    );
+
+    let mut result = 0.0;
+    for i in 0..a.len() {
+        let a = a.get_unchecked(i);
+        let b = b.get_unchecked(i);
+
+        let diff = M::sub(*a, *b);
+        result = M::add(result, M::mul(diff, diff));
+    }
+
+    result
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -189,5 +208,14 @@ mod tests {
 
         let v = unsafe { fallback_cosine::<StdMath, 3>(&v1, &v2) };
         assert_eq!(v, 0.021929622);
+    }
+
+    #[test]
+    fn test_fallback_euclidean() {
+        let v1 = vec![1.0, 2.0, 3.0];
+        let v2 = vec![2.0, 3.0, 4.0];
+
+        let v = unsafe { fallback_euclidean::<StdMath, 3>(&v1, &v2) };
+        assert_eq!(v, 3.0);
     }
 }

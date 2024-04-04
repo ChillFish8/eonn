@@ -23,6 +23,6 @@ pub trait DistanceOps {
     unsafe fn dot(&self, other: &Self) -> f32;
     /// Calculates the cosine distance.
     unsafe fn cosine(&self, other: &Self) -> f32;
-    /// Calculates the Euclidean distance.
+    /// Calculates the **squared** Euclidean distance.
     unsafe fn euclidean(&self, other: &Self) -> f32;
 }

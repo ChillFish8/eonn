@@ -21,3 +21,7 @@ harness = false
 [[bench]]
 name = "bench_cosine"
 harness = false
+
+[[bench]]
+name = "bench_euclidean"
+harness = false
