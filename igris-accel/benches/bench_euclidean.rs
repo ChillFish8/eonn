@@ -1,3 +1,4 @@
+#[cfg(unix)]
 extern crate blas_src;
 
 use std::hint::black_box;

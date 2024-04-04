@@ -19,6 +19,9 @@ ndarray = { version = "0.15.6", features = ["blas"] }
 blas-src = { version = "0.8", features = ["openblas"] }
 openblas-src = { version = "0.10", features = ["cblas", "system"] }
 
+[target.'cfg(not(unix))'.dev-dependencies]
+ndarray = "0.15.6"
+
 [features]
 # Enables all architecture specific code regardless of if the code is being
 # compiled with the required code. This is only really meant to be used for testing and IDEs.

@@ -15,16 +15,14 @@ fn simsimd_dot(a: &[f32], b: &[f32]) -> f32 {
     f32::dot(a, b).unwrap_or_default() as f32
 }
 
-#[cfg(unix)]
 fn ndarray_dot(a: &ndarray::Array1<f32>, b: &ndarray::Array1<f32>) -> f32 {
     a.dot(b)
 }
 
 fn criterion_benchmark(c: &mut Criterion) {
-    // Hey, this code is disabled because I cannot use ndarray with openblas on my Windows machine
-    // via my IDE. If you want to get Windows working with ndarray and blas then feel free to
-    // re-enable this benchmark, otherwise, only run this benchmark if you're on linux or mac.
-    #[cfg(unix)]
+    // Hey, this benchmark behaves drastically different if you are on Windows VS unix.
+    // This is because on unix we do a more realistic benchmark and compare ndarray backed
+    // by openblas rather than with the standard rust impl.
     c.bench_function("dot ndarray 1024 auto", |b| {
         use ndarray::Array1;
 

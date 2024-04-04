@@ -1,6 +1,9 @@
 # igris-accel
 
-Various specialised vector operations
+Various specialised vector operations, primarily designed for similarity search.
+
+This library requires nightly and is more unsafe than it is safe code, it is only intended to be used
+within the other Igris tools, if you absolutely want to use this library directly, do so at your own risk.
 
 ### Benchmarks
 
