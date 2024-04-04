@@ -1,15 +1,6 @@
-use crate::math::{FastMath, Math, StdMath};
-use crate::vector_ops::{
-    DistanceOps,
-    Fallback,
-    Fma,
-    NoFma,
-    Vector,
-    VectorView,
-    X1024,
-    X512,
-    X768,
-};
+use crate::math::*;
+use crate::vector_ops::arch::*;
+use crate::vector_ops::{DistanceOps, Fallback, Vector, VectorView, X1024, X512, X768};
 
 impl DistanceOps for Vector<Fallback, X1024, f32, NoFma> {
     #[inline]
@@ -62,6 +53,13 @@ impl DistanceOps for Vector<Fallback, X512, f32, NoFma> {
     }
 }
 
+#[cfg(any(
+    feature = "bypass-arch-flags",
+    all(
+        any(target_arch = "x86_64", target_arch = "x86"),
+        target_feature = "fma",
+    )
+))]
 impl DistanceOps for Vector<Fallback, X1024, f32, Fma> {
     #[inline]
     unsafe fn dot(&self, other: &Self) -> f32 {
@@ -79,6 +77,13 @@ impl DistanceOps for Vector<Fallback, X1024, f32, Fma> {
     }
 }
 
+#[cfg(any(
+    feature = "bypass-arch-flags",
+    all(
+        any(target_arch = "x86_64", target_arch = "x86"),
+        target_feature = "fma",
+    )
+))]
 impl DistanceOps for Vector<Fallback, X768, f32, Fma> {
     #[inline]
     unsafe fn dot(&self, other: &Self) -> f32 {
@@ -96,6 +101,13 @@ impl DistanceOps for Vector<Fallback, X768, f32, Fma> {
     }
 }
 
+#[cfg(any(
+    feature = "bypass-arch-flags",
+    all(
+        any(target_arch = "x86_64", target_arch = "x86"),
+        target_feature = "fma",
+    )
+))]
 impl DistanceOps for Vector<Fallback, X512, f32, Fma> {
     #[inline]
     unsafe fn dot(&self, other: &Self) -> f32 {
@@ -164,6 +176,13 @@ impl<'a> DistanceOps for VectorView<'a, Fallback, X512, f32, NoFma> {
     }
 }
 
+#[cfg(any(
+    feature = "bypass-arch-flags",
+    all(
+        any(target_arch = "x86_64", target_arch = "x86"),
+        target_feature = "fma",
+    )
+))]
 impl<'a> DistanceOps for VectorView<'a, Fallback, X1024, f32, Fma> {
     #[inline]
     unsafe fn dot(&self, other: &Self) -> f32 {
@@ -181,6 +200,13 @@ impl<'a> DistanceOps for VectorView<'a, Fallback, X1024, f32, Fma> {
     }
 }
 
+#[cfg(any(
+    feature = "bypass-arch-flags",
+    all(
+        any(target_arch = "x86_64", target_arch = "x86"),
+        target_feature = "fma",
+    )
+))]
 impl<'a> DistanceOps for VectorView<'a, Fallback, X768, f32, Fma> {
     #[inline]
     unsafe fn dot(&self, other: &Self) -> f32 {
@@ -198,6 +224,13 @@ impl<'a> DistanceOps for VectorView<'a, Fallback, X768, f32, Fma> {
     }
 }
 
+#[cfg(any(
+    feature = "bypass-arch-flags",
+    all(
+        any(target_arch = "x86_64", target_arch = "x86"),
+        target_feature = "fma",
+    )
+))]
 impl<'a> DistanceOps for VectorView<'a, Fallback, X512, f32, Fma> {
     #[inline]
     unsafe fn dot(&self, other: &Self) -> f32 {

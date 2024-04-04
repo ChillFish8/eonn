@@ -64,6 +64,13 @@ impl DistanceOps for Vector<Avx2, X512, f32, NoFma> {
     }
 }
 
+#[cfg(any(
+    feature = "bypass-arch-flags",
+    all(
+        any(target_arch = "x86_64", target_arch = "x86"),
+        target_feature = "fma",
+    )
+))]
 impl DistanceOps for Vector<Avx2, X1024, f32, Fma> {
     #[inline]
     unsafe fn dot(&self, other: &Self) -> f32 {
@@ -81,6 +88,13 @@ impl DistanceOps for Vector<Avx2, X1024, f32, Fma> {
     }
 }
 
+#[cfg(any(
+    feature = "bypass-arch-flags",
+    all(
+        any(target_arch = "x86_64", target_arch = "x86"),
+        target_feature = "fma",
+    )
+))]
 impl DistanceOps for Vector<Avx2, X768, f32, Fma> {
     #[inline]
     unsafe fn dot(&self, other: &Self) -> f32 {
@@ -98,6 +112,13 @@ impl DistanceOps for Vector<Avx2, X768, f32, Fma> {
     }
 }
 
+#[cfg(any(
+    feature = "bypass-arch-flags",
+    all(
+        any(target_arch = "x86_64", target_arch = "x86"),
+        target_feature = "fma",
+    )
+))]
 impl DistanceOps for Vector<Avx2, X512, f32, Fma> {
     #[inline]
     unsafe fn dot(&self, other: &Self) -> f32 {
@@ -166,6 +187,13 @@ impl<'a> DistanceOps for VectorView<'a, Avx2, X512, f32, NoFma> {
     }
 }
 
+#[cfg(any(
+    feature = "bypass-arch-flags",
+    all(
+        any(target_arch = "x86_64", target_arch = "x86"),
+        target_feature = "fma",
+    )
+))]
 impl<'a> DistanceOps for VectorView<'a, Avx2, X1024, f32, Fma> {
     #[inline]
     unsafe fn dot(&self, other: &Self) -> f32 {
@@ -183,6 +211,13 @@ impl<'a> DistanceOps for VectorView<'a, Avx2, X1024, f32, Fma> {
     }
 }
 
+#[cfg(any(
+    feature = "bypass-arch-flags",
+    all(
+        any(target_arch = "x86_64", target_arch = "x86"),
+        target_feature = "fma",
+    )
+))]
 impl<'a> DistanceOps for VectorView<'a, Avx2, X768, f32, Fma> {
     #[inline]
     unsafe fn dot(&self, other: &Self) -> f32 {
@@ -200,6 +235,13 @@ impl<'a> DistanceOps for VectorView<'a, Avx2, X768, f32, Fma> {
     }
 }
 
+#[cfg(any(
+    feature = "bypass-arch-flags",
+    all(
+        any(target_arch = "x86_64", target_arch = "x86"),
+        target_feature = "fma",
+    )
+))]
 impl<'a> DistanceOps for VectorView<'a, Avx2, X512, f32, Fma> {
     #[inline]
     unsafe fn dot(&self, other: &Self) -> f32 {
@@ -359,6 +401,13 @@ unsafe fn f32_avx2_cosine<M: Math, const DIMS: usize>(a: &[f32], b: &[f32]) -> f
     }
 }
 
+#[cfg(any(
+    feature = "bypass-arch-flags",
+    all(
+        any(target_arch = "x86_64", target_arch = "x86"),
+        target_feature = "fma",
+    )
+))]
 #[inline]
 /// AVX2 cosine distance implementation for f32 vectors.
 ///
@@ -556,6 +605,13 @@ unsafe fn f32_avx2_euclidean<const DIMS: usize>(a: &[f32], b: &[f32]) -> f32 {
     sum_avx2(acc1)
 }
 
+#[cfg(any(
+    feature = "bypass-arch-flags",
+    all(
+        any(target_arch = "x86_64", target_arch = "x86"),
+        target_feature = "fma",
+    )
+))]
 #[inline]
 /// AVX2 Euclidean distance implementation for f32 vectors.
 ///
@@ -708,6 +764,13 @@ unsafe fn f32_avx2_dot<const DIMS: usize>(a: &[f32], b: &[f32]) -> f32 {
     sum_avx2(acc1)
 }
 
+#[cfg(any(
+    feature = "bypass-arch-flags",
+    all(
+        any(target_arch = "x86_64", target_arch = "x86"),
+        target_feature = "fma",
+    )
+))]
 macro_rules! f32_ax2_fma_dot_128_el {
     ($offset:expr, $a_ptr:expr, $b_ptr:expr, $acc1:expr, $acc2:expr, $acc3:expr, $acc4:expr) => {{
         let [a1, a2, a3, a4] = offsets($a_ptr, $offset);
@@ -782,6 +845,13 @@ macro_rules! f32_ax2_fma_dot_128_el {
     }};
 }
 
+#[cfg(any(
+    feature = "bypass-arch-flags",
+    all(
+        any(target_arch = "x86_64", target_arch = "x86"),
+        target_feature = "fma",
+    )
+))]
 /// Effectively used as a manual loop unroll.
 ///
 /// This produces `n_offsets` numbers of `f32_ax2_fma_128_el` calls.
@@ -801,6 +871,13 @@ macro_rules! f32_ax2_fma_dot_lanes_each {
     }};
 }
 
+#[cfg(any(
+    feature = "bypass-arch-flags",
+    all(
+        any(target_arch = "x86_64", target_arch = "x86"),
+        target_feature = "fma",
+    )
+))]
 #[inline]
 /// AVX2 dot product implementation for f32 vectors.
 ///
@@ -832,6 +909,13 @@ unsafe fn f32_avx2_fma_dot_x1024(a: &[f32], b: &[f32]) -> f32 {
     sum_avx2(acc1)
 }
 
+#[cfg(any(
+    feature = "bypass-arch-flags",
+    all(
+        any(target_arch = "x86_64", target_arch = "x86"),
+        target_feature = "fma",
+    )
+))]
 #[inline]
 /// AVX2 dot product implementation for f32 vectors.
 ///
@@ -863,6 +947,13 @@ unsafe fn f32_avx2_fma_dot_x768(a: &[f32], b: &[f32]) -> f32 {
     sum_avx2(acc1)
 }
 
+#[cfg(any(
+    feature = "bypass-arch-flags",
+    all(
+        any(target_arch = "x86_64", target_arch = "x86"),
+        target_feature = "fma",
+    )
+))]
 #[inline]
 /// AVX2 dot product implementation for f32 vectors.
 ///
@@ -956,6 +1047,13 @@ mod tests {
         println!("Av2 DOT: {v} vs {expected}");
     }
 
+    #[cfg(any(
+        feature = "bypass-arch-flags",
+        all(
+            any(target_arch = "x86_64", target_arch = "x86"),
+            target_feature = "fma",
+        )
+    ))]
     #[test]
     fn test_avx2_fma_dot_product() {
         let mut v1 = Vec::with_capacity(1024);
@@ -984,6 +1082,13 @@ mod tests {
         println!("Av2 COSINE: {v} vs {expected}");
     }
 
+    #[cfg(any(
+        feature = "bypass-arch-flags",
+        all(
+            any(target_arch = "x86_64", target_arch = "x86"),
+            target_feature = "fma",
+        )
+    ))]
     #[test]
     fn test_avx2_fma_cosine() {
         let mut v1 = Vec::with_capacity(1024);
@@ -1012,6 +1117,13 @@ mod tests {
         println!("Av2 COSINE: {v} vs {expected}");
     }
 
+    #[cfg(any(
+        feature = "bypass-arch-flags",
+        all(
+            any(target_arch = "x86_64", target_arch = "x86"),
+            target_feature = "fma",
+        )
+    ))]
     #[test]
     fn test_avx2_fma_euclidean() {
         let mut v1 = Vec::with_capacity(1024);
