@@ -1,6 +1,5 @@
-use std::arch::x86_64::*;
 use crate::vector_ops::{Avx2, DistanceOps, Fma, NoFma, Vector, X1024, X512, X768};
-
+use std::arch::x86_64::*;
 
 impl DistanceOps for Vector<Avx2, X1024, f32, NoFma> {
     /// AVX2 enabled dot product.
@@ -11,7 +10,7 @@ impl DistanceOps for Vector<Avx2, X1024, f32, NoFma> {
     }
 
     unsafe fn cosine(&self, other: &Self) -> f32 {
-        todo!()
+        f32_avx2_cosine::<1024>(&self.0, &other.0)
     }
 
     unsafe fn euclidean(&self, other: &Self) -> f32 {
@@ -406,7 +405,13 @@ unsafe fn f32_avx2_cosine<const DIMS: usize>(a: &[f32], b: &[f32]) -> f32 {
     let norm_a = sum_avx2(norm_acc_a1);
     let norm_b = sum_avx2(norm_acc_b1);
 
-    1.0 - (result / (norm_a * norm_b).sqrt())
+    if norm_a == 0.0 && norm_b == 0.0 {
+        0.0
+    } else if norm_a == 0.0 || norm_b == 0.0 {
+        1.0
+    } else {
+        1.0 - (result / (norm_a * norm_b).sqrt())
+    }
 }
 
 #[inline]
@@ -533,12 +538,31 @@ unsafe fn offsets(ptr: *const f32, offset: usize) -> [*const f32; 4] {
 mod tests {
     use super::*;
 
-    fn basic_impl(a: &[f32], b: &[f32]) -> f32 {
-        let mut res = 0.0;
+    fn basic_dot_impl(a: &[f32], b: &[f32]) -> f32 {
+        let mut result = 0.0;
         for i in 0..a.len() {
-            res += a[i] * b[i];
+            result += a[i] * b[i];
         }
-        res
+        result
+    }
+
+    fn basic_cosine_impl(a: &[f32], b: &[f32]) -> f32 {
+        let mut result = 0.0;
+        let mut norm_a = 0.0;
+        let mut norm_b = 0.0;
+        for i in 0..a.len() {
+            result += a[i] * b[i];
+            norm_a += a[i] * a[i];
+            norm_b += b[i] * b[i];
+        }
+
+        if norm_a == 0.0 && norm_b == 0.0 {
+            0.0
+        } else if norm_a == 0.0 || norm_b == 0.0 {
+            1.0
+        } else {
+            1.0 - (result / (norm_a * norm_b).sqrt())
+        }
     }
 
     #[test]
@@ -562,7 +586,7 @@ mod tests {
         }
 
         let v = unsafe { f32_avx2_dot::<1024>(&v1, &v2) };
-        println!("Av2: {v} vs {}", basic_impl(&v1, &v2));
+        println!("Av2: {v} vs {}", basic_dot_impl(&v1, &v2));
     }
 
     #[test]
@@ -575,6 +599,19 @@ mod tests {
         }
 
         let v = unsafe { f32_avx2_fma_dot_x1024(&v1, &v2) };
-        println!("FMA: {v} vs {}", basic_impl(&v1, &v2));
+        println!("FMA: {v} vs {}", basic_dot_impl(&v1, &v2));
+    }
+
+    #[test]
+    fn test_avx2_cosine() {
+        let mut v1 = Vec::with_capacity(1024);
+        let mut v2 = Vec::with_capacity(1024);
+        for _ in 0..1024 {
+            v1.push(rand::random());
+            v2.push(rand::random());
+        }
+
+        let v = unsafe { f32_avx2_cosine::<1024>(&v1, &v2) };
+        println!("Av2: {v} vs {}", basic_cosine_impl(&v1, &v2));
     }
 }
