@@ -812,7 +812,7 @@ unsafe fn offsets(ptr: *const f32, offset: usize) -> [*const f32; 4] {
 mod tests {
     use super::*;
     use crate::math::{FastMath, StdMath};
-    use crate::vector_ops::float32::fallback::{fallback_cosine, fallback_dot_product};
+    use crate::vector_ops::float32::fallback::{fallback_cosine, fallback_dot_product, fallback_euclidean};
 
     #[test]
     fn test_avx2_rollup_sum() {
@@ -878,6 +878,34 @@ mod tests {
 
         let v = unsafe { f32_avx2_fma_cosine::<FastMath, 1024>(&v1, &v2) };
         let expected = unsafe { fallback_cosine::<FastMath, 1024>(&v1, &v2) };
+        println!("FMA COSINE: {v} vs {expected}");
+    }
+
+    #[test]
+    fn test_avx2_euclidean() {
+        let mut v1 = Vec::with_capacity(1024);
+        let mut v2 = Vec::with_capacity(1024);
+        for _ in 0..1024 {
+            v1.push(rand::random());
+            v2.push(rand::random());
+        }
+
+        let v = unsafe { f32_avx2_euclidean::<1024>(&v1, &v2) };
+        let expected = unsafe { fallback_euclidean::<StdMath, 1024>(&v1, &v2) };
+        println!("Av2 COSINE: {v} vs {expected}");
+    }
+
+    #[test]
+    fn test_avx2_fma_euclidean() {
+        let mut v1 = Vec::with_capacity(1024);
+        let mut v2 = Vec::with_capacity(1024);
+        for _ in 0..1024 {
+            v1.push(rand::random());
+            v2.push(rand::random());
+        }
+
+        let v = unsafe { f32_avx2_fma_euclidean::<1024>(&v1, &v2) };
+        let expected = unsafe { fallback_euclidean::<FastMath, 1024>(&v1, &v2) };
         println!("FMA COSINE: {v} vs {expected}");
     }
 }
