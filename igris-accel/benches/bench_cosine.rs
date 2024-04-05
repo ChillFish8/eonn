@@ -5,7 +5,7 @@ use std::hint::black_box;
 use std::time::Duration;
 
 use criterion::{criterion_group, criterion_main, Criterion};
-use igris_accel::vector_ops::{Avx2, DistanceOps, Fallback, Fma, NoFma, Vector, X1024};
+use igris_accel::vector_ops::*;
 use simsimd::SpatialSimilarity;
 
 fn cosine<T: DistanceOps>(a: &T, b: &T) -> f32 {
@@ -25,6 +25,13 @@ macro_rules! repeat {
 }
 
 fn criterion_benchmark(c: &mut Criterion) {
+    #[cfg(any(
+        feature = "bypass-arch-flags",
+        all(
+            any(target_arch = "x86_64", target_arch = "x86"),
+            target_feature = "avx2",
+        )
+    ))]
     c.bench_function("cosine avx2 1024 nofma", |b| unsafe {
         let mut v1 = Vec::new();
         let mut v2 = Vec::new();
@@ -38,6 +45,13 @@ fn criterion_benchmark(c: &mut Criterion) {
 
         b.iter(|| repeat!(1000, { cosine(black_box(&v1), black_box(&v2)) }))
     });
+    #[cfg(any(
+        feature = "bypass-arch-flags",
+        all(
+            any(target_arch = "x86_64", target_arch = "x86"),
+            all(target_feature = "avx2", target_feature = "fma"),
+        )
+    ))]
     c.bench_function("cosine avx2 1024 fma", |b| unsafe {
         let mut v1 = Vec::new();
         let mut v2 = Vec::new();
@@ -64,6 +78,13 @@ fn criterion_benchmark(c: &mut Criterion) {
 
         b.iter(|| repeat!(1000, { cosine(black_box(&v1), black_box(&v2)) }))
     });
+    #[cfg(any(
+        feature = "bypass-arch-flags",
+        all(
+            any(target_arch = "x86_64", target_arch = "x86"),
+            target_feature = "fma",
+        )
+    ))]
     c.bench_function("cosine autovec 1024 fma", |b| unsafe {
         let mut v1 = Vec::new();
         let mut v2 = Vec::new();
@@ -93,7 +114,7 @@ criterion_group!(
     name = benches;
     config = Criterion::default()
         .measurement_time(Duration::from_secs(60))
-        .sample_size(300);
+        .sample_size(500);
     targets = criterion_benchmark
 );
 criterion_main!(benches);
