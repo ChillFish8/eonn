@@ -597,10 +597,7 @@ unsafe fn f32_avx2_euclidean<const DIMS: usize>(a: &[f32], b: &[f32]) -> f32 {
         acc4 = _mm256_add_ps(acc4, r8);
     }
 
-    acc1 = _mm256_add_ps(acc1, acc2);
-    acc3 = _mm256_add_ps(acc3, acc4);
-
-    acc1 = _mm256_add_ps(acc1, acc3);
+    acc1 = rollup_x4(acc1, acc2, acc3, acc4);
 
     sum_avx2(acc1)
 }
@@ -680,10 +677,7 @@ unsafe fn f32_avx2_fma_euclidean<const DIMS: usize>(a: &[f32], b: &[f32]) -> f32
         acc4 = _mm256_fmadd_ps(diff8, diff8, acc4);
     }
 
-    acc1 = _mm256_add_ps(acc1, acc2);
-    acc3 = _mm256_add_ps(acc3, acc4);
-
-    acc1 = _mm256_add_ps(acc1, acc3);
+    acc1 = rollup_x4(acc1, acc2, acc3, acc4);
 
     sum_avx2(acc1)
 }
@@ -756,10 +750,7 @@ unsafe fn f32_avx2_dot<const DIMS: usize>(a: &[f32], b: &[f32]) -> f32 {
         acc4 = _mm256_add_ps(acc4, r8);
     }
 
-    acc1 = _mm256_add_ps(acc1, acc2);
-    acc3 = _mm256_add_ps(acc3, acc4);
-
-    acc1 = _mm256_add_ps(acc1, acc3);
+    acc1 = rollup_x4(acc1, acc2, acc3, acc4);
 
     sum_avx2(acc1)
 }
@@ -772,7 +763,19 @@ unsafe fn f32_avx2_dot<const DIMS: usize>(a: &[f32], b: &[f32]) -> f32 {
     )
 ))]
 macro_rules! f32_ax2_fma_dot_128_el {
-    ($offset:expr, $a_ptr:expr, $b_ptr:expr, $acc1:expr, $acc2:expr, $acc3:expr, $acc4:expr) => {{
+    (
+        $offset:expr,
+        $a_ptr:expr,
+        $b_ptr:expr,
+        $acc1:expr,
+        $acc2:expr,
+        $acc3:expr,
+        $acc4:expr,
+        $acc5:expr,
+        $acc6:expr,
+        $acc7:expr,
+        $acc8:expr,
+    ) => {{
         let [a1, a2, a3, a4] = offsets($a_ptr, $offset);
         let [a5, a6, a7, a8] = offsets($a_ptr, $offset + 32);
         let [a9, a10, a11, a12] = offsets($a_ptr, $offset + 64);
@@ -828,20 +831,20 @@ macro_rules! f32_ax2_fma_dot_128_el {
         $acc3 = _mm256_fmadd_ps(a3, b3, $acc3);
         $acc4 = _mm256_fmadd_ps(a4, b4, $acc4);
 
-        $acc1 = _mm256_fmadd_ps(a5, b5, $acc1);
-        $acc2 = _mm256_fmadd_ps(a6, b6, $acc2);
-        $acc3 = _mm256_fmadd_ps(a7, b7, $acc3);
-        $acc4 = _mm256_fmadd_ps(a8, b8, $acc4);
+        $acc5 = _mm256_fmadd_ps(a5, b5, $acc5);
+        $acc6 = _mm256_fmadd_ps(a6, b6, $acc6);
+        $acc7 = _mm256_fmadd_ps(a7, b7, $acc7);
+        $acc8 = _mm256_fmadd_ps(a8, b8, $acc8);
 
         $acc1 = _mm256_fmadd_ps(a9, b9, $acc1);
         $acc2 = _mm256_fmadd_ps(a10, b10, $acc2);
         $acc3 = _mm256_fmadd_ps(a11, b11, $acc3);
         $acc4 = _mm256_fmadd_ps(a12, b12, $acc4);
 
-        $acc1 = _mm256_fmadd_ps(a13, b13, $acc1);
-        $acc2 = _mm256_fmadd_ps(a14, b14, $acc2);
-        $acc3 = _mm256_fmadd_ps(a15, b15, $acc3);
-        $acc4 = _mm256_fmadd_ps(a16, b16, $acc4);
+        $acc5 = _mm256_fmadd_ps(a13, b13, $acc5);
+        $acc6 = _mm256_fmadd_ps(a14, b14, $acc6);
+        $acc7 = _mm256_fmadd_ps(a15, b15, $acc7);
+        $acc8 = _mm256_fmadd_ps(a16, b16, $acc8);
     }};
 }
 
@@ -856,7 +859,18 @@ macro_rules! f32_ax2_fma_dot_128_el {
 ///
 /// This produces `n_offsets` numbers of `f32_ax2_fma_128_el` calls.
 macro_rules! f32_ax2_fma_dot_lanes_each {
-    ($a_ptr:expr, $b_ptr:expr, $acc1:expr, $acc2:expr, $acc3:expr, $acc4:expr, offsets => $($offset:expr $(,)?)*) => {{
+    (
+        $a_ptr:expr,
+        $b_ptr:expr,
+        $acc1:expr,
+        $acc2:expr,
+        $acc3:expr,
+        $acc4:expr,
+        $acc5:expr,
+        $acc6:expr,
+        $acc7:expr,
+        $acc8:expr,
+        offsets => $($offset:expr $(,)?)*) => {{
         $(
             f32_ax2_fma_dot_128_el!(
                 $offset,
@@ -865,7 +879,11 @@ macro_rules! f32_ax2_fma_dot_lanes_each {
                 $acc1,
                 $acc2,
                 $acc3,
-                $acc4
+                $acc4,
+                $acc5,
+                $acc6,
+                $acc7,
+                $acc8,
             );
         )*
     }};
@@ -890,6 +908,10 @@ unsafe fn f32_avx2_fma_dot_x1024(a: &[f32], b: &[f32]) -> f32 {
     let mut acc2 = _mm256_set1_ps(0.0);
     let mut acc3 = _mm256_set1_ps(0.0);
     let mut acc4 = _mm256_set1_ps(0.0);
+    let mut acc5 = _mm256_set1_ps(0.0);
+    let mut acc6 = _mm256_set1_ps(0.0);
+    let mut acc7 = _mm256_set1_ps(0.0);
+    let mut acc8 = _mm256_set1_ps(0.0);
 
     f32_ax2_fma_dot_lanes_each!(
         a_ptr,
@@ -898,13 +920,14 @@ unsafe fn f32_avx2_fma_dot_x1024(a: &[f32], b: &[f32]) -> f32 {
         acc2,
         acc3,
         acc4,
+        acc5,
+        acc6,
+        acc7,
+        acc8,
         offsets => 0, 128, 256, 384, 512, 640, 768, 896
     );
 
-    acc1 = _mm256_add_ps(acc1, acc2);
-    acc3 = _mm256_add_ps(acc3, acc4);
-
-    acc1 = _mm256_add_ps(acc1, acc3);
+    acc1 = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
 
     sum_avx2(acc1)
 }
@@ -928,6 +951,10 @@ unsafe fn f32_avx2_fma_dot_x768(a: &[f32], b: &[f32]) -> f32 {
     let mut acc2 = _mm256_set1_ps(0.0);
     let mut acc3 = _mm256_set1_ps(0.0);
     let mut acc4 = _mm256_set1_ps(0.0);
+    let mut acc5 = _mm256_set1_ps(0.0);
+    let mut acc6 = _mm256_set1_ps(0.0);
+    let mut acc7 = _mm256_set1_ps(0.0);
+    let mut acc8 = _mm256_set1_ps(0.0);
 
     f32_ax2_fma_dot_lanes_each!(
         a_ptr,
@@ -936,13 +963,14 @@ unsafe fn f32_avx2_fma_dot_x768(a: &[f32], b: &[f32]) -> f32 {
         acc2,
         acc3,
         acc4,
+        acc5,
+        acc6,
+        acc7,
+        acc8,
         offsets => 0, 128, 256, 384, 512, 640
     );
 
-    acc1 = _mm256_add_ps(acc1, acc2);
-    acc3 = _mm256_add_ps(acc3, acc4);
-
-    acc1 = _mm256_add_ps(acc1, acc3);
+    acc1 = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
 
     sum_avx2(acc1)
 }
@@ -966,6 +994,10 @@ unsafe fn f32_avx2_fma_dot_x512(a: &[f32], b: &[f32]) -> f32 {
     let mut acc2 = _mm256_set1_ps(0.0);
     let mut acc3 = _mm256_set1_ps(0.0);
     let mut acc4 = _mm256_set1_ps(0.0);
+    let mut acc5 = _mm256_set1_ps(0.0);
+    let mut acc6 = _mm256_set1_ps(0.0);
+    let mut acc7 = _mm256_set1_ps(0.0);
+    let mut acc8 = _mm256_set1_ps(0.0);
 
     f32_ax2_fma_dot_lanes_each!(
         a_ptr,
@@ -974,18 +1006,19 @@ unsafe fn f32_avx2_fma_dot_x512(a: &[f32], b: &[f32]) -> f32 {
         acc2,
         acc3,
         acc4,
+        acc5,
+        acc6,
+        acc7,
+        acc8,
         offsets => 0, 128, 256, 384
     );
 
-    acc1 = _mm256_add_ps(acc1, acc2);
-    acc3 = _mm256_add_ps(acc3, acc4);
-
-    acc1 = _mm256_add_ps(acc1, acc3);
+    acc1 = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
 
     sum_avx2(acc1)
 }
 
-#[inline]
+#[inline(always)]
 unsafe fn sum_avx2(v: __m256) -> f32 {
     let left_half = _mm256_extractf128_ps::<1>(v);
     let right_half = _mm256_castps256_ps128(v);
@@ -1000,6 +1033,43 @@ unsafe fn sum_avx2(v: __m256) -> f32 {
     let sum = _mm_add_ss(left_half, right_half);
 
     _mm_cvtss_f32(sum)
+}
+
+#[allow(clippy::too_many_arguments)]
+#[inline(always)]
+unsafe fn rollup_x8(
+    mut acc1: __m256,
+    acc2: __m256,
+    mut acc3: __m256,
+    acc4: __m256,
+    mut acc5: __m256,
+    acc6: __m256,
+    mut acc7: __m256,
+    acc8: __m256,
+) -> __m256 {
+    acc1 = _mm256_add_ps(acc1, acc2);
+    acc3 = _mm256_add_ps(acc3, acc4);
+    acc5 = _mm256_add_ps(acc5, acc6);
+    acc7 = _mm256_add_ps(acc7, acc8);
+
+    acc1 = _mm256_add_ps(acc1, acc3);
+    acc5 = _mm256_add_ps(acc5, acc7);
+
+    _mm256_add_ps(acc1, acc5)
+}
+
+#[allow(clippy::too_many_arguments)]
+#[inline(always)]
+unsafe fn rollup_x4(
+    mut acc1: __m256,
+    acc2: __m256,
+    mut acc3: __m256,
+    acc4: __m256,
+) -> __m256 {
+    acc1 = _mm256_add_ps(acc1, acc2);
+    acc3 = _mm256_add_ps(acc3, acc4);
+
+    _mm256_add_ps(acc1, acc3)
 }
 
 #[inline(always)]
