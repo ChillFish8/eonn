@@ -54,6 +54,13 @@ Found 60 outliers among 500 measurements (12.00%)
 
 #### Dot Product
 ```
+dot avx2 1024 nofma     time:   [45.344 µs 45.395 µs 45.448 µs]
+                        change: [+0.0108% +0.1411% +0.2724%] (p = 0.04 < 0.05)
+                        Change within noise threshold.
+Found 24 outliers among 500 measurements (4.80%)
+  13 (2.60%) high mild
+  11 (2.20%) high severe
+
 dot avx2 1024 fma       time:   [25.844 µs 25.878 µs 25.916 µs]
                         change: [-23.589% -23.462% -23.341%] (p = 0.00 < 0.05)
                         Performance has improved.
