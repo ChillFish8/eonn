@@ -263,16 +263,58 @@ pub(super) unsafe fn fallback_dot_product<M: Math, const DIMS: usize>(
         DIMS,
         "Improper implementation detected, vectors must match constant"
     );
+    debug_assert_eq!(
+        DIMS % 8,
+        0,
+        "DIMS must be able to fit entirely into chunks of 8 lanes."
+    );
 
-    let mut result = 0.0;
-    for i in 0..a.len() {
-        let a = a.get_unchecked(i);
-        let b = b.get_unchecked(i);
+    let mut i = 0;
 
-        result = M::add(result, M::mul(*a, *b));
+    // We do this manual unrolling to allow the compiler to vectorize
+    // the loop and avoid some branching even if we're not doing it explicitly.
+    // This made a significant difference in benchmarking ~8x
+    let mut acc1 = 0.0;
+    let mut acc2 = 0.0;
+    let mut acc3 = 0.0;
+    let mut acc4 = 0.0;
+    let mut acc5 = 0.0;
+    let mut acc6 = 0.0;
+    let mut acc7 = 0.0;
+    let mut acc8 = 0.0;
+
+    while i < a.len() {
+        let a1 = *a.get_unchecked(i);
+        let a2 = *a.get_unchecked(i + 1);
+        let a3 = *a.get_unchecked(i + 2);
+        let a4 = *a.get_unchecked(i + 3);
+        let a5 = *a.get_unchecked(i + 4);
+        let a6 = *a.get_unchecked(i + 5);
+        let a7 = *a.get_unchecked(i + 6);
+        let a8 = *a.get_unchecked(i + 7);
+
+        let b1 = *b.get_unchecked(i);
+        let b2 = *b.get_unchecked(i + 1);
+        let b3 = *b.get_unchecked(i + 2);
+        let b4 = *b.get_unchecked(i + 3);
+        let b5 = *b.get_unchecked(i + 4);
+        let b6 = *b.get_unchecked(i + 5);
+        let b7 = *b.get_unchecked(i + 6);
+        let b8 = *b.get_unchecked(i + 7);
+
+        acc1 = M::add(acc1, M::mul(a1, b1));
+        acc2 = M::add(acc2, M::mul(a2, b2));
+        acc3 = M::add(acc3, M::mul(a3, b3));
+        acc4 = M::add(acc4, M::mul(a4, b4));
+        acc5 = M::add(acc5, M::mul(a5, b5));
+        acc6 = M::add(acc6, M::mul(a6, b6));
+        acc7 = M::add(acc7, M::mul(a7, b7));
+        acc8 = M::add(acc8, M::mul(a8, b8));
+
+        i += 8;
     }
 
-    result
+    rollup_x8::<M>(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
 }
 
 #[inline]
@@ -290,19 +332,114 @@ pub(super) unsafe fn fallback_cosine<M: Math, const DIMS: usize>(
         DIMS,
         "Improper implementation detected, vectors must match constant"
     );
+    debug_assert_eq!(
+        DIMS % 8,
+        0,
+        "DIMS must be able to fit entirely into chunks of 8 lanes."
+    );
 
-    let mut result = 0.0;
-    let mut norm_a = 0.0;
-    let mut norm_b = 0.0;
+    let mut i = 0;
 
-    for i in 0..a.len() {
-        let a = a.get_unchecked(i);
-        let b = b.get_unchecked(i);
+    // We do this manual unrolling to allow the compiler to vectorize
+    // the loop and avoid some branching even if we're not doing it explicitly.
+    // This made a significant difference in benchmarking ~4-8x
+    let mut acc1 = 0.0;
+    let mut acc2 = 0.0;
+    let mut acc3 = 0.0;
+    let mut acc4 = 0.0;
+    let mut acc5 = 0.0;
+    let mut acc6 = 0.0;
+    let mut acc7 = 0.0;
+    let mut acc8 = 0.0;
 
-        result = M::add(result, M::mul(*a, *b));
-        norm_a = M::add(norm_a, M::mul(*a, *a));
-        norm_b = M::add(norm_b, M::mul(*b, *b));
+    let mut norm_a_acc1 = 0.0;
+    let mut norm_a_acc2 = 0.0;
+    let mut norm_a_acc3 = 0.0;
+    let mut norm_a_acc4 = 0.0;
+    let mut norm_a_acc5 = 0.0;
+    let mut norm_a_acc6 = 0.0;
+    let mut norm_a_acc7 = 0.0;
+    let mut norm_a_acc8 = 0.0;
+
+    let mut norm_b_acc1 = 0.0;
+    let mut norm_b_acc2 = 0.0;
+    let mut norm_b_acc3 = 0.0;
+    let mut norm_b_acc4 = 0.0;
+    let mut norm_b_acc5 = 0.0;
+    let mut norm_b_acc6 = 0.0;
+    let mut norm_b_acc7 = 0.0;
+    let mut norm_b_acc8 = 0.0;
+
+    while i < a.len() {
+        let a1 = *a.get_unchecked(i);
+        let a2 = *a.get_unchecked(i + 1);
+        let a3 = *a.get_unchecked(i + 2);
+        let a4 = *a.get_unchecked(i + 3);
+        let a5 = *a.get_unchecked(i + 4);
+        let a6 = *a.get_unchecked(i + 5);
+        let a7 = *a.get_unchecked(i + 6);
+        let a8 = *a.get_unchecked(i + 7);
+
+        let b1 = *b.get_unchecked(i);
+        let b2 = *b.get_unchecked(i + 1);
+        let b3 = *b.get_unchecked(i + 2);
+        let b4 = *b.get_unchecked(i + 3);
+        let b5 = *b.get_unchecked(i + 4);
+        let b6 = *b.get_unchecked(i + 5);
+        let b7 = *b.get_unchecked(i + 6);
+        let b8 = *b.get_unchecked(i + 7);
+
+        acc1 = M::add(acc1, M::mul(a1, b1));
+        acc2 = M::add(acc2, M::mul(a2, b2));
+        acc3 = M::add(acc3, M::mul(a3, b3));
+        acc4 = M::add(acc4, M::mul(a4, b4));
+        acc5 = M::add(acc5, M::mul(a5, b5));
+        acc6 = M::add(acc6, M::mul(a6, b6));
+        acc7 = M::add(acc7, M::mul(a7, b7));
+        acc8 = M::add(acc8, M::mul(a8, b8));
+
+        norm_a_acc1 = M::add(norm_a_acc1, M::mul(a1, a1));
+        norm_a_acc2 = M::add(norm_a_acc2, M::mul(a2, a2));
+        norm_a_acc3 = M::add(norm_a_acc3, M::mul(a3, a3));
+        norm_a_acc4 = M::add(norm_a_acc4, M::mul(a4, a4));
+        norm_a_acc5 = M::add(norm_a_acc5, M::mul(a5, a5));
+        norm_a_acc6 = M::add(norm_a_acc6, M::mul(a6, a6));
+        norm_a_acc7 = M::add(norm_a_acc7, M::mul(a7, a7));
+        norm_a_acc8 = M::add(norm_a_acc8, M::mul(a8, a8));
+
+        norm_b_acc1 = M::add(norm_b_acc1, M::mul(b1, b1));
+        norm_b_acc2 = M::add(norm_b_acc2, M::mul(b2, b2));
+        norm_b_acc3 = M::add(norm_b_acc3, M::mul(b3, b3));
+        norm_b_acc4 = M::add(norm_b_acc4, M::mul(b4, b4));
+        norm_b_acc5 = M::add(norm_b_acc5, M::mul(b5, b5));
+        norm_b_acc6 = M::add(norm_b_acc6, M::mul(b6, b6));
+        norm_b_acc7 = M::add(norm_b_acc7, M::mul(b7, b7));
+        norm_b_acc8 = M::add(norm_b_acc8, M::mul(b8, b8));
+
+        i += 8;
     }
+
+    let result = rollup_x8::<M>(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
+    let norm_a = rollup_x8::<M>(
+        norm_a_acc1,
+        norm_a_acc2,
+        norm_a_acc3,
+        norm_a_acc4,
+        norm_a_acc5,
+        norm_a_acc6,
+        norm_a_acc7,
+        norm_a_acc8,
+    );
+    let norm_b = rollup_x8::<M>(
+        norm_b_acc1,
+        norm_b_acc2,
+        norm_b_acc3,
+        norm_b_acc4,
+        norm_b_acc5,
+        norm_b_acc6,
+        norm_b_acc7,
+        norm_b_acc8,
+    );
 
     if norm_a == 0.0 && norm_b == 0.0 {
         0.0
@@ -328,17 +465,90 @@ pub(super) unsafe fn fallback_euclidean<M: Math, const DIMS: usize>(
         DIMS,
         "Improper implementation detected, vectors must match constant"
     );
+    debug_assert_eq!(
+        DIMS % 8,
+        0,
+        "DIMS must be able to fit entirely into chunks of 8 lanes."
+    );
 
-    let mut result = 0.0;
-    for i in 0..a.len() {
-        let a = a.get_unchecked(i);
-        let b = b.get_unchecked(i);
+    let mut i = 0;
 
-        let diff = M::sub(*a, *b);
-        result = M::add(result, M::mul(diff, diff));
+    // We do this manual unrolling to allow the compiler to vectorize
+    // the loop and avoid some branching even if we're not doing it explicitly.
+    // This made a significant difference in benchmarking ~4-8x
+    let mut acc1 = 0.0;
+    let mut acc2 = 0.0;
+    let mut acc3 = 0.0;
+    let mut acc4 = 0.0;
+    let mut acc5 = 0.0;
+    let mut acc6 = 0.0;
+    let mut acc7 = 0.0;
+    let mut acc8 = 0.0;
+
+    while i < a.len() {
+        let a1 = *a.get_unchecked(i);
+        let a2 = *a.get_unchecked(i + 1);
+        let a3 = *a.get_unchecked(i + 2);
+        let a4 = *a.get_unchecked(i + 3);
+        let a5 = *a.get_unchecked(i + 4);
+        let a6 = *a.get_unchecked(i + 5);
+        let a7 = *a.get_unchecked(i + 6);
+        let a8 = *a.get_unchecked(i + 7);
+
+        let b1 = *b.get_unchecked(i);
+        let b2 = *b.get_unchecked(i + 1);
+        let b3 = *b.get_unchecked(i + 2);
+        let b4 = *b.get_unchecked(i + 3);
+        let b5 = *b.get_unchecked(i + 4);
+        let b6 = *b.get_unchecked(i + 5);
+        let b7 = *b.get_unchecked(i + 6);
+        let b8 = *b.get_unchecked(i + 7);
+
+        let diff1 = M::sub(a1, b1);
+        let diff2 = M::sub(a2, b2);
+        let diff3 = M::sub(a3, b3);
+        let diff4 = M::sub(a4, b4);
+        let diff5 = M::sub(a5, b5);
+        let diff6 = M::sub(a6, b6);
+        let diff7 = M::sub(a7, b7);
+        let diff8 = M::sub(a8, b8);
+
+        acc1 = M::add(acc1, M::mul(diff1, diff1));
+        acc2 = M::add(acc2, M::mul(diff2, diff2));
+        acc3 = M::add(acc3, M::mul(diff3, diff3));
+        acc4 = M::add(acc4, M::mul(diff4, diff4));
+        acc5 = M::add(acc5, M::mul(diff5, diff5));
+        acc6 = M::add(acc6, M::mul(diff6, diff6));
+        acc7 = M::add(acc7, M::mul(diff7, diff7));
+        acc8 = M::add(acc8, M::mul(diff8, diff8));
+
+        i += 8;
     }
 
-    result
+    rollup_x8::<M>(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
+}
+
+#[allow(clippy::too_many_arguments)]
+#[inline(always)]
+fn rollup_x8<M: Math>(
+    mut acc1: f32,
+    acc2: f32,
+    mut acc3: f32,
+    acc4: f32,
+    mut acc5: f32,
+    acc6: f32,
+    mut acc7: f32,
+    acc8: f32,
+) -> f32 {
+    acc1 = M::add(acc1, acc2);
+    acc3 = M::add(acc3, acc4);
+    acc5 = M::add(acc5, acc6);
+    acc7 = M::add(acc7, acc8);
+
+    acc1 = M::add(acc1, acc3);
+    acc5 = M::add(acc5, acc7);
+
+    M::add(acc1, acc5)
 }
 
 #[cfg(test)]
