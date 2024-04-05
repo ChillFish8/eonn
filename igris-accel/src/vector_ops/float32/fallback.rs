@@ -558,28 +558,28 @@ mod tests {
 
     #[test]
     fn test_fallback_dot_product() {
-        let v1 = vec![1.0, 2.0, 3.0];
-        let v2 = vec![0.5, 3.0, 4.0];
+        let v1 = vec![1.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+        let v2 = vec![0.5, 3.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0];
 
-        let v = unsafe { fallback_dot_product::<StdMath, 3>(&v1, &v2) };
+        let v = unsafe { fallback_dot_product::<StdMath, 8>(&v1, &v2) };
         assert_eq!(v, 18.5);
     }
 
     #[test]
     fn test_fallback_cosine() {
-        let v1 = vec![1.0, 2.0, 3.0];
-        let v2 = vec![0.8, 3.0, 3.0];
+        let v1 = vec![1.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+        let v2 = vec![0.8, 3.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0];
 
-        let v = unsafe { fallback_cosine::<StdMath, 3>(&v1, &v2) };
+        let v = unsafe { fallback_cosine::<StdMath, 8>(&v1, &v2) };
         assert_eq!(v, 0.021929622);
     }
 
     #[test]
     fn test_fallback_euclidean() {
-        let v1 = vec![1.0, 2.0, 3.0];
-        let v2 = vec![2.0, 3.0, 4.0];
+        let v1 = vec![1.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+        let v2 = vec![2.0, 3.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0];
 
-        let v = unsafe { fallback_euclidean::<StdMath, 3>(&v1, &v2) };
+        let v = unsafe { fallback_euclidean::<StdMath, 8>(&v1, &v2) };
         assert_eq!(v, 3.0);
     }
 }
