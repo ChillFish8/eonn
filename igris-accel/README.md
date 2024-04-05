@@ -5,6 +5,13 @@ Various specialised vector operations, primarily designed for similarity search.
 This library requires nightly and is more unsafe than it is safe code, it is only intended to be used
 within the other Igris tools, if you absolutely want to use this library directly, do so at your own risk.
 
+### Notes on compiling
+
+This system has a few fallback implementions which can normally be auto-vectorized by the compiler
+for SSE instructions, but to make use of avx2, avx512 and fma you need to specify
+the features directly via `RUSTFLAGS="-C target-feature=+avx2,+fma"`
+
+
 ### Benchmarks
 
 The benchmarks are located in the `bench/` directory and are ran in batches of 1000 iterations
