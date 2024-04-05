@@ -20,6 +20,14 @@ fn ndarray_dot(a: &ndarray::Array1<f32>, b: &ndarray::Array1<f32>) -> f32 {
     a.dot(b)
 }
 
+macro_rules! repeat {
+    ($n:expr, $val:block) => {{
+        for _ in 0..$n {
+            black_box($val);
+        }
+    }};
+}
+
 fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("dot avx2 1024 nofma", |b| unsafe {
         let mut v1 = Vec::new();
@@ -32,7 +40,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         let v1 = Vector::<Avx2, X1024, f32, NoFma>::from_vec_unchecked(v1);
         let v2 = Vector::<Avx2, X1024, f32, NoFma>::from_vec_unchecked(v2);
 
-        b.iter(|| dot(black_box(&v1), black_box(&v2)))
+        b.iter(|| repeat!(1000, { dot(black_box(&v1), black_box(&v2)) }))
     });
     c.bench_function("dot avx2 1024 fma", |b| unsafe {
         let mut v1 = Vec::new();
@@ -45,7 +53,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         let v1 = Vector::<Avx2, X1024, f32, Fma>::from_vec_unchecked(v1);
         let v2 = Vector::<Avx2, X1024, f32, Fma>::from_vec_unchecked(v2);
 
-        b.iter(|| dot(black_box(&v1), black_box(&v2)))
+        b.iter(|| repeat!(1000, { dot(black_box(&v1), black_box(&v2)) }))
     });
     // Hey, this benchmark behaves drastically different if you are on Windows VS unix.
     // This is because on unix we do a more realistic benchmark and compare ndarray backed
@@ -63,7 +71,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         let v1 = Array1::from_shape_vec((1024,), v1).unwrap();
         let v2 = Array1::from_shape_vec((1024,), v2).unwrap();
 
-        b.iter(|| ndarray_dot(black_box(&v1), black_box(&v2)))
+        b.iter(|| repeat!(1000, { ndarray_dot(black_box(&v1), black_box(&v2)) }))
     });    
     c.bench_function("dot simsimd 1024 auto", |b| {
         let mut v1 = Vec::new();
@@ -73,7 +81,7 @@ fn criterion_benchmark(c: &mut Criterion) {
             v2.push(rand::random());
         }
 
-        b.iter(|| simsimd_dot(black_box(&v1), black_box(&v2)))
+        b.iter(|| repeat!(1000, { simsimd_dot(black_box(&v1), black_box(&v2)) }))
     });
     c.bench_function("dot fallback 1024 nofma", |b| unsafe {
         let mut v1 = Vec::new();
@@ -86,7 +94,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         let v1 = Vector::<Fallback, X1024, f32, NoFma>::from_vec_unchecked(v1);
         let v2 = Vector::<Fallback, X1024, f32, NoFma>::from_vec_unchecked(v2);
 
-        b.iter(|| dot(black_box(&v1), black_box(&v2)))
+        b.iter(|| repeat!(1000, { dot(black_box(&v1), black_box(&v2)) }))
     });
     c.bench_function("dot fallback 1024 fma", |b| unsafe {
         let mut v1 = Vec::new();
@@ -99,7 +107,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         let v1 = Vector::<Fallback, X1024, f32, Fma>::from_vec_unchecked(v1);
         let v2 = Vector::<Fallback, X1024, f32, Fma>::from_vec_unchecked(v2);
 
-        b.iter(|| dot(black_box(&v1), black_box(&v2)))
+        b.iter(|| repeat!(1000, { dot(black_box(&v1), black_box(&v2)) }))
     });
 }
 
@@ -107,7 +115,7 @@ criterion_group!(
     name = benches;
     config = Criterion::default()
         .measurement_time(Duration::from_secs(60))
-        .sample_size(1000);
+        .sample_size(300);
     targets = criterion_benchmark
 );
 criterion_main!(benches);

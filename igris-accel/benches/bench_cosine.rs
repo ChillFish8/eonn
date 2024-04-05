@@ -16,6 +16,14 @@ fn simsimd_cosine(a: &[f32], b: &[f32]) -> f32 {
     f32::cosine(a, b).unwrap_or_default() as f32
 }
 
+macro_rules! repeat {
+    ($n:expr, $val:block) => {{
+        for _ in 0..$n {
+            black_box($val);
+        }
+    }};
+}
+
 fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("cosine avx2 1024 nofma", |b| unsafe {
         let mut v1 = Vec::new();
@@ -28,7 +36,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         let v1 = Vector::<Avx2, X1024, f32, NoFma>::from_vec_unchecked(v1);
         let v2 = Vector::<Avx2, X1024, f32, NoFma>::from_vec_unchecked(v2);
 
-        b.iter(|| cosine(black_box(&v1), black_box(&v2)))
+        b.iter(|| repeat!(1000, { cosine(black_box(&v1), black_box(&v2)) }))
     });
     c.bench_function("cosine avx2 1024 fma", |b| unsafe {
         let mut v1 = Vec::new();
@@ -41,7 +49,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         let v1 = Vector::<Avx2, X1024, f32, Fma>::from_vec_unchecked(v1);
         let v2 = Vector::<Avx2, X1024, f32, Fma>::from_vec_unchecked(v2);
 
-        b.iter(|| cosine(black_box(&v1), black_box(&v2)))
+        b.iter(|| repeat!(1000, { cosine(black_box(&v1), black_box(&v2)) }))
     });
     c.bench_function("cosine autovec 1024 nofma", |b| unsafe {
         let mut v1 = Vec::new();
@@ -54,7 +62,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         let v1 = Vector::<Fallback, X1024, f32, NoFma>::from_vec_unchecked(v1);
         let v2 = Vector::<Fallback, X1024, f32, NoFma>::from_vec_unchecked(v2);
 
-        b.iter(|| cosine(black_box(&v1), black_box(&v2)))
+        b.iter(|| repeat!(1000, { cosine(black_box(&v1), black_box(&v2)) }))
     });
     c.bench_function("cosine autovec 1024 fma", |b| unsafe {
         let mut v1 = Vec::new();
@@ -67,7 +75,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         let v1 = Vector::<Fallback, X1024, f32, Fma>::from_vec_unchecked(v1);
         let v2 = Vector::<Fallback, X1024, f32, Fma>::from_vec_unchecked(v2);
 
-        b.iter(|| cosine(black_box(&v1), black_box(&v2)))
+        b.iter(|| repeat!(1000, { cosine(black_box(&v1), black_box(&v2)) }))
     });
     c.bench_function("cosine simsimd 1024 auto", |b| {
         let mut v1 = Vec::new();
@@ -77,7 +85,7 @@ fn criterion_benchmark(c: &mut Criterion) {
             v2.push(rand::random());
         }
 
-        b.iter(|| simsimd_cosine(black_box(&v1), black_box(&v2)))
+        b.iter(|| repeat!(1000, { simsimd_cosine(black_box(&v1), black_box(&v2)) }))
     });
 }
 
@@ -85,7 +93,7 @@ criterion_group!(
     name = benches;
     config = Criterion::default()
         .measurement_time(Duration::from_secs(60))
-        .sample_size(1000);
+        .sample_size(300);
     targets = criterion_benchmark
 );
 criterion_main!(benches);
