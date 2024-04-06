@@ -2,4 +2,5 @@
 #![feature(core_intrinsics)]
 
 pub mod math;
-pub mod vector_ops;
+pub mod distance_ops;
+mod danger;

@@ -26,6 +26,11 @@ ndarray = "0.15.6"
 # Enables all architecture specific code regardless of if the code is being
 # compiled with the required code. This is only really meant to be used for testing and IDEs.
 bypass-arch-flags = []
+# USE AT YOUR OWN RISK! Enables access to the dangerous intrinsic implementations as publically exposed functions.
+#
+# Although it requires great care, these functions are highly optimized and may be use in
+# other projects that want to use the functions for more than what the distance ops allow for.
+dangerous-access = []
 
 [[bench]]
 name = "bench_dot_product"

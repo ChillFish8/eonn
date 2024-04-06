@@ -5,7 +5,7 @@ use std::hint::black_box;
 use std::time::Duration;
 
 use criterion::{criterion_group, criterion_main, Criterion};
-use igris_accel::vector_ops::*;
+use igris_accel::distance_ops::*;
 use simsimd::SpatialSimilarity;
 
 fn dot<T: DistanceOps>(a: &T, b: &T) -> f32 {
