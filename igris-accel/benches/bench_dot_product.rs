@@ -6,7 +6,6 @@ use std::time::Duration;
 
 use criterion::{criterion_group, criterion_main, Criterion};
 use igris_accel::danger::*;
-use igris_accel::bindings::*;
 
 mod utils;
 
@@ -59,13 +58,6 @@ fn benchmark_dangerous_avx2_fma_impls(c: &mut Criterion) {
     c.bench_function("dot avx2 x512 fma", |b| unsafe {
         let (x, y) = utils::get_sample_vectors(512);
         b.iter(|| repeat!(1000, f32_x512_avx2_fma_dot, &x, &y));
-    });
-}
-
-fn benchmark_fortran_impls(c: &mut Criterion) {
-    c.bench_function("dot fortran x1024 auto", |b| unsafe {
-        let (x, y) = utils::get_sample_vectors(1024);
-        b.iter(|| repeat!(1000, f32_x1024_cosine, x.as_ptr(), y.as_ptr()));
     });
 }
 
