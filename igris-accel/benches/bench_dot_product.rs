@@ -67,7 +67,7 @@ criterion_group!(
         .measurement_time(Duration::from_secs(60))
         .sample_size(500)
         .warm_up_time(Duration::from_secs(10));
-    targets = 
+    targets =
         benchmark_3rd_party_impls,
         benchmark_dangerous_avx2_fma_impls,
         benchmark_dangerous_avx2_nofma_impls,

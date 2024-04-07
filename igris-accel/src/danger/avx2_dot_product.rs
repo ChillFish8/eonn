@@ -159,6 +159,9 @@ pub unsafe fn f32_x1024_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
     
     let x = x.as_ptr();
     let y = y.as_ptr();
+
+    _mm_prefetch::<_MM_HINT_T1>(x.cast());
+    _mm_prefetch::<_MM_HINT_T1>(y.cast());
     
     let mut acc1 = _mm256_set1_ps(0.0);
     let mut acc2 = _mm256_set1_ps(0.0);
@@ -188,7 +191,7 @@ pub unsafe fn f32_x1024_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
             768, 832, 896, 960,
     );
     
-    let acc = rollup_x8(acc1, acc2, acc3, acc4, acc4, acc6, acc7, acc8);
+    let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
     sum_avx2(acc)    
 }
 
@@ -210,6 +213,9 @@ pub unsafe fn f32_x768_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
     let x = x.as_ptr();
     let y = y.as_ptr();
 
+    _mm_prefetch::<_MM_HINT_T1>(x.cast());
+    _mm_prefetch::<_MM_HINT_T1>(y.cast());
+    
     let mut acc1 = _mm256_set1_ps(0.0);
     let mut acc2 = _mm256_set1_ps(0.0);
     let mut acc3 = _mm256_set1_ps(0.0);
@@ -237,7 +243,7 @@ pub unsafe fn f32_x768_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
             512, 576, 640, 704
     );
 
-    let acc = rollup_x8(acc1, acc2, acc3, acc4, acc4, acc6, acc7, acc8);
+    let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
     sum_avx2(acc)
 }
 
@@ -259,6 +265,9 @@ pub unsafe fn f32_x512_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
     let x = x.as_ptr();
     let y = y.as_ptr();
 
+    _mm_prefetch::<_MM_HINT_T1>(x.cast());
+    _mm_prefetch::<_MM_HINT_T1>(y.cast());
+    
     let mut acc1 = _mm256_set1_ps(0.0);
     let mut acc2 = _mm256_set1_ps(0.0);
     let mut acc3 = _mm256_set1_ps(0.0);
@@ -285,7 +294,7 @@ pub unsafe fn f32_x512_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
             256, 320, 384, 448
     );
 
-    let acc = rollup_x8(acc1, acc2, acc3, acc4, acc4, acc6, acc7, acc8);
+    let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
     sum_avx2(acc)
 }
 
@@ -308,6 +317,9 @@ pub unsafe fn f32_x1024_avx2_fma_dot(x: &[f32], y: &[f32]) -> f32 {
     let x = x.as_ptr();
     let y = y.as_ptr();
 
+    _mm_prefetch::<_MM_HINT_T1>(x.cast());
+    _mm_prefetch::<_MM_HINT_T1>(y.cast());
+    
     let mut acc1 = _mm256_set1_ps(0.0);
     let mut acc2 = _mm256_set1_ps(0.0);
     let mut acc3 = _mm256_set1_ps(0.0);
@@ -336,7 +348,7 @@ pub unsafe fn f32_x1024_avx2_fma_dot(x: &[f32], y: &[f32]) -> f32 {
             768, 832, 896, 960,
     );
 
-    let acc = rollup_x8(acc1, acc2, acc3, acc4, acc4, acc6, acc7, acc8);
+    let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
     sum_avx2(acc)
 }
 
@@ -358,6 +370,9 @@ pub unsafe fn f32_x768_avx2_fma_dot(x: &[f32], y: &[f32]) -> f32 {
     let x = x.as_ptr();
     let y = y.as_ptr();
 
+    _mm_prefetch::<_MM_HINT_T1>(x.cast());
+    _mm_prefetch::<_MM_HINT_T1>(y.cast());
+    
     let mut acc1 = _mm256_set1_ps(0.0);
     let mut acc2 = _mm256_set1_ps(0.0);
     let mut acc3 = _mm256_set1_ps(0.0);
@@ -385,7 +400,7 @@ pub unsafe fn f32_x768_avx2_fma_dot(x: &[f32], y: &[f32]) -> f32 {
             512, 576, 640, 704
     );
 
-    let acc = rollup_x8(acc1, acc2, acc3, acc4, acc4, acc6, acc7, acc8);
+    let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
     sum_avx2(acc)
 }
 
@@ -407,6 +422,9 @@ pub unsafe fn f32_x512_avx2_fma_dot(x: &[f32], y: &[f32]) -> f32 {
     let x = x.as_ptr();
     let y = y.as_ptr();
 
+    _mm_prefetch::<_MM_HINT_T1>(x.cast());
+    _mm_prefetch::<_MM_HINT_T1>(y.cast());
+    
     let mut acc1 = _mm256_set1_ps(0.0);
     let mut acc2 = _mm256_set1_ps(0.0);
     let mut acc3 = _mm256_set1_ps(0.0);
@@ -433,6 +451,6 @@ pub unsafe fn f32_x512_avx2_fma_dot(x: &[f32], y: &[f32]) -> f32 {
             256, 320, 384, 448
     );
 
-    let acc = rollup_x8(acc1, acc2, acc3, acc4, acc4, acc6, acc7, acc8);
+    let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
     sum_avx2(acc)
 }
