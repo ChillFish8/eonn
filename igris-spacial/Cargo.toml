@@ -1,0 +1,24 @@
+[package]
+name = "igris-spacial"
+version = "0.1.0"
+edition = "2021"
+description = "Spacial datastructures and tools for greating approximate nearest neighbour graphs fast."
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+thiserror = "1"
+fastrand = "2.0.2"
+
+rayon = { version = "1.10.0", optional = true }
+
+
+igris-accel = { version = "0.1.0", path = "../igris-accel", features = ["bypass-arch-flags"] }
+
+[features]
+# Enable multi-threaded building during graph construction.
+rayon = ["dep:rayon"]
+
+[dev-dependencies]
+serde = "1"
+serde_json = "1.0.115"
