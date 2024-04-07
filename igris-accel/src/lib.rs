@@ -3,4 +3,10 @@
 
 pub mod math;
 pub mod distance_ops;
-mod danger;
+
+#[cfg(feature = "dangerous-access")]
+pub mod danger;
+#[cfg(not(feature = "dangerous-access"))]
+pub(crate) mod danger;
+pub mod bindings;
+

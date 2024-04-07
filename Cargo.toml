@@ -7,6 +7,12 @@ edition = "2021"
 
 [dependencies]
 
+[profile.dev.package.igris-accel]
+opt-level = 3
+
+[profile.release]
+lto = "fat"
+
 [workspace]
 members = [
     "igris-accel",

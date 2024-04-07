@@ -1,7 +1,9 @@
 use std::arch::x86_64::*;
 
 #[inline(always)]
-unsafe fn sum_avx2(v: __m256) -> f32 {
+/// Performs a sum of all packed values in the provided [__m256] register 
+/// returning the resulting f32 value.
+pub(crate) unsafe fn sum_avx2(v: __m256) -> f32 {
     let left_half = _mm256_extractf128_ps::<1>(v);
     let right_half = _mm256_castps256_ps128(v);
     let sum_quad = _mm_add_ps(left_half, right_half);
@@ -19,7 +21,8 @@ unsafe fn sum_avx2(v: __m256) -> f32 {
 
 #[allow(clippy::too_many_arguments)]
 #[inline(always)]
-unsafe fn rollup_x8(
+/// Rolls up 8 [__m256] registers into 1 summing them together.
+pub(crate) unsafe fn rollup_x8(
     mut acc1: __m256,
     acc2: __m256,
     mut acc3: __m256,
@@ -42,6 +45,7 @@ unsafe fn rollup_x8(
 
 #[allow(clippy::too_many_arguments)]
 #[inline(always)]
+/// Rolls up 4 [__m256] registers into 1 summing them together.
 pub(crate) unsafe fn rollup_x4(
     mut acc1: __m256,
     acc2: __m256,

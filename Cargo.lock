@@ -383,7 +383,7 @@ dependencies = [
  "ndarray",
  "openblas-src",
  "rand",
- "simsimd",
+ "rand_chacha",
 ]
 
 [[package]]
@@ -921,15 +921,6 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
-]
-
-[[package]]
-name = "simsimd"
-version = "4.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3dea5b0128a1ddc947cd21358fbc4928bcde932f75b1e0aaf93c795b92adfa4e"
-dependencies = [
- "cc",
 ]
 
 [[package]]

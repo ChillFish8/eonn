@@ -5,130 +5,67 @@ use std::hint::black_box;
 use std::time::Duration;
 
 use criterion::{criterion_group, criterion_main, Criterion};
-use igris_accel::distance_ops::*;
-use simsimd::SpatialSimilarity;
+use igris_accel::danger::*;
+use igris_accel::bindings::*;
 
-fn dot<T: DistanceOps>(a: &T, b: &T) -> f32 {
-    unsafe { a.dot(b) }
+mod utils;
+
+
+fn benchmark_3rd_party_impls(c: &mut Criterion) {
+    c.bench_function("dot ndarray x1024 auto", |b| {
+        let (x, y) = utils::get_sample_vectors(1024);
+        let x = ndarray::Array1::from_shape_vec((1024,), x).unwrap();
+        let y = ndarray::Array1::from_shape_vec((1024,), y).unwrap();
+        b.iter(|| repeat!(1000, ndarray_dot, &x, &y));
+    });
+    c.bench_function("dot ndarray x768 auto", |b| {
+        let (x, y) = utils::get_sample_vectors(768);
+        let x = ndarray::Array1::from_shape_vec((768,), x).unwrap();
+        let y = ndarray::Array1::from_shape_vec((768,), y).unwrap();
+        b.iter(|| repeat!(1000, ndarray_dot, &x, &y));
+    });
+    c.bench_function("dot ndarray x512 auto", |b| {
+        let (x, y) = utils::get_sample_vectors(512);
+        let x = ndarray::Array1::from_shape_vec((512,), x).unwrap();
+        let y = ndarray::Array1::from_shape_vec((512,), y).unwrap();
+        b.iter(|| repeat!(1000, ndarray_dot, &x, &y));
+    });
 }
 
-fn simsimd_dot(a: &[f32], b: &[f32]) -> f32 {
-    f32::dot(a, b).unwrap_or_default() as f32
+fn benchmark_dangerous_avx2_nofma_impls(c: &mut Criterion) {
+    c.bench_function("dot avx2 x1024 nofma", |b| unsafe {
+        let (x, y) = utils::get_sample_vectors(1024);
+        b.iter(|| repeat!(1000, f32_x1024_avx2_nofma_dot, &x, &y));
+    });
+    c.bench_function("dot avx2 x768 nofma", |b| unsafe {
+        let (x, y) = utils::get_sample_vectors(768);
+        b.iter(|| repeat!(1000, f32_x768_avx2_nofma_dot, &x, &y));
+    });
+    c.bench_function("dot avx2 x512 nofma", |b| unsafe {
+        let (x, y) = utils::get_sample_vectors(512);
+        b.iter(|| repeat!(1000, f32_x512_avx2_nofma_dot, &x, &y));
+    });
 }
 
-fn ndarray_dot(a: &ndarray::Array1<f32>, b: &ndarray::Array1<f32>) -> f32 {
-    a.dot(b)
+fn benchmark_dangerous_avx2_fma_impls(c: &mut Criterion) {
+    c.bench_function("dot avx2 x1024 fma", |b| unsafe {
+        let (x, y) = utils::get_sample_vectors(1024);
+        b.iter(|| repeat!(1000, f32_x1024_avx2_fma_dot, &x, &y));
+    });
+    c.bench_function("dot avx2 x768 fma", |b| unsafe {
+        let (x, y) = utils::get_sample_vectors(768);
+        b.iter(|| repeat!(1000, f32_x768_avx2_fma_dot, &x, &y));
+    });
+    c.bench_function("dot avx2 x512 fma", |b| unsafe {
+        let (x, y) = utils::get_sample_vectors(512);
+        b.iter(|| repeat!(1000, f32_x512_avx2_fma_dot, &x, &y));
+    });
 }
 
-macro_rules! repeat {
-    ($n:expr, $val:block) => {{
-        for _ in 0..$n {
-            black_box($val);
-        }
-    }};
-}
-
-fn criterion_benchmark(c: &mut Criterion) {
-    #[cfg(any(
-        feature = "bypass-arch-flags",
-        all(
-            any(target_arch = "x86_64", target_arch = "x86"),
-            target_feature = "avx2",
-        )
-    ))]
-    c.bench_function("dot avx2 1024 nofma", |b| unsafe {
-        let mut v1 = Vec::new();
-        let mut v2 = Vec::new();
-        for _ in 0..1024 {
-            v1.push(rand::random());
-            v2.push(rand::random());
-        }
-
-        let v1 = Vector::<Avx2, X1024, f32, NoFma>::from_vec_unchecked(v1);
-        let v2 = Vector::<Avx2, X1024, f32, NoFma>::from_vec_unchecked(v2);
-
-        b.iter(|| repeat!(1000, { dot(black_box(&v1), black_box(&v2)) }))
-    });
-    #[cfg(any(
-        feature = "bypass-arch-flags",
-        all(
-            any(target_arch = "x86_64", target_arch = "x86"),
-            all(target_feature = "avx2", target_feature = "fma"),
-        )
-    ))]
-    c.bench_function("dot avx2 1024 fma", |b| unsafe {
-        let mut v1 = Vec::new();
-        let mut v2 = Vec::new();
-        for _ in 0..1024 {
-            v1.push(rand::random());
-            v2.push(rand::random());
-        }
-
-        let v1 = Vector::<Avx2, X1024, f32, Fma>::from_vec_unchecked(v1);
-        let v2 = Vector::<Avx2, X1024, f32, Fma>::from_vec_unchecked(v2);
-
-        b.iter(|| repeat!(1000, { dot(black_box(&v1), black_box(&v2)) }))
-    });
-    // Hey, this benchmark behaves drastically different if you are on Windows VS unix.
-    // This is because on unix we do a more realistic benchmark and compare ndarray backed
-    // by openblas rather than with the standard rust impl.
-    c.bench_function("dot ndarray 1024 auto", |b| {
-        use ndarray::Array1;
-
-        let mut v1 = Vec::new();
-        let mut v2 = Vec::new();
-        for _ in 0..1024 {
-            v1.push(rand::random());
-            v2.push(rand::random());
-        }
-
-        let v1 = Array1::from_shape_vec((1024,), v1).unwrap();
-        let v2 = Array1::from_shape_vec((1024,), v2).unwrap();
-
-        b.iter(|| repeat!(1000, { ndarray_dot(black_box(&v1), black_box(&v2)) }))
-    });    
-    c.bench_function("dot simsimd 1024 auto", |b| {
-        let mut v1 = Vec::new();
-        let mut v2 = Vec::new();
-        for _ in 0..1024 {
-            v1.push(rand::random());
-            v2.push(rand::random());
-        }
-
-        b.iter(|| repeat!(1000, { simsimd_dot(black_box(&v1), black_box(&v2)) }))
-    });
-    c.bench_function("dot fallback 1024 nofma", |b| unsafe {
-        let mut v1 = Vec::new();
-        let mut v2 = Vec::new();
-        for _ in 0..1024 {
-            v1.push(rand::random());
-            v2.push(rand::random());
-        }
-
-        let v1 = Vector::<Fallback, X1024, f32, NoFma>::from_vec_unchecked(v1);
-        let v2 = Vector::<Fallback, X1024, f32, NoFma>::from_vec_unchecked(v2);
-
-        b.iter(|| repeat!(1000, { dot(black_box(&v1), black_box(&v2)) }))
-    });
-    #[cfg(any(
-        feature = "bypass-arch-flags",
-        all(
-            any(target_arch = "x86_64", target_arch = "x86"),
-            target_feature = "fma",
-        )
-    ))]
-    c.bench_function("dot fallback 1024 fma", |b| unsafe {
-        let mut v1 = Vec::new();
-        let mut v2 = Vec::new();
-        for _ in 0..1024 {
-            v1.push(rand::random());
-            v2.push(rand::random());
-        }
-
-        let v1 = Vector::<Fallback, X1024, f32, Fma>::from_vec_unchecked(v1);
-        let v2 = Vector::<Fallback, X1024, f32, Fma>::from_vec_unchecked(v2);
-
-        b.iter(|| repeat!(1000, { dot(black_box(&v1), black_box(&v2)) }))
+fn benchmark_fortran_impls(c: &mut Criterion) {
+    c.bench_function("dot fortran x1024 auto", |b| unsafe {
+        let (x, y) = utils::get_sample_vectors(1024);
+        b.iter(|| repeat!(1000, f32_x1024_cosine, x.as_ptr(), y.as_ptr()));
     });
 }
 
@@ -136,7 +73,15 @@ criterion_group!(
     name = benches;
     config = Criterion::default()
         .measurement_time(Duration::from_secs(60))
-        .sample_size(500);
-    targets = criterion_benchmark
+        .sample_size(500)
+        .warm_up_time(Duration::from_secs(10));
+    targets = 
+        benchmark_3rd_party_impls,
+        benchmark_dangerous_avx2_fma_impls,
+        benchmark_dangerous_avx2_nofma_impls,
 );
 criterion_main!(benches);
+
+fn ndarray_dot(a: &ndarray::Array1<f32>, b: &ndarray::Array1<f32>) -> f32 {
+    a.dot(b)
+}
