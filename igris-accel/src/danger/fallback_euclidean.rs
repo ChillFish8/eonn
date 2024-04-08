@@ -187,5 +187,5 @@ unsafe fn fallback_euclidean<M: Math, const DIMS: usize>(x: &[f32], y: &[f32]) -
         i += 8;
     }
 
-    rollup_x8::<M>(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
+    rollup_scalar_x8::<M>(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
 }
