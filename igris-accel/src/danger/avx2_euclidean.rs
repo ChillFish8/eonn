@@ -34,6 +34,7 @@ macro_rules! unrolled_loop {
     }};
 }
 
+#[target_feature(enable = "avx2")]
 #[inline]
 /// Computes the squared Euclidean distance of two `[f32; 1024]` vectors.
 ///
@@ -87,6 +88,7 @@ pub unsafe fn f32_x1024_avx2_nofma_euclidean(x: &[f32], y: &[f32]) -> f32 {
     sum_avx2(acc)
 }
 
+#[target_feature(enable = "avx2")]
 #[inline]
 /// Computes the squared Euclidean distance of two `[f32; 768]` vectors.
 ///
@@ -139,6 +141,7 @@ pub unsafe fn f32_x768_avx2_nofma_euclidean(x: &[f32], y: &[f32]) -> f32 {
     sum_avx2(acc)
 }
 
+#[target_feature(enable = "avx2")]
 #[inline]
 /// Computes the squared Euclidean distance of two `[f32; 512]` vectors.
 ///
@@ -190,6 +193,7 @@ pub unsafe fn f32_x512_avx2_nofma_euclidean(x: &[f32], y: &[f32]) -> f32 {
     sum_avx2(acc)
 }
 
+#[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
 /// Computes the squared Euclidean distance of two `[f32; 1024]` vectors.
 ///
@@ -243,6 +247,7 @@ pub unsafe fn f32_x1024_avx2_fma_euclidean(x: &[f32], y: &[f32]) -> f32 {
     sum_avx2(acc)
 }
 
+#[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
 /// Computes the squared Euclidean distance of two `[f32; 768]` vectors.
 ///
@@ -295,6 +300,7 @@ pub unsafe fn f32_x768_avx2_fma_euclidean(x: &[f32], y: &[f32]) -> f32 {
     sum_avx2(acc)
 }
 
+#[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
 /// Computes the squared Euclidean distance of two `[f32; 512]` vectors.
 ///

@@ -46,6 +46,7 @@ pub(crate) unsafe fn rollup_x8(
     _mm256_add_ps(acc1, acc5)
 }
 
+
 #[allow(clippy::too_many_arguments)]
 #[inline(always)]
 /// Rolls up 8 [__m256] registers into 1 summing them together.

@@ -33,6 +33,7 @@ macro_rules! unrolled_loop {
     }};
 }
 
+#[target_feature(enable = "avx512f")]
 #[inline]
 /// Computes the dot product of two `[f32; 1024]` vectors.
 ///
@@ -81,6 +82,7 @@ pub unsafe fn f32_x1024_avx512_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
     sum_avx512_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
 }
 
+#[target_feature(enable = "avx512f")]
 #[inline]
 /// Computes the dot product of two `[f32; 768]` vectors.
 ///
@@ -129,6 +131,7 @@ pub unsafe fn f32_x768_avx512_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
     sum_avx512_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
 }
 
+#[target_feature(enable = "avx512f")]
 #[inline]
 /// Computes the dot product of two `[f32; 512]` vectors.
 ///
@@ -177,6 +180,7 @@ pub unsafe fn f32_x512_avx512_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
     sum_avx512_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
 }
 
+#[target_feature(enable = "avx512f")]
 #[inline]
 /// Computes the dot product of two `[f32; 1024]` vectors.
 ///
@@ -225,6 +229,7 @@ pub unsafe fn f32_x1024_avx512_fma_dot(x: &[f32], y: &[f32]) -> f32 {
     sum_avx512_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
 }
 
+#[target_feature(enable = "avx512f")]
 #[inline]
 /// Computes the dot product of two `[f32; 768]` vectors.
 ///
@@ -273,6 +278,7 @@ pub unsafe fn f32_x768_avx512_fma_dot(x: &[f32], y: &[f32]) -> f32 {
     sum_avx512_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
 }
 
+#[target_feature(enable = "avx512f")]
 #[inline]
 /// Computes the dot product of two `[f32; 512]` vectors.
 ///
@@ -425,3 +431,4 @@ unsafe fn execute_f32_x128_fma_block_dot_product(
     *acc7 = _mm512_fmadd_ps(x7, y7, *acc7);
     *acc8 = _mm512_fmadd_ps(x8, y8, *acc8);
 }
+

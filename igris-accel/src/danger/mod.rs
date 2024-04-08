@@ -1,11 +1,11 @@
 mod avx2_cosine;
 mod avx2_dot_product;
 mod avx2_euclidean;
+mod avx512_dot_product;
 mod fallback_cosine;
 mod fallback_dot_product;
 mod fallback_euclidean;
 mod utils;
-mod avx512_dot_product;
 
 pub(crate) use utils::*;
 
