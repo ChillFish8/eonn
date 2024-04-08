@@ -63,7 +63,12 @@ pub(crate) unsafe fn rollup_x4(
 
 #[inline(always)]
 pub(crate) unsafe fn offsets(ptr: *const f32, offset: usize) -> [*const f32; 4] {
-    array::from_fn(|i| ptr.add(offset + 8 * i))
+    [
+        ptr.add(offset),
+        ptr.add(offset + 8),
+        ptr.add(offset + 16),
+        ptr.add(offset + 24),
+    ]
 }
 
 #[allow(clippy::too_many_arguments)]
