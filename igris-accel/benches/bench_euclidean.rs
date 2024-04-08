@@ -6,8 +6,8 @@ use std::ops::Sub;
 use std::time::Duration;
 
 use criterion::{criterion_group, criterion_main, Criterion};
-use simsimd::SpatialSimilarity;
 use igris_accel::danger::*;
+use simsimd::SpatialSimilarity;
 
 mod utils;
 
@@ -71,6 +71,36 @@ fn benchmark_dangerous_avx2_fma_impls(c: &mut Criterion) {
     c.bench_function("euclidean avx2 x512 fma", |b| unsafe {
         let (x, y) = utils::get_sample_vectors(512);
         b.iter(|| repeat!(1000, f32_x512_avx2_fma_euclidean, &x, &y));
+    });
+}
+
+fn benchmark_dangerous_avx512_nofma_impls(c: &mut Criterion) {
+    c.bench_function("euclidean avx512 x1024 nofma", |b| unsafe {
+        let (x, y) = utils::get_sample_vectors(1024);
+        b.iter(|| repeat!(1000, f32_x1024_avx512_nofma_euclidean, &x, &y));
+    });
+    c.bench_function("euclidean avx512 x768 nofma", |b| unsafe {
+        let (x, y) = utils::get_sample_vectors(768);
+        b.iter(|| repeat!(1000, f32_x768_avx512_nofma_euclidean, &x, &y));
+    });
+    c.bench_function("euclidean avx512 x512 nofma", |b| unsafe {
+        let (x, y) = utils::get_sample_vectors(512);
+        b.iter(|| repeat!(1000, f32_x512_avx512_nofma_euclidean, &x, &y));
+    });
+}
+
+fn benchmark_dangerous_avx512_fma_impls(c: &mut Criterion) {
+    c.bench_function("euclidean avx512 x1024 fma", |b| unsafe {
+        let (x, y) = utils::get_sample_vectors(1024);
+        b.iter(|| repeat!(1000, f32_x1024_avx512_fma_euclidean, &x, &y));
+    });
+    c.bench_function("euclidean avx512 x768 fma", |b| unsafe {
+        let (x, y) = utils::get_sample_vectors(768);
+        b.iter(|| repeat!(1000, f32_x768_avx512_fma_euclidean, &x, &y));
+    });
+    c.bench_function("euclidean avx512 x512 fma", |b| unsafe {
+        let (x, y) = utils::get_sample_vectors(512);
+        b.iter(|| repeat!(1000, f32_x512_avx512_fma_euclidean, &x, &y));
     });
 }
 

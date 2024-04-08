@@ -5,8 +5,8 @@ use std::hint::black_box;
 use std::time::Duration;
 
 use criterion::{criterion_group, criterion_main, Criterion};
-use simsimd::SpatialSimilarity;
 use igris_accel::danger::*;
+use simsimd::SpatialSimilarity;
 
 mod utils;
 
@@ -140,13 +140,13 @@ criterion_group!(
         .sample_size(500)
         .warm_up_time(Duration::from_secs(10));
     targets =
-        // benchmark_3rd_party_impls,
-        // benchmark_dangerous_avx2_fma_impls,
-        // benchmark_dangerous_avx2_nofma_impls,
+        benchmark_3rd_party_impls,
+        benchmark_dangerous_avx2_fma_impls,
+        benchmark_dangerous_avx2_nofma_impls,
         benchmark_dangerous_avx512_fma_impls,
         benchmark_dangerous_avx512_nofma_impls,
-        // benchmark_dangerous_fallback_fma_impls,
-        // benchmark_dangerous_fallback_nofma_impls,
+        benchmark_dangerous_fallback_fma_impls,
+        benchmark_dangerous_fallback_nofma_impls,
 );
 criterion_main!(benches);
 

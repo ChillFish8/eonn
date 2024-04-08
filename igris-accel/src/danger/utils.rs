@@ -1,7 +1,17 @@
 use std::arch::x86_64::*;
 
-
 use crate::math::Math;
+
+#[inline(always)]
+pub unsafe fn cosine<M: Math>(dot_product: f32, norm_x: f32, norm_y: f32) -> f32 {
+    if norm_x == 0.0 && norm_y == 0.0 {
+        0.0
+    } else if norm_x == 0.0 || norm_y == 0.0 {
+        1.0
+    } else {
+        M::sub(1.0, M::div(dot_product, M::mul(norm_x, norm_y).sqrt()))
+    }
+}
 
 #[inline(always)]
 /// Performs a sum of all packed values in the provided [__m256] register
@@ -45,7 +55,6 @@ pub(crate) unsafe fn rollup_x8(
 
     _mm256_add_ps(acc1, acc5)
 }
-
 
 #[allow(clippy::too_many_arguments)]
 #[inline(always)]
