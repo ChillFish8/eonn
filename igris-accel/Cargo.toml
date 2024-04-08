@@ -11,6 +11,7 @@ description = "Accelerated operations for the igris service"
 [dev-dependencies]
 rand = "0.8.5"
 rand_chacha = "0.3.1"
+simsimd = "4.3.0"
 
 criterion = { version = "0.5.1", features = ["html_reports"] }
 
@@ -36,10 +37,10 @@ dangerous-access = []
 name = "bench_dot_product"
 harness = false
 
-[[bench]]
-name = "bench_cosine"
-harness = false
-
-[[bench]]
-name = "bench_euclidean"
-harness = false
+# [[bench]]
+# name = "bench_cosine"
+# harness = false
+# 
+# [[bench]]
+# name = "bench_euclidean"
+# harness = false

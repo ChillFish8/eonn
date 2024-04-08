@@ -1,5 +1,5 @@
 use std::arch::x86_64::*;
-use std::array;
+
 
 use crate::math::Math;
 
@@ -48,6 +48,31 @@ pub(crate) unsafe fn rollup_x8(
 
 #[allow(clippy::too_many_arguments)]
 #[inline(always)]
+/// Rolls up 8 [__m256] registers into 1 summing them together.
+pub(crate) unsafe fn sum_avx512_x8(
+    mut acc1: __m512,
+    acc2: __m512,
+    mut acc3: __m512,
+    acc4: __m512,
+    mut acc5: __m512,
+    acc6: __m512,
+    mut acc7: __m512,
+    acc8: __m512,
+) -> f32 {
+    acc1 = _mm512_add_ps(acc1, acc2);
+    acc3 = _mm512_add_ps(acc3, acc4);
+    acc5 = _mm512_add_ps(acc5, acc6);
+    acc7 = _mm512_add_ps(acc7, acc8);
+
+    acc1 = _mm512_add_ps(acc1, acc3);
+    acc5 = _mm512_add_ps(acc5, acc7);
+
+    acc1 = _mm512_add_ps(acc1, acc5);
+    _mm512_reduce_add_ps(acc1)
+}
+
+#[allow(clippy::too_many_arguments)]
+#[inline(always)]
 /// Rolls up 4 [__m256] registers into 1 summing them together.
 pub(crate) unsafe fn rollup_x4(
     mut acc1: __m256,
@@ -65,9 +90,9 @@ pub(crate) unsafe fn rollup_x4(
 pub(crate) unsafe fn offsets(ptr: *const f32, offset: usize) -> [*const f32; 4] {
     [
         ptr.add(offset),
-        ptr.add(offset + 8),
         ptr.add(offset + 16),
-        ptr.add(offset + 24),
+        ptr.add(offset + 32),
+        ptr.add(offset + 48),
     ]
 }
 

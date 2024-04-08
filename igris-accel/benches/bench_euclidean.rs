@@ -6,6 +6,7 @@ use std::ops::Sub;
 use std::time::Duration;
 
 use criterion::{criterion_group, criterion_main, Criterion};
+use simsimd::SpatialSimilarity;
 use igris_accel::danger::*;
 
 mod utils;
@@ -28,6 +29,18 @@ fn benchmark_3rd_party_impls(c: &mut Criterion) {
         let x = ndarray::Array1::from_shape_vec((512,), x).unwrap();
         let y = ndarray::Array1::from_shape_vec((512,), y).unwrap();
         b.iter(|| repeat!(1000, ndarray_euclidean, &x, &y));
+    });
+    c.bench_function("euclidean simsimd x1024 auto", |b| {
+        let (x, y) = utils::get_sample_vectors(1024);
+        b.iter(|| repeat!(1000, simsimd_euclidean, &x, &y));
+    });
+    c.bench_function("euclidean simsimd x768 auto", |b| {
+        let (x, y) = utils::get_sample_vectors(768);
+        b.iter(|| repeat!(1000, simsimd_euclidean, &x, &y));
+    });
+    c.bench_function("euclidean simsimd x512 auto", |b| {
+        let (x, y) = utils::get_sample_vectors(512);
+        b.iter(|| repeat!(1000, simsimd_euclidean, &x, &y));
     });
 }
 
@@ -109,4 +122,8 @@ criterion_main!(benches);
 fn ndarray_euclidean(a: &ndarray::Array1<f32>, b: &ndarray::Array1<f32>) -> f32 {
     let diff = a.sub(b);
     diff.dot(&diff)
+}
+
+fn simsimd_euclidean(a: &[f32], b: &[f32]) -> f32 {
+    f32::sqeuclidean(a, b).unwrap_or_default() as f32
 }

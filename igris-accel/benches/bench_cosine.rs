@@ -5,6 +5,7 @@ use std::hint::black_box;
 use std::time::Duration;
 
 use criterion::{criterion_group, criterion_main, Criterion};
+use simsimd::SpatialSimilarity;
 use igris_accel::danger::*;
 
 mod utils;
@@ -27,6 +28,18 @@ fn benchmark_3rd_party_impls(c: &mut Criterion) {
         let x = ndarray::Array1::from_shape_vec((512,), x).unwrap();
         let y = ndarray::Array1::from_shape_vec((512,), y).unwrap();
         b.iter(|| repeat!(1000, ndarray_cosine, &x, &y));
+    });
+    c.bench_function("cosine simsimd x1024 auto", |b| {
+        let (x, y) = utils::get_sample_vectors(1024);
+        b.iter(|| repeat!(1000, simsimd_cosine, &x, &y));
+    });
+    c.bench_function("cosine simsimd x768 auto", |b| {
+        let (x, y) = utils::get_sample_vectors(768);
+        b.iter(|| repeat!(1000, simsimd_cosine, &x, &y));
+    });
+    c.bench_function("cosine simsimd x512 auto", |b| {
+        let (x, y) = utils::get_sample_vectors(512);
+        b.iter(|| repeat!(1000, simsimd_cosine, &x, &y));
     });
 }
 
@@ -117,4 +130,8 @@ fn ndarray_cosine(a: &ndarray::Array1<f32>, b: &ndarray::Array1<f32>) -> f32 {
     } else {
         1.0 - (dot_product / (norm_x * norm_y).sqrt())
     }
+}
+
+fn simsimd_cosine(a: &[f32], b: &[f32]) -> f32 {
+    f32::cosine(a, b).unwrap_or_default() as f32
 }

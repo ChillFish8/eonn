@@ -1,5 +1,6 @@
 #![allow(internal_features)]
 #![feature(core_intrinsics)]
+#![feature(stdarch_x86_avx512)]
 
 pub mod distance_ops;
 pub mod math;
