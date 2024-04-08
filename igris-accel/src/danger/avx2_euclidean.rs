@@ -4,7 +4,7 @@ use crate::danger::{offsets, rollup_x8, sum_avx2};
 
 #[allow(clippy::too_many_arguments)]
 #[inline(always)]
-unsafe fn execute_f32_x64_nofma_block_dot_product(
+unsafe fn execute_f32_x64_nofma_block_euclidean(
     x: *const f32,
     y: *const f32,
     acc1: &mut __m256,
@@ -40,14 +40,23 @@ unsafe fn execute_f32_x64_nofma_block_dot_product(
     let y7 = _mm256_loadu_ps(y7);
     let y8 = _mm256_loadu_ps(y8);
 
-    let r1 = _mm256_mul_ps(x1, y1);
-    let r2 = _mm256_mul_ps(x2, y2);
-    let r3 = _mm256_mul_ps(x3, y3);
-    let r4 = _mm256_mul_ps(x4, y4);
-    let r5 = _mm256_mul_ps(x5, y5);
-    let r6 = _mm256_mul_ps(x6, y6);
-    let r7 = _mm256_mul_ps(x7, y7);
-    let r8 = _mm256_mul_ps(x8, y8);
+    let diff1 = _mm256_sub_ps(x1, y1);
+    let diff2 = _mm256_sub_ps(x2, y2);
+    let diff3 = _mm256_sub_ps(x3, y3);
+    let diff4 = _mm256_sub_ps(x4, y4);
+    let diff5 = _mm256_sub_ps(x5, y5);
+    let diff6 = _mm256_sub_ps(x6, y6);
+    let diff7 = _mm256_sub_ps(x7, y7);
+    let diff8 = _mm256_sub_ps(x8, y8);
+    
+    let r1 = _mm256_mul_ps(diff1, diff1);
+    let r2 = _mm256_mul_ps(diff2, diff2);
+    let r3 = _mm256_mul_ps(diff3, diff3);
+    let r4 = _mm256_mul_ps(diff4, diff4);
+    let r5 = _mm256_mul_ps(diff5, diff5);
+    let r6 = _mm256_mul_ps(diff6, diff6);
+    let r7 = _mm256_mul_ps(diff7, diff7);
+    let r8 = _mm256_mul_ps(diff8, diff8);
 
     *acc1 = _mm256_add_ps(*acc1, r1);
     *acc2 = _mm256_add_ps(*acc2, r2);
@@ -61,7 +70,7 @@ unsafe fn execute_f32_x64_nofma_block_dot_product(
 
 #[allow(clippy::too_many_arguments)]
 #[inline(always)]
-unsafe fn execute_f32_x64_fma_block_dot_product(
+unsafe fn execute_f32_x64_fma_block_euclidean(
     x: *const f32,
     y: *const f32,
     acc1: &mut __m256,
@@ -97,14 +106,23 @@ unsafe fn execute_f32_x64_fma_block_dot_product(
     let y7 = _mm256_loadu_ps(y7);
     let y8 = _mm256_loadu_ps(y8);
 
-    *acc1 = _mm256_fmadd_ps(x1, y1, *acc1);
-    *acc2 = _mm256_fmadd_ps(x2, y2, *acc2);
-    *acc3 = _mm256_fmadd_ps(x3, y3, *acc3);
-    *acc4 = _mm256_fmadd_ps(x4, y4, *acc4);
-    *acc5 = _mm256_fmadd_ps(x5, y5, *acc5);
-    *acc6 = _mm256_fmadd_ps(x6, y6, *acc6);
-    *acc7 = _mm256_fmadd_ps(x7, y7, *acc7);
-    *acc8 = _mm256_fmadd_ps(x8, y8, *acc8);
+    let diff1 = _mm256_sub_ps(x1, y1);
+    let diff2 = _mm256_sub_ps(x2, y2);
+    let diff3 = _mm256_sub_ps(x3, y3);
+    let diff4 = _mm256_sub_ps(x4, y4);
+    let diff5 = _mm256_sub_ps(x5, y5);
+    let diff6 = _mm256_sub_ps(x6, y6);
+    let diff7 = _mm256_sub_ps(x7, y7);
+    let diff8 = _mm256_sub_ps(x8, y8);
+    
+    *acc1 = _mm256_fmadd_ps(diff1, diff1, *acc1);
+    *acc2 = _mm256_fmadd_ps(diff2, diff2, *acc2);
+    *acc3 = _mm256_fmadd_ps(diff3, diff3, *acc3);
+    *acc4 = _mm256_fmadd_ps(diff4, diff4, *acc4);
+    *acc5 = _mm256_fmadd_ps(diff5, diff5, *acc5);
+    *acc6 = _mm256_fmadd_ps(diff6, diff6, *acc6);
+    *acc7 = _mm256_fmadd_ps(diff7, diff7, *acc7);
+    *acc8 = _mm256_fmadd_ps(diff8, diff8, *acc8);
 }
 
 macro_rules! unrolled_loop {
@@ -140,7 +158,7 @@ macro_rules! unrolled_loop {
 }
 
 #[inline]
-/// Computes the dot product of two `[f32; 1024]` vectors.
+/// Computes the squared Euclidean distance of two `[f32; 1024]` vectors.
 ///
 /// # Safety
 ///
@@ -150,7 +168,7 @@ macro_rules! unrolled_loop {
 /// NOTE:
 /// Values within the vector should also be finite, although it is not
 /// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_x1024_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
+pub unsafe fn f32_x1024_avx2_nofma_euclidean(x: &[f32], y: &[f32]) -> f32 {
     debug_assert_eq!(x.len(), 1024);
     debug_assert_eq!(y.len(), 1024);
 
@@ -170,7 +188,7 @@ pub unsafe fn f32_x1024_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
     let mut acc8 = _mm256_set1_ps(0.0);
 
     unrolled_loop!(
-        execute_f32_x64_nofma_block_dot_product,
+        execute_f32_x64_nofma_block_euclidean,
         x,
         y,
         &mut acc1,
@@ -193,7 +211,7 @@ pub unsafe fn f32_x1024_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
 }
 
 #[inline]
-/// Computes the dot product of two `[f32; 768]` vectors.
+/// Computes the squared Euclidean distance of two `[f32; 768]` vectors.
 ///
 /// # Safety
 ///
@@ -203,7 +221,7 @@ pub unsafe fn f32_x1024_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
 /// NOTE:
 /// Values within the vector should also be finite, although it is not
 /// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_x768_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
+pub unsafe fn f32_x768_avx2_nofma_euclidean(x: &[f32], y: &[f32]) -> f32 {
     debug_assert_eq!(x.len(), 768);
     debug_assert_eq!(y.len(), 768);
 
@@ -223,7 +241,7 @@ pub unsafe fn f32_x768_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
     let mut acc8 = _mm256_set1_ps(0.0);
 
     unrolled_loop!(
-        execute_f32_x64_nofma_block_dot_product,
+        execute_f32_x64_nofma_block_euclidean,
         x,
         y,
         &mut acc1,
@@ -245,7 +263,7 @@ pub unsafe fn f32_x768_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
 }
 
 #[inline]
-/// Computes the dot product of two `[f32; 512]` vectors.
+/// Computes the squared Euclidean distance of two `[f32; 512]` vectors.
 ///
 /// # Safety
 ///
@@ -255,7 +273,7 @@ pub unsafe fn f32_x768_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
 /// NOTE:
 /// Values within the vector should also be finite, although it is not
 /// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_x512_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
+pub unsafe fn f32_x512_avx2_nofma_euclidean(x: &[f32], y: &[f32]) -> f32 {
     debug_assert_eq!(x.len(), 512);
     debug_assert_eq!(y.len(), 512);
 
@@ -275,7 +293,7 @@ pub unsafe fn f32_x512_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
     let mut acc8 = _mm256_set1_ps(0.0);
 
     unrolled_loop!(
-        execute_f32_x64_nofma_block_dot_product,
+        execute_f32_x64_nofma_block_euclidean,
         x,
         y,
         &mut acc1,
@@ -296,7 +314,7 @@ pub unsafe fn f32_x512_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
 }
 
 #[inline]
-/// Computes the dot product of two `[f32; 1024]` vectors.
+/// Computes the squared Euclidean distance of two `[f32; 1024]` vectors.
 ///
 /// # Safety
 ///
@@ -306,7 +324,7 @@ pub unsafe fn f32_x512_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
 /// NOTE:
 /// Values within the vector should also be finite, although it is not
 /// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_x1024_avx2_fma_dot(x: &[f32], y: &[f32]) -> f32 {
+pub unsafe fn f32_x1024_avx2_fma_euclidean(x: &[f32], y: &[f32]) -> f32 {
     debug_assert_eq!(x.len(), 1024);
     debug_assert_eq!(y.len(), 1024);
 
@@ -326,7 +344,7 @@ pub unsafe fn f32_x1024_avx2_fma_dot(x: &[f32], y: &[f32]) -> f32 {
     let mut acc8 = _mm256_set1_ps(0.0);
 
     unrolled_loop!(
-        execute_f32_x64_fma_block_dot_product,
+        execute_f32_x64_fma_block_euclidean,
         x,
         y,
         &mut acc1,
@@ -349,7 +367,7 @@ pub unsafe fn f32_x1024_avx2_fma_dot(x: &[f32], y: &[f32]) -> f32 {
 }
 
 #[inline]
-/// Computes the dot product of two `[f32; 768]` vectors.
+/// Computes the squared Euclidean distance of two `[f32; 768]` vectors.
 ///
 /// # Safety
 ///
@@ -359,7 +377,7 @@ pub unsafe fn f32_x1024_avx2_fma_dot(x: &[f32], y: &[f32]) -> f32 {
 /// NOTE:
 /// Values within the vector should also be finite, although it is not
 /// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_x768_avx2_fma_dot(x: &[f32], y: &[f32]) -> f32 {
+pub unsafe fn f32_x768_avx2_fma_euclidean(x: &[f32], y: &[f32]) -> f32 {
     debug_assert_eq!(x.len(), 768);
     debug_assert_eq!(y.len(), 768);
 
@@ -379,7 +397,7 @@ pub unsafe fn f32_x768_avx2_fma_dot(x: &[f32], y: &[f32]) -> f32 {
     let mut acc8 = _mm256_set1_ps(0.0);
 
     unrolled_loop!(
-        execute_f32_x64_fma_block_dot_product,
+        execute_f32_x64_fma_block_euclidean,
         x,
         y,
         &mut acc1,
@@ -401,7 +419,7 @@ pub unsafe fn f32_x768_avx2_fma_dot(x: &[f32], y: &[f32]) -> f32 {
 }
 
 #[inline]
-/// Computes the dot product of two `[f32; 512]` vectors.
+/// Computes the squared Euclidean distance of two `[f32; 512]` vectors.
 ///
 /// # Safety
 ///
@@ -411,7 +429,7 @@ pub unsafe fn f32_x768_avx2_fma_dot(x: &[f32], y: &[f32]) -> f32 {
 /// NOTE:
 /// Values within the vector should also be finite, although it is not
 /// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_x512_avx2_fma_dot(x: &[f32], y: &[f32]) -> f32 {
+pub unsafe fn f32_x512_avx2_fma_euclidean(x: &[f32], y: &[f32]) -> f32 {
     debug_assert_eq!(x.len(), 512);
     debug_assert_eq!(y.len(), 512);
 
@@ -431,7 +449,7 @@ pub unsafe fn f32_x512_avx2_fma_dot(x: &[f32], y: &[f32]) -> f32 {
     let mut acc8 = _mm256_set1_ps(0.0);
 
     unrolled_loop!(
-        execute_f32_x64_fma_block_dot_product,
+        execute_f32_x64_fma_block_euclidean,
         x,
         y,
         &mut acc1,

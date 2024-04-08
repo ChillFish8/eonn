@@ -1,6 +1,14 @@
-use crate::math::*;
 use crate::distance_ops::arch::*;
-use crate::distance_ops::{DistanceOps, Fallback, Vector, VectorView, X1024, X512, X768};
+use crate::distance_ops::{
+    DistanceOps,
+    Fallback,
+    Vector,
+    VectorView,
+    X1024,
+    X512,
+    X768,
+};
+use crate::math::*;
 
 impl DistanceOps for Vector<Fallback, X1024, f32, NoFma> {
     #[inline]

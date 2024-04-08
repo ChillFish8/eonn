@@ -1,6 +1,6 @@
 use std::arch::x86_64::*;
 
-use crate::math::{FastMath, Math, StdMath};
+use crate::danger::*;
 use crate::distance_ops::{
     Avx2,
     DistanceOps,
@@ -12,7 +12,7 @@ use crate::distance_ops::{
     X512,
     X768,
 };
-use crate::danger::*;
+use crate::math::{FastMath, Math, StdMath};
 
 impl DistanceOps for Vector<Avx2, X1024, f32, NoFma> {
     #[inline]
@@ -1018,16 +1018,15 @@ unsafe fn f32_avx2_fma_dot_x512(a: &[f32], b: &[f32]) -> f32 {
     sum_avx2(acc1)
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::math::{FastMath, StdMath};
     use crate::distance_ops::float32::fallback::{
         fallback_cosine,
         fallback_dot_product,
         fallback_euclidean,
     };
+    use crate::math::{FastMath, StdMath};
 
     #[test]
     fn test_avx2_rollup_sum() {

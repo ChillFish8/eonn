@@ -1,7 +1,8 @@
 use std::arch::x86_64::*;
+use crate::math::Math;
 
 #[inline(always)]
-/// Performs a sum of all packed values in the provided [__m256] register 
+/// Performs a sum of all packed values in the provided [__m256] register
 /// returning the resulting f32 value.
 pub(crate) unsafe fn sum_avx2(v: __m256) -> f32 {
     let left_half = _mm256_extractf128_ps::<1>(v);
@@ -66,4 +67,29 @@ pub(crate) unsafe fn offsets(ptr: *const f32, offset: usize) -> [*const f32; 4] 
         ptr.add(offset + 16),
         ptr.add(offset + 24),
     ]
+}
+
+
+#[allow(clippy::too_many_arguments)]
+#[inline(always)]
+/// Sums 8 scalar accumulators into one f32 value.
+pub fn rollup_scalar_x8<M: Math>(
+    mut acc1: f32,
+    acc2: f32,
+    mut acc3: f32,
+    acc4: f32,
+    mut acc5: f32,
+    acc6: f32,
+    mut acc7: f32,
+    acc8: f32,
+) -> f32 {
+    acc1 = M::add(acc1, acc2);
+    acc3 = M::add(acc3, acc4);
+    acc5 = M::add(acc5, acc6);
+    acc7 = M::add(acc7, acc8);
+
+    acc1 = M::add(acc1, acc3);
+    acc5 = M::add(acc5, acc7);
+
+    M::add(acc1, acc5)
 }
