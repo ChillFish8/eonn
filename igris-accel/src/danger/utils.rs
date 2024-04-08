@@ -1,4 +1,5 @@
 use std::arch::x86_64::*;
+
 use crate::math::Math;
 
 #[inline(always)]
@@ -68,7 +69,6 @@ pub(crate) unsafe fn offsets(ptr: *const f32, offset: usize) -> [*const f32; 4] 
         ptr.add(offset + 24),
     ]
 }
-
 
 #[allow(clippy::too_many_arguments)]
 #[inline(always)]

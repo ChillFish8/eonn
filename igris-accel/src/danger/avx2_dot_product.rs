@@ -1,6 +1,6 @@
 use std::arch::x86_64::*;
-use crate::danger::{offsets, rollup_x8, sum_avx2};
 
+use crate::danger::{offsets, rollup_x8, sum_avx2};
 
 #[allow(clippy::too_many_arguments)]
 #[inline(always)]

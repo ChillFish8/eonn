@@ -60,6 +60,36 @@ fn benchmark_dangerous_avx2_fma_impls(c: &mut Criterion) {
     });
 }
 
+fn benchmark_dangerous_fallback_nofma_impls(c: &mut Criterion) {
+    c.bench_function("cosine fallback x1024 nofma", |b| unsafe {
+        let (x, y) = utils::get_sample_vectors(1024);
+        b.iter(|| repeat!(1000, f32_x1024_fallback_nofma_cosine, &x, &y));
+    });
+    c.bench_function("cosine fallback x768 nofma", |b| unsafe {
+        let (x, y) = utils::get_sample_vectors(768);
+        b.iter(|| repeat!(1000, f32_x768_fallback_nofma_cosine, &x, &y));
+    });
+    c.bench_function("cosine fallback x512 nofma", |b| unsafe {
+        let (x, y) = utils::get_sample_vectors(512);
+        b.iter(|| repeat!(1000, f32_x512_fallback_nofma_cosine, &x, &y));
+    });
+}
+
+fn benchmark_dangerous_fallback_fma_impls(c: &mut Criterion) {
+    c.bench_function("cosine fallback x1024 fma", |b| unsafe {
+        let (x, y) = utils::get_sample_vectors(1024);
+        b.iter(|| repeat!(1000, f32_x1024_fallback_fma_cosine, &x, &y));
+    });
+    c.bench_function("cosine fallback x768 fma", |b| unsafe {
+        let (x, y) = utils::get_sample_vectors(768);
+        b.iter(|| repeat!(1000, f32_x768_fallback_fma_cosine, &x, &y));
+    });
+    c.bench_function("cosine fallback x512 fma", |b| unsafe {
+        let (x, y) = utils::get_sample_vectors(512);
+        b.iter(|| repeat!(1000, f32_x512_fallback_fma_cosine, &x, &y));
+    });
+}
+
 criterion_group!(
     name = benches;
     config = Criterion::default()
@@ -70,6 +100,8 @@ criterion_group!(
         benchmark_3rd_party_impls,
         benchmark_dangerous_avx2_fma_impls,
         benchmark_dangerous_avx2_nofma_impls,
+        benchmark_dangerous_fallback_fma_impls,
+        benchmark_dangerous_fallback_nofma_impls,
 );
 criterion_main!(benches);
 

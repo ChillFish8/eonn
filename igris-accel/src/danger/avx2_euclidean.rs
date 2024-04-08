@@ -1,6 +1,6 @@
 use std::arch::x86_64::*;
-use crate::danger::{offsets, rollup_x8, sum_avx2};
 
+use crate::danger::{offsets, rollup_x8, sum_avx2};
 
 #[allow(clippy::too_many_arguments)]
 #[inline(always)]
@@ -48,7 +48,7 @@ unsafe fn execute_f32_x64_nofma_block_euclidean(
     let diff6 = _mm256_sub_ps(x6, y6);
     let diff7 = _mm256_sub_ps(x7, y7);
     let diff8 = _mm256_sub_ps(x8, y8);
-    
+
     let r1 = _mm256_mul_ps(diff1, diff1);
     let r2 = _mm256_mul_ps(diff2, diff2);
     let r3 = _mm256_mul_ps(diff3, diff3);
@@ -114,7 +114,7 @@ unsafe fn execute_f32_x64_fma_block_euclidean(
     let diff6 = _mm256_sub_ps(x6, y6);
     let diff7 = _mm256_sub_ps(x7, y7);
     let diff8 = _mm256_sub_ps(x8, y8);
-    
+
     *acc1 = _mm256_fmadd_ps(diff1, diff1, *acc1);
     *acc2 = _mm256_fmadd_ps(diff2, diff2, *acc2);
     *acc3 = _mm256_fmadd_ps(diff3, diff3, *acc3);

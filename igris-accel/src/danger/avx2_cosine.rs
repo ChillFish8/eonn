@@ -156,7 +156,7 @@ unsafe fn execute_f32_x64_fma_block_cosine(
     let y6 = _mm256_loadu_ps(y6);
     let y7 = _mm256_loadu_ps(y7);
     let y8 = _mm256_loadu_ps(y8);
-    
+
     *acc1 = _mm256_fmadd_ps(x1, y1, *acc1);
     *acc2 = _mm256_fmadd_ps(x2, y2, *acc2);
     *acc3 = _mm256_fmadd_ps(x3, y3, *acc3);
@@ -165,7 +165,7 @@ unsafe fn execute_f32_x64_fma_block_cosine(
     *acc2 = _mm256_fmadd_ps(x6, y6, *acc2);
     *acc3 = _mm256_fmadd_ps(x7, y7, *acc3);
     *acc4 = _mm256_fmadd_ps(x8, y8, *acc4);
-    
+
     *norm_x_acc1 = _mm256_fmadd_ps(x1, x1, *norm_x_acc1);
     *norm_x_acc2 = _mm256_fmadd_ps(x2, x2, *norm_x_acc2);
     *norm_x_acc3 = _mm256_fmadd_ps(x3, x3, *norm_x_acc3);

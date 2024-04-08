@@ -1,6 +1,5 @@
-use crate::math::{FastMath, Math, StdMath};
 use crate::danger::utils::rollup_scalar_x8;
-
+use crate::math::{FastMath, Math, StdMath};
 
 #[inline]
 /// Computes the squared Euclidean distance of two `[f32; 512]` vectors.
@@ -8,7 +7,7 @@ use crate::danger::utils::rollup_scalar_x8;
 /// These are fallback routines, they are designed to be optimized
 /// by the compiler only, in areas where manually optimized routines
 /// are unable to run due to lack of CPU features.
-/// 
+///
 /// # Safety
 ///
 /// Vectors **MUST** be `512` elements in length, otherwise this routine
@@ -27,7 +26,7 @@ pub unsafe fn f32_x1024_fallback_nofma_euclidean(x: &[f32], y: &[f32]) -> f32 {
 /// These are fallback routines, they are designed to be optimized
 /// by the compiler only, in areas where manually optimized routines
 /// are unable to run due to lack of CPU features.
-/// 
+///
 /// # Safety
 ///
 /// Vectors **MUST** be `512` elements in length, otherwise this routine
@@ -46,7 +45,7 @@ pub unsafe fn f32_x768_fallback_nofma_euclidean(x: &[f32], y: &[f32]) -> f32 {
 /// These are fallback routines, they are designed to be optimized
 /// by the compiler only, in areas where manually optimized routines
 /// are unable to run due to lack of CPU features.
-/// 
+///
 /// # Safety
 ///
 /// Vectors **MUST** be `512` elements in length, otherwise this routine
@@ -117,10 +116,7 @@ pub unsafe fn f32_x512_fallback_fma_euclidean(x: &[f32], y: &[f32]) -> f32 {
 }
 
 #[inline]
-unsafe fn fallback_euclidean<M: Math, const DIMS: usize>(
-    x: &[f32],
-    y: &[f32],
-) -> f32 {
+unsafe fn fallback_euclidean<M: Math, const DIMS: usize>(x: &[f32], y: &[f32]) -> f32 {
     debug_assert_eq!(
         y.len(),
         DIMS,
