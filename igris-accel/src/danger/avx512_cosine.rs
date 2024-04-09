@@ -9,6 +9,12 @@ use crate::danger::{
 };
 use crate::math::{FastMath, StdMath};
 
+// TODO: Perf improvement
+//  ---- Currently this implementation is a decent chunk slower than simsimd 
+//  ---- we are probably paying quite a bit for the rsqrts where we could use
+//  ---- the newer AVX512 features via
+//  ---- https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_maskz_rs
+
 #[target_feature(enable = "avx512f")]
 #[inline]
 /// Computes the cosine distance of two `[f32; 1024]` vectors.
