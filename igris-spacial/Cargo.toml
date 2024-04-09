@@ -13,7 +13,7 @@ fastrand = "2.0.2"
 rayon = { version = "1.10.0", optional = true }
 
 
-igris-accel = { version = "0.1.0", path = "../igris-accel", features = ["bypass-arch-flags"] }
+igris-accel = { version = "0.1.0", path = "../igris-accel" }
 
 [features]
 # Enable multi-threaded building during graph construction.
