@@ -475,7 +475,6 @@ unsafe fn execute_f32_x64_fma_block_euclidean(
     *acc8 = _mm256_fmadd_ps(diff8, diff8, *acc8);
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -22,7 +22,7 @@ pub fn get_sample_vectors(size: usize) -> (Vec<f32>, Vec<f32>) {
 /// Checks if x is within a certain threshold distance of each other.
 pub fn is_close(x: f32, y: f32) -> bool {
     let max = x.max(y);
-    let min =x.min(y);
+    let min = x.min(y);
     let diff = max - min;
     diff <= 0.0001
 }
