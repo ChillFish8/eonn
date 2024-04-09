@@ -3,7 +3,7 @@ use std::arch::x86_64::*;
 use crate::math::Math;
 
 #[inline(always)]
-pub unsafe fn cosine<M: Math>(dot_product: f32, norm_x: f32, norm_y: f32) -> f32 {
+pub fn cosine<M: Math>(dot_product: f32, norm_x: f32, norm_y: f32) -> f32 {
     if norm_x == 0.0 && norm_y == 0.0 {
         0.0
     } else if norm_x == 0.0 || norm_y == 0.0 {
@@ -81,21 +81,6 @@ pub(crate) unsafe fn sum_avx512_x8(
     _mm512_reduce_add_ps(acc1)
 }
 
-#[allow(clippy::too_many_arguments)]
-#[inline(always)]
-/// Rolls up 4 [__m256] registers into 1 summing them together.
-pub(crate) unsafe fn rollup_x4(
-    mut acc1: __m256,
-    acc2: __m256,
-    mut acc3: __m256,
-    acc4: __m256,
-) -> __m256 {
-    acc1 = _mm256_add_ps(acc1, acc2);
-    acc3 = _mm256_add_ps(acc3, acc4);
-
-    _mm256_add_ps(acc1, acc3)
-}
-
 #[inline(always)]
 pub(crate) unsafe fn offsets(ptr: *const f32, offset: usize) -> [*const f32; 4] {
     [
@@ -128,4 +113,82 @@ pub fn rollup_scalar_x8<M: Math>(
     acc5 = M::add(acc5, acc7);
 
     M::add(acc1, acc5)
+}
+
+
+#[cfg(test)]
+mod tests {
+    use crate::math::StdMath;
+    use super::*;
+
+    #[test]
+    fn test_rollup_scalar_x8() {
+        unsafe {
+            let res = rollup_scalar_x8::<StdMath>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+            assert_eq!(res, 0.0);
+
+            let res = rollup_scalar_x8::<StdMath>(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0);
+            assert_eq!(res, 8.0);
+        }
+    }
+    
+    #[test]
+    fn test_sum_avx2() {
+        unsafe {
+            let acc = _mm256_setzero_ps();
+            let res = sum_avx2(acc);
+            assert_eq!(res, 0.0);
+
+            let acc = _mm256_set1_ps(1.0);
+            let res = sum_avx2(acc);
+            assert_eq!(res, 8.0);            
+        }        
+    }
+
+    #[test]
+    fn test_rollup_avx2_x8() {
+        unsafe {
+            let acc1 = _mm256_setzero_ps();
+            let acc2 = _mm256_setzero_ps();
+            let acc3 = _mm256_setzero_ps();
+            let acc4 = _mm256_setzero_ps();
+            let acc5 = _mm256_setzero_ps();
+            let acc6 = _mm256_setzero_ps();
+            let acc7 = _mm256_setzero_ps();
+            let acc8 = _mm256_setzero_ps();
+            let res = rollup_x8(
+                acc1,
+                acc2,
+                acc3,
+                acc4,
+                acc5,
+                acc6,
+                acc7,
+                acc8,
+            );
+            let res = sum_avx2(res);
+            assert_eq!(res, 0.0);
+
+            let acc1 = _mm256_set1_ps(1.0);
+            let acc2 = _mm256_set1_ps(1.0);
+            let acc3 = _mm256_set1_ps(1.0);
+            let acc4 = _mm256_set1_ps(1.0);
+            let acc5 = _mm256_set1_ps(1.0);
+            let acc6 = _mm256_set1_ps(1.0);
+            let acc7 = _mm256_set1_ps(1.0);
+            let acc8 = _mm256_set1_ps(1.0);
+            let res = rollup_x8(
+                acc1,
+                acc2,
+                acc3,
+                acc4,
+                acc5,
+                acc6,
+                acc7,
+                acc8,
+            );
+            let res = sum_avx2(res);
+            assert_eq!(res, 64.0);
+        }
+    }    
 }

@@ -1,21 +1,7 @@
 mod default;
-#[cfg(any(
-    feature = "bypass-arch-flags",
-    all(
-        any(target_arch = "x86_64", target_arch = "x86"),
-        target_feature = "fma",
-    )
-))]
 mod fast_math;
 
 pub use default::StdMath;
-#[cfg(any(
-    feature = "bypass-arch-flags",
-    all(
-        any(target_arch = "x86_64", target_arch = "x86"),
-        target_feature = "fma",
-    )
-))]
 pub use fast_math::FastMath;
 
 /// Core simple math operations that can be adjusted for certain features
