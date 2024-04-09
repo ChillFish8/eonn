@@ -5,7 +5,6 @@ use std::ops::Deref;
 
 mod arch;
 mod dims;
-mod float32;
 
 pub use arch::*;
 pub use dims::{X1024, X512, X768};

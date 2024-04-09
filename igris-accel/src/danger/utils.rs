@@ -2,6 +2,9 @@ use std::arch::x86_64::*;
 
 use crate::math::Math;
 
+pub const CHUNK_0: usize = 0;
+pub const CHUNK_1: usize = 1;
+
 #[inline(always)]
 pub fn cosine<M: Math>(dot_product: f32, norm_x: f32, norm_y: f32) -> f32 {
     if norm_x == 0.0 && norm_y == 0.0 {
@@ -82,12 +85,26 @@ pub(crate) unsafe fn sum_avx512_x8(
 }
 
 #[inline(always)]
-pub(crate) unsafe fn offsets(ptr: *const f32, offset: usize) -> [*const f32; 4] {
+pub(crate) unsafe fn offsets_avx2<const CHUNK: usize>(
+    ptr: *const f32,
+) -> [*const f32; 4] {
     [
-        ptr.add(offset),
-        ptr.add(offset + 16),
-        ptr.add(offset + 32),
-        ptr.add(offset + 48),
+        ptr.add(CHUNK * 32),
+        ptr.add((CHUNK * 32) + 8),
+        ptr.add((CHUNK * 32) + 16),
+        ptr.add((CHUNK * 32) + 24),
+    ]
+}
+
+#[inline(always)]
+pub(crate) unsafe fn offsets_avx512<const CHUNK: usize>(
+    ptr: *const f32,
+) -> [*const f32; 4] {
+    [
+        ptr.add(CHUNK * 64),
+        ptr.add((CHUNK * 64) + 16),
+        ptr.add((CHUNK * 64) + 32),
+        ptr.add((CHUNK * 64) + 48),
     ]
 }
 
@@ -115,23 +132,42 @@ pub fn rollup_scalar_x8<M: Math>(
     M::add(acc1, acc5)
 }
 
-
 #[cfg(test)]
 mod tests {
-    use crate::math::StdMath;
+    use std::array;
+
     use super::*;
+    use crate::math::StdMath;
+
+    #[test]
+    fn test_avx2_offsets() {
+        let x: [f32; 32] = array::from_fn(|i| i as f32);
+        let [p1, p2, p3, p4] = unsafe { offsets_avx2::<CHUNK_0>(x.as_ptr()) };
+        assert_eq!(x[0..].as_ptr(), p1);
+        assert_eq!(x[8..].as_ptr(), p2);
+        assert_eq!(x[16..].as_ptr(), p3);
+        assert_eq!(x[24..].as_ptr(), p4);
+    }
+
+    #[test]
+    fn test_avx512_offsets() {
+        let x: [f32; 64] = array::from_fn(|i| i as f32);
+        let [p1, p2, p3, p4] = unsafe { offsets_avx512::<CHUNK_0>(x.as_ptr()) };
+        assert_eq!(x[0..].as_ptr(), p1);
+        assert_eq!(x[16..].as_ptr(), p2);
+        assert_eq!(x[32..].as_ptr(), p3);
+        assert_eq!(x[48..].as_ptr(), p4);
+    }
 
     #[test]
     fn test_rollup_scalar_x8() {
-        unsafe {
-            let res = rollup_scalar_x8::<StdMath>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-            assert_eq!(res, 0.0);
+        let res = rollup_scalar_x8::<StdMath>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+        assert_eq!(res, 0.0);
 
-            let res = rollup_scalar_x8::<StdMath>(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0);
-            assert_eq!(res, 8.0);
-        }
+        let res = rollup_scalar_x8::<StdMath>(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0);
+        assert_eq!(res, 8.0);
     }
-    
+
     #[test]
     fn test_sum_avx2() {
         unsafe {
@@ -141,8 +177,8 @@ mod tests {
 
             let acc = _mm256_set1_ps(1.0);
             let res = sum_avx2(acc);
-            assert_eq!(res, 8.0);            
-        }        
+            assert_eq!(res, 8.0);
+        }
     }
 
     #[test]
@@ -156,16 +192,7 @@ mod tests {
             let acc6 = _mm256_setzero_ps();
             let acc7 = _mm256_setzero_ps();
             let acc8 = _mm256_setzero_ps();
-            let res = rollup_x8(
-                acc1,
-                acc2,
-                acc3,
-                acc4,
-                acc5,
-                acc6,
-                acc7,
-                acc8,
-            );
+            let res = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
             let res = sum_avx2(res);
             assert_eq!(res, 0.0);
 
@@ -177,18 +204,9 @@ mod tests {
             let acc6 = _mm256_set1_ps(1.0);
             let acc7 = _mm256_set1_ps(1.0);
             let acc8 = _mm256_set1_ps(1.0);
-            let res = rollup_x8(
-                acc1,
-                acc2,
-                acc3,
-                acc4,
-                acc5,
-                acc6,
-                acc7,
-                acc8,
-            );
+            let res = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
             let res = sum_avx2(res);
             assert_eq!(res, 64.0);
         }
-    }    
+    }
 }

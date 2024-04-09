@@ -144,6 +144,8 @@ criterion_group!(
         benchmark_3rd_party_impls,
         benchmark_dangerous_avx2_fma_impls,
         benchmark_dangerous_avx2_nofma_impls,
+        benchmark_dangerous_avx512_fma_impls,
+        benchmark_dangerous_avx512_nofma_impls,
         benchmark_fallback_fma_impls,
         benchmark_fallback_nofma_impls,
 );

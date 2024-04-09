@@ -7,9 +7,9 @@ mod avx512_euclidean;
 mod fallback_cosine;
 mod fallback_dot_product;
 mod fallback_euclidean;
-mod utils;
 #[cfg(test)]
 mod test_utils;
+mod utils;
 
 pub(crate) use utils::*;
 

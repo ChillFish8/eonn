@@ -1,6 +1,6 @@
 use std::arch::x86_64::*;
 
-use crate::danger::{offsets, sum_avx512_x8};
+use crate::danger::{offsets_avx512, sum_avx512_x8, CHUNK_0, CHUNK_1};
 
 macro_rules! unrolled_loop {
     (
@@ -53,14 +53,14 @@ pub unsafe fn f32_x1024_avx512_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
     let x = x.as_ptr();
     let y = y.as_ptr();
 
-    let mut acc1 = _mm512_set1_ps(0.0);
-    let mut acc2 = _mm512_set1_ps(0.0);
-    let mut acc3 = _mm512_set1_ps(0.0);
-    let mut acc4 = _mm512_set1_ps(0.0);
-    let mut acc5 = _mm512_set1_ps(0.0);
-    let mut acc6 = _mm512_set1_ps(0.0);
-    let mut acc7 = _mm512_set1_ps(0.0);
-    let mut acc8 = _mm512_set1_ps(0.0);
+    let mut acc1 = _mm512_setzero_ps();
+    let mut acc2 = _mm512_setzero_ps();
+    let mut acc3 = _mm512_setzero_ps();
+    let mut acc4 = _mm512_setzero_ps();
+    let mut acc5 = _mm512_setzero_ps();
+    let mut acc6 = _mm512_setzero_ps();
+    let mut acc7 = _mm512_setzero_ps();
+    let mut acc8 = _mm512_setzero_ps();
 
     unrolled_loop!(
         execute_f32_x128_nofma_block_dot_product,
@@ -99,14 +99,14 @@ pub unsafe fn f32_x768_avx512_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
     let x = x.as_ptr();
     let y = y.as_ptr();
 
-    let mut acc1 = _mm512_set1_ps(0.0);
-    let mut acc2 = _mm512_set1_ps(0.0);
-    let mut acc3 = _mm512_set1_ps(0.0);
-    let mut acc4 = _mm512_set1_ps(0.0);
-    let mut acc5 = _mm512_set1_ps(0.0);
-    let mut acc6 = _mm512_set1_ps(0.0);
-    let mut acc7 = _mm512_set1_ps(0.0);
-    let mut acc8 = _mm512_set1_ps(0.0);
+    let mut acc1 = _mm512_setzero_ps();
+    let mut acc2 = _mm512_setzero_ps();
+    let mut acc3 = _mm512_setzero_ps();
+    let mut acc4 = _mm512_setzero_ps();
+    let mut acc5 = _mm512_setzero_ps();
+    let mut acc6 = _mm512_setzero_ps();
+    let mut acc7 = _mm512_setzero_ps();
+    let mut acc8 = _mm512_setzero_ps();
 
     unrolled_loop!(
         execute_f32_x128_nofma_block_dot_product,
@@ -145,14 +145,14 @@ pub unsafe fn f32_x512_avx512_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
     let x = x.as_ptr();
     let y = y.as_ptr();
 
-    let mut acc1 = _mm512_set1_ps(0.0);
-    let mut acc2 = _mm512_set1_ps(0.0);
-    let mut acc3 = _mm512_set1_ps(0.0);
-    let mut acc4 = _mm512_set1_ps(0.0);
-    let mut acc5 = _mm512_set1_ps(0.0);
-    let mut acc6 = _mm512_set1_ps(0.0);
-    let mut acc7 = _mm512_set1_ps(0.0);
-    let mut acc8 = _mm512_set1_ps(0.0);
+    let mut acc1 = _mm512_setzero_ps();
+    let mut acc2 = _mm512_setzero_ps();
+    let mut acc3 = _mm512_setzero_ps();
+    let mut acc4 = _mm512_setzero_ps();
+    let mut acc5 = _mm512_setzero_ps();
+    let mut acc6 = _mm512_setzero_ps();
+    let mut acc7 = _mm512_setzero_ps();
+    let mut acc8 = _mm512_setzero_ps();
 
     unrolled_loop!(
         execute_f32_x128_nofma_block_dot_product,
@@ -191,14 +191,14 @@ pub unsafe fn f32_x1024_avx512_fma_dot(x: &[f32], y: &[f32]) -> f32 {
     let x = x.as_ptr();
     let y = y.as_ptr();
 
-    let mut acc1 = _mm512_set1_ps(0.0);
-    let mut acc2 = _mm512_set1_ps(0.0);
-    let mut acc3 = _mm512_set1_ps(0.0);
-    let mut acc4 = _mm512_set1_ps(0.0);
-    let mut acc5 = _mm512_set1_ps(0.0);
-    let mut acc6 = _mm512_set1_ps(0.0);
-    let mut acc7 = _mm512_set1_ps(0.0);
-    let mut acc8 = _mm512_set1_ps(0.0);
+    let mut acc1 = _mm512_setzero_ps();
+    let mut acc2 = _mm512_setzero_ps();
+    let mut acc3 = _mm512_setzero_ps();
+    let mut acc4 = _mm512_setzero_ps();
+    let mut acc5 = _mm512_setzero_ps();
+    let mut acc6 = _mm512_setzero_ps();
+    let mut acc7 = _mm512_setzero_ps();
+    let mut acc8 = _mm512_setzero_ps();
 
     unrolled_loop!(
         execute_f32_x128_fma_block_dot_product,
@@ -237,14 +237,14 @@ pub unsafe fn f32_x768_avx512_fma_dot(x: &[f32], y: &[f32]) -> f32 {
     let x = x.as_ptr();
     let y = y.as_ptr();
 
-    let mut acc1 = _mm512_set1_ps(0.0);
-    let mut acc2 = _mm512_set1_ps(0.0);
-    let mut acc3 = _mm512_set1_ps(0.0);
-    let mut acc4 = _mm512_set1_ps(0.0);
-    let mut acc5 = _mm512_set1_ps(0.0);
-    let mut acc6 = _mm512_set1_ps(0.0);
-    let mut acc7 = _mm512_set1_ps(0.0);
-    let mut acc8 = _mm512_set1_ps(0.0);
+    let mut acc1 = _mm512_setzero_ps();
+    let mut acc2 = _mm512_setzero_ps();
+    let mut acc3 = _mm512_setzero_ps();
+    let mut acc4 = _mm512_setzero_ps();
+    let mut acc5 = _mm512_setzero_ps();
+    let mut acc6 = _mm512_setzero_ps();
+    let mut acc7 = _mm512_setzero_ps();
+    let mut acc8 = _mm512_setzero_ps();
 
     unrolled_loop!(
         execute_f32_x128_fma_block_dot_product,
@@ -283,14 +283,14 @@ pub unsafe fn f32_x512_avx512_fma_dot(x: &[f32], y: &[f32]) -> f32 {
     let x = x.as_ptr();
     let y = y.as_ptr();
 
-    let mut acc1 = _mm512_set1_ps(0.0);
-    let mut acc2 = _mm512_set1_ps(0.0);
-    let mut acc3 = _mm512_set1_ps(0.0);
-    let mut acc4 = _mm512_set1_ps(0.0);
-    let mut acc5 = _mm512_set1_ps(0.0);
-    let mut acc6 = _mm512_set1_ps(0.0);
-    let mut acc7 = _mm512_set1_ps(0.0);
-    let mut acc8 = _mm512_set1_ps(0.0);
+    let mut acc1 = _mm512_setzero_ps();
+    let mut acc2 = _mm512_setzero_ps();
+    let mut acc3 = _mm512_setzero_ps();
+    let mut acc4 = _mm512_setzero_ps();
+    let mut acc5 = _mm512_setzero_ps();
+    let mut acc6 = _mm512_setzero_ps();
+    let mut acc7 = _mm512_setzero_ps();
+    let mut acc8 = _mm512_setzero_ps();
 
     unrolled_loop!(
         execute_f32_x128_fma_block_dot_product,
@@ -324,11 +324,11 @@ unsafe fn execute_f32_x128_nofma_block_dot_product(
     acc7: &mut __m512,
     acc8: &mut __m512,
 ) {
-    let [x1, x2, x3, x4] = offsets(x, 0);
-    let [x5, x6, x7, x8] = offsets(x, 64);
+    let [x1, x2, x3, x4] = offsets_avx512::<CHUNK_0>(x);
+    let [x5, x6, x7, x8] = offsets_avx512::<CHUNK_1>(x);
 
-    let [y1, y2, y3, y4] = offsets(y, 0);
-    let [y5, y6, y7, y8] = offsets(y, 64);
+    let [y1, y2, y3, y4] = offsets_avx512::<CHUNK_0>(y);
+    let [y5, y6, y7, y8] = offsets_avx512::<CHUNK_1>(y);
 
     let x1 = _mm512_loadu_ps(x1);
     let x2 = _mm512_loadu_ps(x2);
@@ -381,11 +381,11 @@ unsafe fn execute_f32_x128_fma_block_dot_product(
     acc7: &mut __m512,
     acc8: &mut __m512,
 ) {
-    let [x1, x2, x3, x4] = offsets(x, 0);
-    let [x5, x6, x7, x8] = offsets(x, 32);
+    let [x1, x2, x3, x4] = offsets_avx512::<CHUNK_0>(x);
+    let [x5, x6, x7, x8] = offsets_avx512::<CHUNK_1>(x);
 
-    let [y1, y2, y3, y4] = offsets(y, 0);
-    let [y5, y6, y7, y8] = offsets(y, 32);
+    let [y1, y2, y3, y4] = offsets_avx512::<CHUNK_0>(y);
+    let [y5, y6, y7, y8] = offsets_avx512::<CHUNK_1>(y);
 
     let x1 = _mm512_loadu_ps(x1);
     let x2 = _mm512_loadu_ps(x2);
@@ -413,4 +413,52 @@ unsafe fn execute_f32_x128_fma_block_dot_product(
     *acc6 = _mm512_fmadd_ps(x6, y6, *acc6);
     *acc7 = _mm512_fmadd_ps(x7, y7, *acc7);
     *acc8 = _mm512_fmadd_ps(x8, y8, *acc8);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::danger::test_utils::{get_sample_vectors, is_close, simple_dot};
+
+    #[test]
+    fn test_x1024_fma_dot() {
+        let (x, y) = get_sample_vectors(1024);
+        let dist = unsafe { f32_x1024_avx512_fma_dot(&x, &y) };
+        assert!(is_close(dist, simple_dot(&x, &y)));
+    }
+
+    #[test]
+    fn test_x1024_nofma_dot() {
+        let (x, y) = get_sample_vectors(1024);
+        let dist = unsafe { f32_x1024_avx512_nofma_dot(&x, &y) };
+        assert!(is_close(dist, simple_dot(&x, &y)));
+    }
+
+    #[test]
+    fn test_x768_fma_dot() {
+        let (x, y) = get_sample_vectors(768);
+        let dist = unsafe { f32_x768_avx512_fma_dot(&x, &y) };
+        assert!(is_close(dist, simple_dot(&x, &y)));
+    }
+
+    #[test]
+    fn test_x768_nofma_dot() {
+        let (x, y) = get_sample_vectors(768);
+        let dist = unsafe { f32_x768_avx512_nofma_dot(&x, &y) };
+        assert!(is_close(dist, simple_dot(&x, &y)));
+    }
+
+    #[test]
+    fn test_x512_fma_dot() {
+        let (x, y) = get_sample_vectors(512);
+        let dist = unsafe { f32_x512_avx512_fma_dot(&x, &y) };
+        assert!(is_close(dist, simple_dot(&x, &y)));
+    }
+
+    #[test]
+    fn test_x512_nofma_dot() {
+        let (x, y) = get_sample_vectors(512);
+        let dist = unsafe { f32_x512_avx512_nofma_dot(&x, &y) };
+        assert!(is_close(dist, simple_dot(&x, &y)));
+    }
 }
