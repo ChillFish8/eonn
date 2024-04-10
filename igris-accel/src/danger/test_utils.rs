@@ -64,12 +64,12 @@ pub fn simple_euclidean(x: &[f32], y: &[f32]) -> f32 {
 
 pub fn simple_angular_hyperplane(x: &[f32], y: &[f32]) -> Vec<f32> {
     let mut norm_x = simple_dot(x, x).sqrt();
-    if norm_x < f32::EPSILON {
+    if norm_x.abs() < f32::EPSILON {
         norm_x = 1.0;
     }
 
     let mut norm_y = simple_dot(y, y).sqrt();
-    if norm_y < f32::EPSILON {
+    if norm_y.abs() < f32::EPSILON {
         norm_y = 1.0;
     }
 
@@ -80,7 +80,7 @@ pub fn simple_angular_hyperplane(x: &[f32], y: &[f32]) -> Vec<f32> {
     }
 
     let mut norm_hyperplane = simple_dot(&hyperplane_vector, &hyperplane_vector).sqrt();
-    if norm_hyperplane < f32::EPSILON {
+    if norm_hyperplane.abs() < f32::EPSILON {
         norm_hyperplane = 1.0;
     }
 

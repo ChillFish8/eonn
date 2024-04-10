@@ -116,7 +116,10 @@ pub unsafe fn f32_x512_fallback_fma_dot(x: &[f32], y: &[f32]) -> f32 {
 }
 
 #[inline]
-unsafe fn fallback_dot<M: Math, const DIMS: usize>(x: &[f32], y: &[f32]) -> f32 {
+pub(super) unsafe fn fallback_dot<M: Math, const DIMS: usize>(
+    x: &[f32],
+    y: &[f32],
+) -> f32 {
     debug_assert_eq!(
         y.len(),
         DIMS,
@@ -148,32 +151,32 @@ unsafe fn fallback_dot<M: Math, const DIMS: usize>(x: &[f32], y: &[f32]) -> f32 
     let mut acc8 = 0.0;
 
     while i < x.len() {
-        let a1 = *x.get_unchecked(i);
-        let a2 = *x.get_unchecked(i + 1);
-        let a3 = *x.get_unchecked(i + 2);
-        let a4 = *x.get_unchecked(i + 3);
-        let a5 = *x.get_unchecked(i + 4);
-        let a6 = *x.get_unchecked(i + 5);
-        let a7 = *x.get_unchecked(i + 6);
-        let a8 = *x.get_unchecked(i + 7);
+        let x1 = *x.get_unchecked(i);
+        let x2 = *x.get_unchecked(i + 1);
+        let x3 = *x.get_unchecked(i + 2);
+        let x4 = *x.get_unchecked(i + 3);
+        let x5 = *x.get_unchecked(i + 4);
+        let x6 = *x.get_unchecked(i + 5);
+        let x7 = *x.get_unchecked(i + 6);
+        let x8 = *x.get_unchecked(i + 7);
 
-        let b1 = *y.get_unchecked(i);
-        let b2 = *y.get_unchecked(i + 1);
-        let b3 = *y.get_unchecked(i + 2);
-        let b4 = *y.get_unchecked(i + 3);
-        let b5 = *y.get_unchecked(i + 4);
-        let b6 = *y.get_unchecked(i + 5);
-        let b7 = *y.get_unchecked(i + 6);
-        let b8 = *y.get_unchecked(i + 7);
+        let y1 = *y.get_unchecked(i);
+        let y2 = *y.get_unchecked(i + 1);
+        let y3 = *y.get_unchecked(i + 2);
+        let y4 = *y.get_unchecked(i + 3);
+        let y5 = *y.get_unchecked(i + 4);
+        let y6 = *y.get_unchecked(i + 5);
+        let y7 = *y.get_unchecked(i + 6);
+        let y8 = *y.get_unchecked(i + 7);
 
-        acc1 = M::add(acc1, M::mul(a1, b1));
-        acc2 = M::add(acc2, M::mul(a2, b2));
-        acc3 = M::add(acc3, M::mul(a3, b3));
-        acc4 = M::add(acc4, M::mul(a4, b4));
-        acc5 = M::add(acc5, M::mul(a5, b5));
-        acc6 = M::add(acc6, M::mul(a6, b6));
-        acc7 = M::add(acc7, M::mul(a7, b7));
-        acc8 = M::add(acc8, M::mul(a8, b8));
+        acc1 = M::add(acc1, M::mul(x1, y1));
+        acc2 = M::add(acc2, M::mul(x2, y2));
+        acc3 = M::add(acc3, M::mul(x3, y3));
+        acc4 = M::add(acc4, M::mul(x4, y4));
+        acc5 = M::add(acc5, M::mul(x5, y5));
+        acc6 = M::add(acc6, M::mul(x6, y6));
+        acc7 = M::add(acc7, M::mul(x7, y7));
+        acc8 = M::add(acc8, M::mul(x8, y8));
 
         i += 8;
     }
