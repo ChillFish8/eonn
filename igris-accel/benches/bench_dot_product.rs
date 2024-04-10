@@ -136,8 +136,8 @@ fn benchmark_dangerous_fallback_fma_impls(c: &mut Criterion) {
 criterion_group!(
     name = benches;
     config = Criterion::default()
-        .measurement_time(Duration::from_secs(60))
-        .sample_size(500)
+        .measurement_time(Duration::from_secs(30))
+        .sample_size(250)
         .warm_up_time(Duration::from_secs(10));
     targets =
         benchmark_3rd_party_impls,
