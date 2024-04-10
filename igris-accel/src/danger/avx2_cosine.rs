@@ -6,8 +6,15 @@ use crate::danger::avx2_dot_product::{
     f32_x768_avx2_fma_dot,
     f32_x768_avx2_nofma_dot,
 };
-use crate::danger::{f32_x1024_avx2_fma_norm, f32_x1024_avx2_nofma_norm, f32_x512_avx2_fma_norm, f32_x512_avx2_nofma_norm, f32_x768_avx2_fma_norm, f32_x768_avx2_nofma_norm};
 use crate::danger::utils::cosine;
+use crate::danger::{
+    f32_x1024_avx2_fma_norm,
+    f32_x1024_avx2_nofma_norm,
+    f32_x512_avx2_fma_norm,
+    f32_x512_avx2_nofma_norm,
+    f32_x768_avx2_fma_norm,
+    f32_x768_avx2_nofma_norm,
+};
 use crate::math::{FastMath, StdMath};
 
 #[target_feature(enable = "avx2")]

@@ -351,7 +351,7 @@ unsafe fn execute_f32_x64_nofma_block_norm(
     let x6 = _mm256_loadu_ps(x6);
     let x7 = _mm256_loadu_ps(x7);
     let x8 = _mm256_loadu_ps(x8);
-    
+
     let r1 = _mm256_mul_ps(x1, x1);
     let r2 = _mm256_mul_ps(x2, x2);
     let r3 = _mm256_mul_ps(x3, x3);
@@ -386,7 +386,7 @@ unsafe fn execute_f32_x64_fma_block_norm(
 ) {
     let [x1, x2, x3, x4] = offsets_avx2::<CHUNK_0>(x);
     let [x5, x6, x7, x8] = offsets_avx2::<CHUNK_1>(x);
-    
+
     let x1 = _mm256_loadu_ps(x1);
     let x2 = _mm256_loadu_ps(x2);
     let x3 = _mm256_loadu_ps(x3);
@@ -408,9 +408,9 @@ unsafe fn execute_f32_x64_fma_block_norm(
 
 #[cfg(test)]
 mod tests {
-     use crate::danger::test_utils::{get_sample_vectors};
     use super::*;
-    
+    use crate::danger::test_utils::get_sample_vectors;
+
     #[test]
     fn test_x1024_fma_norm() {
         let (x, _) = get_sample_vectors(1024);

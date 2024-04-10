@@ -1,17 +1,17 @@
 mod avx2_cosine;
 mod avx2_dot_product;
 mod avx2_euclidean;
+mod avx2_norm;
 mod avx512_cosine;
 mod avx512_dot_product;
 mod avx512_euclidean;
+mod avx512_norm;
 mod fallback_cosine;
 mod fallback_dot_product;
 mod fallback_euclidean;
 #[cfg(test)]
 mod test_utils;
 mod utils;
-mod avx2_norm;
-mod avx512_norm;
 
 pub(crate) use utils::*;
 

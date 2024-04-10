@@ -1,9 +1,22 @@
 use crate::danger::utils::cosine;
-use crate::danger::{f32_x1024_avx512_fma_dot, f32_x1024_avx512_fma_norm, f32_x1024_avx512_nofma_dot, f32_x1024_avx512_nofma_norm, f32_x512_avx512_fma_dot, f32_x512_avx512_fma_norm, f32_x512_avx512_nofma_dot, f32_x512_avx512_nofma_norm, f32_x768_avx512_fma_dot, f32_x768_avx512_fma_norm, f32_x768_avx512_nofma_dot, f32_x768_avx512_nofma_norm};
+use crate::danger::{
+    f32_x1024_avx512_fma_dot,
+    f32_x1024_avx512_fma_norm,
+    f32_x1024_avx512_nofma_dot,
+    f32_x1024_avx512_nofma_norm,
+    f32_x512_avx512_fma_dot,
+    f32_x512_avx512_fma_norm,
+    f32_x512_avx512_nofma_dot,
+    f32_x512_avx512_nofma_norm,
+    f32_x768_avx512_fma_dot,
+    f32_x768_avx512_fma_norm,
+    f32_x768_avx512_nofma_dot,
+    f32_x768_avx512_nofma_norm,
+};
 use crate::math::{FastMath, StdMath};
 
 // TODO: Perf improvement
-//  ---- Currently this implementation is a decent chunk slower than simsimd 
+//  ---- Currently this implementation is a decent chunk slower than simsimd
 //  ---- we are probably paying quite a bit for the rsqrts where we could use
 //  ---- the newer AVX512 features via
 //  ---- https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_maskz_rs

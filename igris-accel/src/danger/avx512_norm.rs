@@ -369,7 +369,6 @@ unsafe fn execute_f32_x128_fma_block_norm(
     *acc8 = _mm512_fmadd_ps(x8, x8, *acc8);
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
