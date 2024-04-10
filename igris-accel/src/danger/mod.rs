@@ -1,3 +1,4 @@
+mod avx2_angular_hyperplane;
 mod avx2_cosine;
 mod avx2_dot_product;
 mod avx2_euclidean;
@@ -15,6 +16,7 @@ mod utils;
 
 pub(crate) use utils::*;
 
+pub use self::avx2_angular_hyperplane::*;
 pub use self::avx2_cosine::*;
 pub use self::avx2_dot_product::*;
 pub use self::avx2_euclidean::*;

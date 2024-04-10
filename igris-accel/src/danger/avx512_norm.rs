@@ -34,7 +34,7 @@ macro_rules! unrolled_loop {
 
 #[target_feature(enable = "avx512f")]
 #[inline]
-/// Computes the L2 norm of one `[f32; 1024]` vector.
+/// Computes the squared norm of one `[f32; 1024]` vector.
 ///
 /// # Safety
 ///
@@ -77,7 +77,7 @@ pub unsafe fn f32_x1024_avx512_nofma_norm(x: &[f32]) -> f32 {
 
 #[target_feature(enable = "avx512f")]
 #[inline]
-/// Computes the L2 norm of one `[f32; 768]` vector.
+/// Computes the squared norm of one `[f32; 768]` vector.
 ///
 /// # Safety
 ///
@@ -120,7 +120,7 @@ pub unsafe fn f32_x768_avx512_nofma_norm(x: &[f32]) -> f32 {
 
 #[target_feature(enable = "avx512f")]
 #[inline]
-/// Computes the L2 norm of one `[f32; 512]` vector.
+/// Computes the squared norm of one `[f32; 512]` vector.
 ///
 /// # Safety
 ///
@@ -163,7 +163,7 @@ pub unsafe fn f32_x512_avx512_nofma_norm(x: &[f32]) -> f32 {
 
 #[target_feature(enable = "avx512f")]
 #[inline]
-/// Computes the L2 norm of one `[f32; 1024]` vector.
+/// Computes the squared norm of one `[f32; 1024]` vector.
 ///
 /// # Safety
 ///
@@ -206,7 +206,7 @@ pub unsafe fn f32_x1024_avx512_fma_norm(x: &[f32]) -> f32 {
 
 #[target_feature(enable = "avx512f")]
 #[inline]
-/// Computes the L2 norm of one `[f32; 768]` vector.
+/// Computes the squared norm of one `[f32; 768]` vector.
 ///
 /// # Safety
 ///
@@ -249,7 +249,7 @@ pub unsafe fn f32_x768_avx512_fma_norm(x: &[f32]) -> f32 {
 
 #[target_feature(enable = "avx512f")]
 #[inline]
-/// Computes the L2 norm of one `[f32; 512]` vector.
+/// Computes the squared norm of one `[f32; 512]` vector.
 ///
 /// # Safety
 ///

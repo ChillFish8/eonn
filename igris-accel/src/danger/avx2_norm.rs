@@ -1,6 +1,6 @@
 use std::arch::x86_64::*;
 
-use crate::danger::utils::{CHUNK_0, CHUNK_1, CHUNK_2, CHUNK_3};
+use crate::danger::utils::{CHUNK_0, CHUNK_1};
 use crate::danger::{offsets_avx2, rollup_x8, sum_avx2};
 
 macro_rules! unrolled_loop {
@@ -35,7 +35,7 @@ macro_rules! unrolled_loop {
 
 #[target_feature(enable = "avx2")]
 #[inline]
-/// Computes the L2 norm of one `[f32; 1024]` vector.
+/// Computes the squared norm of one `[f32; 1024]` vector.
 ///
 /// # Safety
 ///
@@ -85,7 +85,7 @@ pub unsafe fn f32_x1024_avx2_nofma_norm(x: &[f32]) -> f32 {
 
 #[target_feature(enable = "avx2")]
 #[inline]
-/// Computes the L2 norm of one `[f32; 768]` vector.
+/// Computes the squared norm of one `[f32; 768]` vector.
 ///
 /// # Safety
 ///
@@ -134,7 +134,7 @@ pub unsafe fn f32_x768_avx2_nofma_norm(x: &[f32]) -> f32 {
 
 #[target_feature(enable = "avx2")]
 #[inline]
-/// Computes the L2 norm of one `[f32; 512]` vector.
+/// Computes the squared norm of one `[f32; 512]` vector.
 ///
 /// # Safety
 ///
@@ -182,7 +182,7 @@ pub unsafe fn f32_x512_avx2_nofma_norm(x: &[f32]) -> f32 {
 
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
-/// Computes the L2 norm of one `[f32; 1024]` vector.
+/// Computes the squared norm of one `[f32; 1024]` vector.
 ///
 /// # Safety
 ///
@@ -232,7 +232,7 @@ pub unsafe fn f32_x1024_avx2_fma_norm(x: &[f32]) -> f32 {
 
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
-/// Computes the L2 norm of one `[f32; 768]` vector.
+/// Computes the squared norm of one `[f32; 768]` vector.
 ///
 /// # Safety
 ///
@@ -281,7 +281,7 @@ pub unsafe fn f32_x768_avx2_fma_norm(x: &[f32]) -> f32 {
 
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
-/// Computes the L2 norm of one `[f32; 512]` vector.
+/// Computes the squared norm of one `[f32; 512]` vector.
 ///
 /// # Safety
 ///
