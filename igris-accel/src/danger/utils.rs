@@ -4,6 +4,8 @@ use crate::math::Math;
 
 pub const CHUNK_0: usize = 0;
 pub const CHUNK_1: usize = 1;
+pub const CHUNK_2: usize = 2;
+pub const CHUNK_3: usize = 3;
 
 #[inline(always)]
 pub fn cosine<M: Math>(dot_product: f32, norm_x: f32, norm_y: f32) -> f32 {

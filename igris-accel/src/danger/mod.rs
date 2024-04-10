@@ -10,15 +10,19 @@ mod fallback_euclidean;
 #[cfg(test)]
 mod test_utils;
 mod utils;
+mod avx2_norm;
+mod avx512_norm;
 
 pub(crate) use utils::*;
 
 pub use self::avx2_cosine::*;
 pub use self::avx2_dot_product::*;
 pub use self::avx2_euclidean::*;
+pub use self::avx2_norm::*;
 pub use self::avx512_cosine::*;
 pub use self::avx512_dot_product::*;
 pub use self::avx512_euclidean::*;
+pub use self::avx512_norm::*;
 pub use self::fallback_cosine::*;
 pub use self::fallback_dot_product::*;
 pub use self::fallback_euclidean::*;
