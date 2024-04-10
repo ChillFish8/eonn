@@ -349,3 +349,61 @@ unsafe fn execute_f32_x128_block_apply_norm(
 
     mem::transmute(lanes)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::danger::test_utils::{
+        assert_is_close_vector,
+        get_sample_vectors,
+        simple_angular_hyperplane,
+    };
+
+    #[test]
+    fn test_x1024_fma_angular_hyperplane() {
+        let (x, y) = get_sample_vectors(1024);
+        let hyperplane = unsafe { f32_x1024_avx512_fma_angular_hyperplane(&x, &y) };
+        let expected = simple_angular_hyperplane(&x, &y);
+        assert_is_close_vector(&hyperplane, &expected);
+    }
+
+    #[test]
+    fn test_x1024_nofma_angular_hyperplane() {
+        let (x, y) = get_sample_vectors(1024);
+        let hyperplane = unsafe { f32_x1024_avx512_nofma_angular_hyperplane(&x, &y) };
+        let expected = simple_angular_hyperplane(&x, &y);
+        assert_is_close_vector(&hyperplane, &expected);
+    }
+
+    #[test]
+    fn test_x768_fma_angular_hyperplane() {
+        let (x, y) = get_sample_vectors(768);
+        let hyperplane = unsafe { f32_x768_avx512_fma_angular_hyperplane(&x, &y) };
+        let expected = simple_angular_hyperplane(&x, &y);
+        assert_is_close_vector(&hyperplane, &expected);
+    }
+
+    #[test]
+    fn test_x768_nofma_angular_hyperplane() {
+        let (x, y) = get_sample_vectors(768);
+        let hyperplane = unsafe { f32_x768_avx512_nofma_angular_hyperplane(&x, &y) };
+        let expected = simple_angular_hyperplane(&x, &y);
+        assert_is_close_vector(&hyperplane, &expected);
+    }
+
+    #[test]
+    fn test_x512_fma_angular_hyperplane() {
+        let (x, y) = get_sample_vectors(512);
+        let hyperplane = unsafe { f32_x512_avx512_fma_angular_hyperplane(&x, &y) };
+        let expected = simple_angular_hyperplane(&x, &y);
+        assert_is_close_vector(&hyperplane, &expected);
+    }
+
+    #[test]
+    fn test_x512_nofma_angular_hyperplane() {
+        let (x, y) = get_sample_vectors(512);
+        let hyperplane = unsafe { f32_x512_avx512_nofma_angular_hyperplane(&x, &y) };
+        let expected = simple_angular_hyperplane(&x, &y);
+        assert_is_close_vector(&hyperplane, &expected);
+    }
+}

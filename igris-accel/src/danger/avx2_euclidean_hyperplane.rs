@@ -424,3 +424,74 @@ unsafe fn sub_reduce_x8(
     acc1 = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
     -sum_avx2(acc1)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::danger::test_utils::{
+        assert_is_close,
+        assert_is_close_vector,
+        get_sample_vectors,
+        simple_euclidean_hyperplane,
+    };
+
+    #[test]
+    fn test_x1024_fma_euclidean_hyperplane() {
+        let (x, y) = get_sample_vectors(1024);
+        let (hyperplane, offset) =
+            unsafe { f32_x1024_avx2_fma_euclidean_hyperplane(&x, &y) };
+        let (expected, expected_offset) = simple_euclidean_hyperplane(&x, &y);
+        assert_is_close(offset, expected_offset);
+        assert_is_close_vector(&hyperplane, &expected);
+    }
+
+    #[test]
+    fn test_x1024_nofma_euclidean_hyperplane() {
+        let (x, y) = get_sample_vectors(1024);
+        let (hyperplane, offset) =
+            unsafe { f32_x1024_avx2_nofma_euclidean_hyperplane(&x, &y) };
+        let (expected, expected_offset) = simple_euclidean_hyperplane(&x, &y);
+        assert_is_close(offset, expected_offset);
+        assert_is_close_vector(&hyperplane, &expected);
+    }
+
+    #[test]
+    fn test_x768_fma_euclidean_hyperplane() {
+        let (x, y) = get_sample_vectors(768);
+        let (hyperplane, offset) =
+            unsafe { f32_x768_avx2_fma_euclidean_hyperplane(&x, &y) };
+        let (expected, expected_offset) = simple_euclidean_hyperplane(&x, &y);
+        assert_is_close(offset, expected_offset);
+        assert_is_close_vector(&hyperplane, &expected);
+    }
+
+    #[test]
+    fn test_x768_nofma_euclidean_hyperplane() {
+        let (x, y) = get_sample_vectors(768);
+        let (hyperplane, offset) =
+            unsafe { f32_x768_avx2_nofma_euclidean_hyperplane(&x, &y) };
+        let (expected, expected_offset) = simple_euclidean_hyperplane(&x, &y);
+        assert_is_close(offset, expected_offset);
+        assert_is_close_vector(&hyperplane, &expected);
+    }
+
+    #[test]
+    fn test_x512_fma_euclidean_hyperplane() {
+        let (x, y) = get_sample_vectors(512);
+        let (hyperplane, offset) =
+            unsafe { f32_x512_avx2_fma_euclidean_hyperplane(&x, &y) };
+        let (expected, expected_offset) = simple_euclidean_hyperplane(&x, &y);
+        assert_is_close(offset, expected_offset);
+        assert_is_close_vector(&hyperplane, &expected);
+    }
+
+    #[test]
+    fn test_x512_nofma_euclidean_hyperplane() {
+        let (x, y) = get_sample_vectors(512);
+        let (hyperplane, offset) =
+            unsafe { f32_x512_avx2_nofma_euclidean_hyperplane(&x, &y) };
+        let (expected, expected_offset) = simple_euclidean_hyperplane(&x, &y);
+        assert_is_close(offset, expected_offset);
+        assert_is_close_vector(&hyperplane, &expected);
+    }
+}
