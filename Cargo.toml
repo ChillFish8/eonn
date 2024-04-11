@@ -14,4 +14,7 @@ opt-level = 3
 members = [
     "igris-accel",
     "igris-spacial",
+
+    # Used for profiling and debugging
+    "igris-accel/asm-view",
 ]

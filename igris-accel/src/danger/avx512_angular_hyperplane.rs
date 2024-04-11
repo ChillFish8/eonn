@@ -77,16 +77,16 @@ macro_rules! compute_angular_hyperplane {
         let x = $x.as_ptr();
         let y = $y.as_ptr();
 
-        let norm_x = _mm512_set1_ps(norm_x);
-        let norm_y = _mm512_set1_ps(norm_y);
+        let inverse_norm_x = _mm512_set1_ps(1.0 / norm_x);
+        let inverse_norm_y = _mm512_set1_ps(1.0 / norm_y);
 
         //  Compute the normal vector to the hyperplane (the vector between the two points)
         compute_normal_vector_unrolled!(
             hyperplane.as_mut_ptr(),
             x,
             y,
-            norm_x,
-            norm_y,
+            inverse_norm_x,
+            inverse_norm_y,
             offsets => $($offset,)*
         );
 
@@ -95,10 +95,10 @@ macro_rules! compute_angular_hyperplane {
             norm_hyperplane = 1.0;
         }
 
-        let norm_hyperplane = _mm512_set1_ps(norm_hyperplane);
+        let inverse_norm_hyperplane = _mm512_set1_ps(1.0 / norm_hyperplane);
         normalize_hyperplane_unrolled!(
             hyperplane.as_mut_ptr(),
-            norm_hyperplane,
+            inverse_norm_hyperplane,
             offsets => $($offset,)*
         );
 
@@ -251,8 +251,8 @@ pub unsafe fn f32_x512_avx512_fma_angular_hyperplane(x: &[f32], y: &[f32]) -> Ve
 unsafe fn execute_f32_x128_block_normal_vector(
     x: *const f32,
     y: *const f32,
-    norm_x: __m512,
-    norm_y: __m512,
+    inverse_norm_x: __m512,
+    inverse_norm_y: __m512,
 ) -> [f32; 128] {
     let [x1, x2, x3, x4] = offsets_avx512::<CHUNK_0>(x);
     let [x5, x6, x7, x8] = offsets_avx512::<CHUNK_1>(x);
@@ -278,23 +278,23 @@ unsafe fn execute_f32_x128_block_normal_vector(
     let y7 = _mm512_loadu_ps(y7);
     let y8 = _mm512_loadu_ps(y8);
 
-    let normalized_x1 = _mm512_div_ps(x1, norm_x);
-    let normalized_x2 = _mm512_div_ps(x2, norm_x);
-    let normalized_x3 = _mm512_div_ps(x3, norm_x);
-    let normalized_x4 = _mm512_div_ps(x4, norm_x);
-    let normalized_x5 = _mm512_div_ps(x5, norm_x);
-    let normalized_x6 = _mm512_div_ps(x6, norm_x);
-    let normalized_x7 = _mm512_div_ps(x7, norm_x);
-    let normalized_x8 = _mm512_div_ps(x8, norm_x);
+    let normalized_x1 = _mm512_mul_ps(x1, inverse_norm_x);
+    let normalized_x2 = _mm512_mul_ps(x2, inverse_norm_x);
+    let normalized_x3 = _mm512_mul_ps(x3, inverse_norm_x);
+    let normalized_x4 = _mm512_mul_ps(x4, inverse_norm_x);
+    let normalized_x5 = _mm512_mul_ps(x5, inverse_norm_x);
+    let normalized_x6 = _mm512_mul_ps(x6, inverse_norm_x);
+    let normalized_x7 = _mm512_mul_ps(x7, inverse_norm_x);
+    let normalized_x8 = _mm512_mul_ps(x8, inverse_norm_x);
 
-    let normalized_y1 = _mm512_div_ps(y1, norm_y);
-    let normalized_y2 = _mm512_div_ps(y2, norm_y);
-    let normalized_y3 = _mm512_div_ps(y3, norm_y);
-    let normalized_y4 = _mm512_div_ps(y4, norm_y);
-    let normalized_y5 = _mm512_div_ps(y5, norm_y);
-    let normalized_y6 = _mm512_div_ps(y6, norm_y);
-    let normalized_y7 = _mm512_div_ps(y7, norm_y);
-    let normalized_y8 = _mm512_div_ps(y8, norm_y);
+    let normalized_y1 = _mm512_mul_ps(y1, inverse_norm_y);
+    let normalized_y2 = _mm512_mul_ps(y2, inverse_norm_y);
+    let normalized_y3 = _mm512_mul_ps(y3, inverse_norm_y);
+    let normalized_y4 = _mm512_mul_ps(y4, inverse_norm_y);
+    let normalized_y5 = _mm512_mul_ps(y5, inverse_norm_y);
+    let normalized_y6 = _mm512_mul_ps(y6, inverse_norm_y);
+    let normalized_y7 = _mm512_mul_ps(y7, inverse_norm_y);
+    let normalized_y8 = _mm512_mul_ps(y8, inverse_norm_y);
 
     let diff1 = _mm512_sub_ps(normalized_x1, normalized_y1);
     let diff2 = _mm512_sub_ps(normalized_x2, normalized_y2);
@@ -313,7 +313,7 @@ unsafe fn execute_f32_x128_block_normal_vector(
 #[inline(always)]
 unsafe fn execute_f32_x128_block_apply_norm(
     x: *const f32,
-    norm_x: __m512,
+    inverse_norm_x: __m512,
 ) -> [f32; 128] {
     let [x1, x2, x3, x4] = offsets_avx512::<CHUNK_0>(x);
     let [x5, x6, x7, x8] = offsets_avx512::<CHUNK_1>(x);
@@ -327,14 +327,14 @@ unsafe fn execute_f32_x128_block_apply_norm(
     let x7 = _mm512_loadu_ps(x7);
     let x8 = _mm512_loadu_ps(x8);
 
-    let normalized_x1 = _mm512_div_ps(x1, norm_x);
-    let normalized_x2 = _mm512_div_ps(x2, norm_x);
-    let normalized_x3 = _mm512_div_ps(x3, norm_x);
-    let normalized_x4 = _mm512_div_ps(x4, norm_x);
-    let normalized_x5 = _mm512_div_ps(x5, norm_x);
-    let normalized_x6 = _mm512_div_ps(x6, norm_x);
-    let normalized_x7 = _mm512_div_ps(x7, norm_x);
-    let normalized_x8 = _mm512_div_ps(x8, norm_x);
+    let normalized_x1 = _mm512_mul_ps(x1, inverse_norm_x);
+    let normalized_x2 = _mm512_mul_ps(x2, inverse_norm_x);
+    let normalized_x3 = _mm512_mul_ps(x3, inverse_norm_x);
+    let normalized_x4 = _mm512_mul_ps(x4, inverse_norm_x);
+    let normalized_x5 = _mm512_mul_ps(x5, inverse_norm_x);
+    let normalized_x6 = _mm512_mul_ps(x6, inverse_norm_x);
+    let normalized_x7 = _mm512_mul_ps(x7, inverse_norm_x);
+    let normalized_x8 = _mm512_mul_ps(x8, inverse_norm_x);
 
     let lanes = [
         normalized_x1,

@@ -30,22 +30,22 @@ ndarray = "0.15.6"
 # other projects that want to use the functions for more than what the distance ops allow for.
 dangerous-access = []
 
-[[bench]]
-name = "bench_dot_product"
-harness = false
-
-[[bench]]
-name = "bench_cosine"
-harness = false
-
-[[bench]]
-name = "bench_euclidean"
-harness = false
+# [[bench]]
+# name = "bench_dot_product"
+# harness = false
+#
+# [[bench]]
+# name = "bench_cosine"
+# harness = false
+#
+# [[bench]]
+# name = "bench_euclidean"
+# harness = false
 
 [[bench]]
 name = "bench_hyperplane_angular"
 harness = false
 
-[[bench]]
-name = "bench_hyperplane_euclidean"
-harness = false
+# [[bench]]
+# name = "bench_hyperplane_euclidean"
+# harness = false
