@@ -1,7 +1,7 @@
 use std::fmt::{Display, Formatter};
 
 use crate::arch::Arch;
-use crate::ops::Ops;
+use crate::ops::{DangerousOps, SpacialOps};
 use crate::{Dim, VectorType};
 
 /// A fixed-size SIMD accelerated vector of a given type and dimensions.
@@ -10,7 +10,7 @@ use crate::{Dim, VectorType};
 /// both at runtime or at compile time depending on application.
 pub struct Vector<D: Dim, A: Arch, T: VectorType = f32>
 where
-    (D, A): Ops,
+    (D, A): DangerousOps,
 {
     buffer: Vec<T>,
     ops: (D, A),
@@ -18,7 +18,7 @@ where
 
 impl<D: Dim, A: Arch, T: VectorType> Vector<D, A, T>
 where
-    (D, A): Ops,
+    (D, A): DangerousOps,
 {
     #[inline]
     /// Attempt to create a new vector using the given input data.
@@ -62,12 +62,11 @@ where
     }
 }
 
-impl<D: Dim, A: Arch> Vector<D, A, f32>
+impl<D: Dim, A: Arch> SpacialOps for Vector<D, A, f32>
 where
-    (D, A): Ops,
+    (D, A): DangerousOps,
 {
-    /// Computes the dot product distance between self and another vector.
-    pub fn dist_dot(&self, other: &Self) -> f32 {
+    fn dist_dot(&self, other: &Self) -> f32 {
         let product = unsafe { self.ops.dot(&self.buffer, &other.buffer) };
 
         if product <= 0.0 {
@@ -77,27 +76,22 @@ where
         }
     }
 
-    /// Computes the cosine distance between self and another vector.
-    pub fn dist_cosine(&self, other: &Self) -> f32 {
+    fn dist_cosine(&self, other: &Self) -> f32 {
         unsafe { self.ops.cosine(&self.buffer, &other.buffer) }
     }
 
-    /// Computes the cosine distance between self and another vector.
-    pub fn dist_squared_euclidean(&self, other: &Self) -> f32 {
+    fn dist_squared_euclidean(&self, other: &Self) -> f32 {
         unsafe { self.ops.squared_euclidean(&self.buffer, &other.buffer) }
     }
 
-    /// Computes the angular hyperplane vector between self and another vector.
-    pub fn angular_hyperplane(&self, other: &Self) -> Self {
+    fn angular_hyperplane(&self, other: &Self) -> Self {
         unsafe {
             let data = self.ops.angular_hyperplane(&self.buffer, &other.buffer);
             Self::from_vec_unchecked(data)
         }
     }
 
-    /// Computes the Euclidean hyperplane vector between self and another vector and
-    /// returns the offset.
-    pub fn euclidean_hyperplane(&self, other: &Self) -> (Self, f32) {
+    fn euclidean_hyperplane(&self, other: &Self) -> (Self, f32) {
         unsafe {
             let (data, offset) =
                 self.ops.euclidean_hyperplane(&self.buffer, &other.buffer);
