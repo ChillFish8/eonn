@@ -29,6 +29,10 @@ ndarray = "0.15.6"
 # Although it requires great care, these functions are highly optimized and may be use in
 # other projects that want to use the functions for more than what the distance ops allow for.
 dangerous-access = []
+# Enables nightly only features like fast-math optimizations for fallback routines and AVX512 support.
+#
+# This feature generally needs to be enabled in order to get the best optimizations.
+nightly = []
 
 [[bench]]
 name = "bench_dot_product"

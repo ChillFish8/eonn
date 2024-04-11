@@ -141,6 +141,7 @@ pub unsafe fn f32_x512_avx512_nofma_euclidean_hyperplane(
     )
 }
 
+#[cfg(feature = "nightly")]
 #[target_feature(enable = "avx512f", enable = "fma")]
 #[inline]
 /// Computes the Euclidean hyperplane of two `[f32; 1024]` vectors
@@ -167,6 +168,7 @@ pub unsafe fn f32_x1024_avx512_fma_euclidean_hyperplane(
     )
 }
 
+#[cfg(feature = "nightly")]
 #[target_feature(enable = "avx512f", enable = "fma")]
 #[inline]
 /// Computes the Euclidean hyperplane of two `[f32; 768]` vectors
@@ -193,6 +195,7 @@ pub unsafe fn f32_x768_avx512_fma_euclidean_hyperplane(
     )
 }
 
+#[cfg(feature = "nightly")]
 #[target_feature(enable = "avx512f", enable = "fma")]
 #[inline]
 /// Computes the Euclidean hyperplane of two `[f32; 512]` vectors
@@ -310,6 +313,7 @@ unsafe fn execute_f32_x128_block_nofma_hyperplane(
     mem::transmute(plane)
 }
 
+#[cfg(feature = "nightly")]
 #[inline(always)]
 unsafe fn execute_f32_x128_block_fma_hyperplane(
     x: *const f32,
@@ -402,6 +406,7 @@ mod tests {
         simple_euclidean_hyperplane,
     };
 
+    #[cfg(feature = "nightly")]
     #[test]
     fn test_x1024_fma_euclidean_hyperplane() {
         let (x, y) = get_sample_vectors(1024);
@@ -422,6 +427,7 @@ mod tests {
         assert_is_close_vector(&hyperplane, &expected);
     }
 
+    #[cfg(feature = "nightly")]
     #[test]
     fn test_x768_fma_euclidean_hyperplane() {
         let (x, y) = get_sample_vectors(768);
@@ -442,6 +448,7 @@ mod tests {
         assert_is_close_vector(&hyperplane, &expected);
     }
 
+    #[cfg(feature = "nightly")]
     #[test]
     fn test_x512_fma_euclidean_hyperplane() {
         let (x, y) = get_sample_vectors(512);

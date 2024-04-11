@@ -59,6 +59,7 @@ fn benchmark_dangerous_avx2_nofma_impls(c: &mut Criterion) {
     });
 }
 
+#[cfg(feature = "nightly")]
 fn benchmark_dangerous_avx2_fma_impls(c: &mut Criterion) {
     c.bench_function("euclidean avx2 x1024 fma", |b| unsafe {
         let (x, y) = utils::get_sample_vectors(1024);
@@ -74,6 +75,7 @@ fn benchmark_dangerous_avx2_fma_impls(c: &mut Criterion) {
     });
 }
 
+#[cfg(feature = "nightly")]
 fn benchmark_dangerous_avx512_nofma_impls(c: &mut Criterion) {
     c.bench_function("euclidean avx512 x1024 nofma", |b| unsafe {
         let (x, y) = utils::get_sample_vectors(1024);
@@ -89,6 +91,7 @@ fn benchmark_dangerous_avx512_nofma_impls(c: &mut Criterion) {
     });
 }
 
+#[cfg(feature = "nightly")]
 fn benchmark_dangerous_avx512_fma_impls(c: &mut Criterion) {
     c.bench_function("euclidean avx512 x1024 fma", |b| unsafe {
         let (x, y) = utils::get_sample_vectors(1024);
@@ -119,6 +122,7 @@ fn benchmark_fallback_nofma_impls(c: &mut Criterion) {
     });
 }
 
+#[cfg(feature = "nightly")]
 fn benchmark_fallback_fma_impls(c: &mut Criterion) {
     c.bench_function("euclidean fallback x1024 fma", |b| unsafe {
         let (x, y) = utils::get_sample_vectors(1024);
@@ -134,6 +138,7 @@ fn benchmark_fallback_fma_impls(c: &mut Criterion) {
     });
 }
 
+#[cfg(feature = "nightly")]
 criterion_group!(
     name = benches;
     config = Criterion::default()
@@ -147,6 +152,18 @@ criterion_group!(
         benchmark_dangerous_avx512_fma_impls,
         benchmark_dangerous_avx512_nofma_impls,
         benchmark_fallback_fma_impls,
+        benchmark_fallback_nofma_impls,
+);
+#[cfg(not(feature = "nightly"))]
+criterion_group!(
+    name = benches;
+    config = Criterion::default()
+        .measurement_time(Duration::from_secs(30))
+        .sample_size(250)
+        .warm_up_time(Duration::from_secs(10));
+    targets =
+        benchmark_3rd_party_impls,
+        benchmark_dangerous_avx2_nofma_impls,
         benchmark_fallback_nofma_impls,
 );
 criterion_main!(benches);

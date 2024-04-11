@@ -16,6 +16,7 @@ pub fn cosine<M: Math>(dot_product: f32, norm_x: f32, norm_y: f32) -> f32 {
     }
 }
 
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 #[inline(always)]
 /// Performs a sum of all packed values in the provided [__m256] register
 /// returning the resulting f32 value.
@@ -35,6 +36,7 @@ pub(crate) unsafe fn sum_avx2(v: __m256) -> f32 {
     _mm_cvtss_f32(sum)
 }
 
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 #[allow(clippy::too_many_arguments)]
 #[inline(always)]
 /// Rolls up 8 [__m256] registers into 1 summing them together.
@@ -59,6 +61,7 @@ pub(crate) unsafe fn rollup_x8(
     _mm256_add_ps(acc1, acc5)
 }
 
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 #[allow(clippy::too_many_arguments)]
 #[inline(always)]
 /// Rolls up 8 [__m256] registers into 1 summing them together.
@@ -96,6 +99,7 @@ pub(crate) unsafe fn offsets_avx2<const CHUNK: usize>(
     ]
 }
 
+#[allow(unused)]
 #[inline(always)]
 pub(crate) unsafe fn offsets_avx512<const CHUNK: usize>(
     ptr: *const f32,
@@ -168,6 +172,7 @@ mod tests {
         assert_eq!(res, 8.0);
     }
 
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
     #[test]
     fn test_sum_avx2() {
         unsafe {
@@ -181,6 +186,7 @@ mod tests {
         }
     }
 
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
     #[test]
     fn test_rollup_avx2_x8() {
         unsafe {

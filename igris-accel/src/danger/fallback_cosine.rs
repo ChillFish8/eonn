@@ -1,18 +1,19 @@
-use crate::danger::fallback_dot_product::{
-    f32_x1024_fallback_fma_dot,
-    f32_x1024_fallback_nofma_dot,
-};
 use crate::danger::{
     cosine,
-    f32_x512_fallback_fma_dot,
+    f32_x1024_fallback_nofma_dot,
     f32_x512_fallback_nofma_dot,
-    f32_x768_fallback_fma_dot,
     f32_x768_fallback_nofma_dot,
 };
-use crate::math::{FastMath, StdMath};
+#[cfg(feature = "nightly")]
+use crate::danger::{
+    f32_x1024_fallback_fma_dot,
+    f32_x512_fallback_fma_dot,
+    f32_x768_fallback_fma_dot,
+};
+use crate::math::*;
 
 #[inline]
-/// Computes the cosine distance of two `[f32; 512]` vectors.
+/// Computes the cosine distance of two `[f32; 1024]` vectors.
 ///
 /// These are fallback routines, they are designed to be optimized
 /// by the compiler only, in areas where manually optimized routines
@@ -20,7 +21,7 @@ use crate::math::{FastMath, StdMath};
 ///
 /// # Safety
 ///
-/// Vectors **MUST** be `512` elements in length, otherwise this routine
+/// Vectors **MUST** be `1024` elements in length, otherwise this routine
 /// will become immediately UB due to out of bounds pointer accesses.
 ///
 /// NOTE:
@@ -34,7 +35,7 @@ pub unsafe fn f32_x1024_fallback_nofma_cosine(x: &[f32], y: &[f32]) -> f32 {
 }
 
 #[inline]
-/// Computes the cosine distance of two `[f32; 512]` vectors.
+/// Computes the cosine distance of two `[f32; 768]` vectors.
 ///
 /// These are fallback routines, they are designed to be optimized
 /// by the compiler only, in areas where manually optimized routines
@@ -42,7 +43,7 @@ pub unsafe fn f32_x1024_fallback_nofma_cosine(x: &[f32], y: &[f32]) -> f32 {
 ///
 /// # Safety
 ///
-/// Vectors **MUST** be `512` elements in length, otherwise this routine
+/// Vectors **MUST** be `768` elements in length, otherwise this routine
 /// will become immediately UB due to out of bounds pointer accesses.
 ///
 /// NOTE:
@@ -77,8 +78,9 @@ pub unsafe fn f32_x512_fallback_nofma_cosine(x: &[f32], y: &[f32]) -> f32 {
     cosine::<StdMath>(dot_product, norm_x, norm_y)
 }
 
+#[cfg(feature = "nightly")]
 #[inline]
-/// Computes the cosine distance of two `[f32; 512]` vectors.
+/// Computes the cosine distance of two `[f32; 1024]` vectors.
 ///
 /// These are fallback routines, they are designed to be optimized
 /// by the compiler only, in areas where manually optimized routines
@@ -86,7 +88,7 @@ pub unsafe fn f32_x512_fallback_nofma_cosine(x: &[f32], y: &[f32]) -> f32 {
 ///
 /// # Safety
 ///
-/// Vectors **MUST** be `512` elements in length, otherwise this routine
+/// Vectors **MUST** be `1024` elements in length, otherwise this routine
 /// will become immediately UB due to out of bounds pointer accesses.
 ///
 /// NOTE:
@@ -99,8 +101,9 @@ pub unsafe fn f32_x1024_fallback_fma_cosine(x: &[f32], y: &[f32]) -> f32 {
     cosine::<FastMath>(dot_product, norm_x, norm_y)
 }
 
+#[cfg(feature = "nightly")]
 #[inline]
-/// Computes the cosine distance of two `[f32; 512]` vectors.
+/// Computes the cosine distance of two `[f32; 768]` vectors.
 ///
 /// These are fallback routines, they are designed to be optimized
 /// by the compiler only, in areas where manually optimized routines
@@ -108,7 +111,7 @@ pub unsafe fn f32_x1024_fallback_fma_cosine(x: &[f32], y: &[f32]) -> f32 {
 ///
 /// # Safety
 ///
-/// Vectors **MUST** be `512` elements in length, otherwise this routine
+/// Vectors **MUST** be `768` elements in length, otherwise this routine
 /// will become immediately UB due to out of bounds pointer accesses.
 ///
 /// NOTE:
@@ -121,6 +124,7 @@ pub unsafe fn f32_x768_fallback_fma_cosine(x: &[f32], y: &[f32]) -> f32 {
     cosine::<FastMath>(dot_product, norm_x, norm_y)
 }
 
+#[cfg(feature = "nightly")]
 #[inline]
 /// Computes the cosine distance of two `[f32; 512]` vectors.
 ///

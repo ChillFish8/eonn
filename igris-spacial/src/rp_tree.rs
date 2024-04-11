@@ -1,4 +1,4 @@
-use igris_accel::distance_ops::DistanceOps;
+use igris_accel::ops::DistanceOps;
 
 /// The type of random projection tree to build.
 pub enum TreeType {

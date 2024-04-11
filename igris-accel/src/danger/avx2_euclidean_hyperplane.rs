@@ -150,6 +150,7 @@ pub unsafe fn f32_x512_avx2_nofma_euclidean_hyperplane(
     )
 }
 
+#[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
 /// Computes the Euclidean hyperplane of two `[f32; 1024]` vectors
@@ -180,6 +181,7 @@ pub unsafe fn f32_x1024_avx2_fma_euclidean_hyperplane(
     )
 }
 
+#[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
 /// Computes the Euclidean hyperplane of two `[f32; 768]` vectors
@@ -209,6 +211,7 @@ pub unsafe fn f32_x768_avx2_fma_euclidean_hyperplane(
     )
 }
 
+#[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
 /// Computes the Euclidean hyperplane of two `[f32; 512]` vectors
@@ -237,6 +240,7 @@ pub unsafe fn f32_x512_avx2_fma_euclidean_hyperplane(
     )
 }
 
+#[allow(clippy::too_many_arguments)]
 #[inline(always)]
 unsafe fn execute_f32_x64_block_nofma_hyperplane(
     x: *const f32,
@@ -328,6 +332,8 @@ unsafe fn execute_f32_x64_block_nofma_hyperplane(
     mem::transmute(plane)
 }
 
+#[cfg(feature = "nightly")]
+#[allow(clippy::too_many_arguments)]
 #[inline(always)]
 unsafe fn execute_f32_x64_block_fma_hyperplane(
     x: *const f32,
@@ -410,6 +416,7 @@ unsafe fn execute_f32_x64_block_fma_hyperplane(
     mem::transmute(plane)
 }
 
+#[allow(clippy::too_many_arguments)]
 #[inline(always)]
 unsafe fn sub_reduce_x8(
     mut acc1: __m256,
@@ -435,6 +442,7 @@ mod tests {
         simple_euclidean_hyperplane,
     };
 
+    #[cfg(feature = "nightly")]
     #[test]
     fn test_x1024_fma_euclidean_hyperplane() {
         let (x, y) = get_sample_vectors(1024);
@@ -455,6 +463,7 @@ mod tests {
         assert_is_close_vector(&hyperplane, &expected);
     }
 
+    #[cfg(feature = "nightly")]
     #[test]
     fn test_x768_fma_euclidean_hyperplane() {
         let (x, y) = get_sample_vectors(768);
@@ -475,6 +484,7 @@ mod tests {
         assert_is_close_vector(&hyperplane, &expected);
     }
 
+    #[cfg(feature = "nightly")]
     #[test]
     fn test_x512_fma_euclidean_hyperplane() {
         let (x, y) = get_sample_vectors(512);

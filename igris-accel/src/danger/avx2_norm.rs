@@ -180,6 +180,7 @@ pub unsafe fn f32_x512_avx2_nofma_norm(x: &[f32]) -> f32 {
     sum_avx2(acc)
 }
 
+#[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
 /// Computes the squared norm of one `[f32; 1024]` vector.
@@ -230,6 +231,7 @@ pub unsafe fn f32_x1024_avx2_fma_norm(x: &[f32]) -> f32 {
     sum_avx2(acc)
 }
 
+#[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
 /// Computes the squared norm of one `[f32; 768]` vector.
@@ -279,6 +281,7 @@ pub unsafe fn f32_x768_avx2_fma_norm(x: &[f32]) -> f32 {
     sum_avx2(acc)
 }
 
+#[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
 /// Computes the squared norm of one `[f32; 512]` vector.
@@ -371,6 +374,7 @@ unsafe fn execute_f32_x64_nofma_block_norm(
     *acc8 = _mm256_add_ps(*acc8, r8);
 }
 
+#[cfg(feature = "nightly")]
 #[allow(clippy::too_many_arguments)]
 #[inline(always)]
 unsafe fn execute_f32_x64_fma_block_norm(
@@ -411,6 +415,7 @@ mod tests {
     use super::*;
     use crate::danger::test_utils::get_sample_vectors;
 
+    #[cfg(feature = "nightly")]
     #[test]
     fn test_x1024_fma_norm() {
         let (x, _) = get_sample_vectors(1024);
@@ -426,6 +431,7 @@ mod tests {
         assert_eq!(dist, 337.62814);
     }
 
+    #[cfg(feature = "nightly")]
     #[test]
     fn test_x768_fma_norm() {
         let (x, _) = get_sample_vectors(768);
@@ -440,6 +446,7 @@ mod tests {
         assert_eq!(dist, 254.10095);
     }
 
+    #[cfg(feature = "nightly")]
     #[test]
     fn test_x512_fma_norm() {
         let (x, _) = get_sample_vectors(512);

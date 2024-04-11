@@ -1,9 +1,8 @@
-use crate::danger::fallback_dot_product::fallback_dot;
 use crate::danger::rollup_scalar_x8;
-use crate::math::{FastMath, Math, StdMath};
+use crate::math::*;
 
 #[inline]
-/// Computes the Euclidean hyperplane of two `[f32; 512]` vectors.
+/// Computes the Euclidean hyperplane of two `[f32; 1024]` vectors.
 ///
 /// These are fallback routines, they are designed to be optimized
 /// by the compiler only, in areas where manually optimized routines
@@ -11,7 +10,7 @@ use crate::math::{FastMath, Math, StdMath};
 ///
 /// # Safety
 ///
-/// Vectors **MUST** be `512` elements in length, otherwise this routine
+/// Vectors **MUST** be `1024` elements in length, otherwise this routine
 /// will become immediately UB due to out of bounds pointer accesses.
 ///
 /// NOTE:
@@ -25,7 +24,7 @@ pub unsafe fn f32_x1024_fallback_nofma_euclidean_hyperplane(
 }
 
 #[inline]
-/// Computes the Euclidean hyperplane of two `[f32; 512]` vectors
+/// Computes the Euclidean hyperplane of two `[f32; 768]` vectors
 /// and the offset from origin.
 ///
 /// These are fallback routines, they are designed to be optimized
@@ -34,7 +33,7 @@ pub unsafe fn f32_x1024_fallback_nofma_euclidean_hyperplane(
 ///
 /// # Safety
 ///
-/// Vectors **MUST** be `512` elements in length, otherwise this routine
+/// Vectors **MUST** be `768` elements in length, otherwise this routine
 /// will become immediately UB due to out of bounds pointer accesses.
 ///
 /// NOTE:
@@ -70,8 +69,9 @@ pub unsafe fn f32_x512_fallback_nofma_euclidean_hyperplane(
     fallback_euclidean_hyperplane::<StdMath, 512>(x, y)
 }
 
+#[cfg(feature = "nightly")]
 #[inline]
-/// Computes the Euclidean hyperplane of two `[f32; 512]` vectors
+/// Computes the Euclidean hyperplane of two `[f32; 1024]` vectors
 /// and the offset from origin.
 ///
 /// These are fallback routines, they are designed to be optimized
@@ -80,7 +80,7 @@ pub unsafe fn f32_x512_fallback_nofma_euclidean_hyperplane(
 ///
 /// # Safety
 ///
-/// Vectors **MUST** be `512` elements in length, otherwise this routine
+/// Vectors **MUST** be `1024` elements in length, otherwise this routine
 /// will become immediately UB due to out of bounds pointer accesses.
 ///
 /// NOTE:
@@ -93,8 +93,9 @@ pub unsafe fn f32_x1024_fallback_fma_euclidean_hyperplane(
     fallback_euclidean_hyperplane::<FastMath, 1024>(x, y)
 }
 
+#[cfg(feature = "nightly")]
 #[inline]
-/// Computes the Euclidean hyperplane of two `[f32; 512]` vectors
+/// Computes the Euclidean hyperplane of two `[f32; 768]` vectors
 /// and the offset from origin.
 ///
 /// These are fallback routines, they are designed to be optimized
@@ -103,7 +104,7 @@ pub unsafe fn f32_x1024_fallback_fma_euclidean_hyperplane(
 ///
 /// # Safety
 ///
-/// Vectors **MUST** be `512` elements in length, otherwise this routine
+/// Vectors **MUST** be `768` elements in length, otherwise this routine
 /// will become immediately UB due to out of bounds pointer accesses.
 ///
 /// NOTE:
@@ -116,6 +117,7 @@ pub unsafe fn f32_x768_fallback_fma_euclidean_hyperplane(
     fallback_euclidean_hyperplane::<FastMath, 768>(x, y)
 }
 
+#[cfg(feature = "nightly")]
 #[inline]
 /// Computes the Euclidean hyperplane of two `[f32; 512]` vectors
 /// and the offset from origin.
@@ -239,6 +241,7 @@ mod tests {
         simple_euclidean_hyperplane,
     };
 
+    #[cfg(feature = "nightly")]
     #[test]
     fn test_x1024_fma_euclidean_hyperplane() {
         let (x, y) = get_sample_vectors(1024);
@@ -259,6 +262,7 @@ mod tests {
         assert_is_close_vector(&hyperplane, &expected);
     }
 
+    #[cfg(feature = "nightly")]
     #[test]
     fn test_x768_fma_euclidean_hyperplane() {
         let (x, y) = get_sample_vectors(768);
@@ -279,6 +283,7 @@ mod tests {
         assert_is_close_vector(&hyperplane, &expected);
     }
 
+    #[cfg(feature = "nightly")]
     #[test]
     fn test_x512_fma_euclidean_hyperplane() {
         let (x, y) = get_sample_vectors(512);

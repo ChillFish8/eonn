@@ -1,12 +1,15 @@
 use std::arch::x86_64::*;
 use std::{mem, ptr};
 
+#[cfg(feature = "nightly")]
 use crate::danger::{
     f32_x1024_avx2_fma_norm,
-    f32_x1024_avx2_nofma_norm,
     f32_x512_avx2_fma_norm,
-    f32_x512_avx2_nofma_norm,
     f32_x768_avx2_fma_norm,
+};
+use crate::danger::{
+    f32_x1024_avx2_nofma_norm,
+    f32_x512_avx2_nofma_norm,
     f32_x768_avx2_nofma_norm,
     offsets_avx2,
     CHUNK_0,
@@ -187,6 +190,7 @@ pub unsafe fn f32_x512_avx2_nofma_angular_hyperplane(x: &[f32], y: &[f32]) -> Ve
     )
 }
 
+#[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
 /// Computes the angular hyperplane of two `[f32; 1024]` vectors.
@@ -213,6 +217,7 @@ pub unsafe fn f32_x1024_avx2_fma_angular_hyperplane(x: &[f32], y: &[f32]) -> Vec
     )
 }
 
+#[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
 /// Computes the angular hyperplane of two `[f32; 768]` vectors.
@@ -238,6 +243,7 @@ pub unsafe fn f32_x768_avx2_fma_angular_hyperplane(x: &[f32], y: &[f32]) -> Vec<
     )
 }
 
+#[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
 /// Computes the angular hyperplane of two `[f32; 512]` vectors.
@@ -374,6 +380,7 @@ mod tests {
         simple_angular_hyperplane,
     };
 
+    #[cfg(feature = "nightly")]
     #[test]
     fn test_x1024_fma_angular_hyperplane() {
         let (x, y) = get_sample_vectors(1024);
@@ -390,6 +397,7 @@ mod tests {
         assert_is_close_vector(&hyperplane, &expected);
     }
 
+    #[cfg(feature = "nightly")]
     #[test]
     fn test_x768_fma_angular_hyperplane() {
         let (x, y) = get_sample_vectors(768);
@@ -406,6 +414,7 @@ mod tests {
         assert_is_close_vector(&hyperplane, &expected);
     }
 
+    #[cfg(feature = "nightly")]
     #[test]
     fn test_x512_fma_angular_hyperplane() {
         let (x, y) = get_sample_vectors(512);

@@ -1,21 +1,22 @@
-use crate::danger::avx2_dot_product::{
-    f32_x1024_avx2_fma_dot,
-    f32_x1024_avx2_nofma_dot,
-    f32_x512_avx2_fma_dot,
-    f32_x512_avx2_nofma_dot,
-    f32_x768_avx2_fma_dot,
-    f32_x768_avx2_nofma_dot,
-};
 use crate::danger::utils::cosine;
+#[cfg(feature = "nightly")]
 use crate::danger::{
+    f32_x1024_avx2_fma_dot,
     f32_x1024_avx2_fma_norm,
-    f32_x1024_avx2_nofma_norm,
+    f32_x512_avx2_fma_dot,
     f32_x512_avx2_fma_norm,
-    f32_x512_avx2_nofma_norm,
+    f32_x768_avx2_fma_dot,
     f32_x768_avx2_fma_norm,
+};
+use crate::danger::{
+    f32_x1024_avx2_nofma_dot,
+    f32_x1024_avx2_nofma_norm,
+    f32_x512_avx2_nofma_dot,
+    f32_x512_avx2_nofma_norm,
+    f32_x768_avx2_nofma_dot,
     f32_x768_avx2_nofma_norm,
 };
-use crate::math::{FastMath, StdMath};
+use crate::math::*;
 
 #[target_feature(enable = "avx2")]
 #[inline]
@@ -86,6 +87,7 @@ pub unsafe fn f32_x512_avx2_nofma_cosine(x: &[f32], y: &[f32]) -> f32 {
     cosine::<StdMath>(dot_product, norm_x, norm_y)
 }
 
+#[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
 /// Computes the cosine distance of two `[f32; 1024]` vectors.
@@ -109,6 +111,7 @@ pub unsafe fn f32_x1024_avx2_fma_cosine(x: &[f32], y: &[f32]) -> f32 {
     cosine::<FastMath>(dot_product, norm_x, norm_y)
 }
 
+#[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
 /// Computes the cosine distance of two `[f32; 768]` vectors.
@@ -132,6 +135,7 @@ pub unsafe fn f32_x768_avx2_fma_cosine(x: &[f32], y: &[f32]) -> f32 {
     cosine::<FastMath>(dot_product, norm_x, norm_y)
 }
 
+#[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
 /// Computes the cosine distance of two `[f32; 512]` vectors.
@@ -160,6 +164,7 @@ mod tests {
     use super::*;
     use crate::danger::test_utils::{get_sample_vectors, is_close, simple_cosine};
 
+    #[cfg(feature = "nightly")]
     #[test]
     fn test_x1024_fma_cosine() {
         let (x, y) = get_sample_vectors(1024);
@@ -174,6 +179,7 @@ mod tests {
         assert!(is_close(dist, simple_cosine(&x, &y)))
     }
 
+    #[cfg(feature = "nightly")]
     #[test]
     fn test_x768_fma_cosine() {
         let (x, y) = get_sample_vectors(768);
@@ -188,6 +194,7 @@ mod tests {
         assert!(is_close(dist, simple_cosine(&x, &y)))
     }
 
+    #[cfg(feature = "nightly")]
     #[test]
     fn test_x512_fma_cosine() {
         let (x, y) = get_sample_vectors(512);
