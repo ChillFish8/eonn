@@ -1,0 +1,55 @@
+[package]
+name = "rann-accel"
+version = "0.1.0"
+edition = "2021"
+description = "Accelerated operations for RANN"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+[dev-dependencies]
+rand = "0.8.5"
+rand_chacha = "0.3.1"
+simsimd = "4.3.0"
+
+criterion = { version = "0.5.1", features = ["html_reports"] }
+
+[target.'cfg(unix)'.dev-dependencies]
+ndarray = { version = "0.15.6", features = ["blas"] }
+blas-src = { version = "0.8", features = ["openblas"] }
+openblas-src = { version = "0.10", features = ["cblas", "system"] }
+
+[target.'cfg(not(unix))'.dev-dependencies]
+ndarray = "0.15.6"
+
+[features]
+# USE AT YOUR OWN RISK! Enables access to the dangerous intrinsic implementations as publically exposed functions.
+#
+# Although it requires great care, these functions are highly optimized and may be use in
+# other projects that want to use the functions for more than what the distance ops allow for.
+dangerous-access = []
+# Enables nightly only features like fast-math optimizations for fallback routines and AVX512 support.
+#
+# This feature generally needs to be enabled in order to get the best optimizations.
+nightly = []
+
+[[bench]]
+name = "bench_dot_product"
+harness = false
+
+[[bench]]
+name = "bench_cosine"
+harness = false
+
+[[bench]]
+name = "bench_euclidean"
+harness = false
+
+[[bench]]
+name = "bench_hyperplane_angular"
+harness = false
+
+[[bench]]
+name = "bench_hyperplane_euclidean"
+harness = false

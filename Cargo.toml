@@ -1,5 +1,5 @@
 [package]
-name = "igris"
+name = "rann"
 version = "0.1.0"
 edition = "2021"
 
@@ -12,9 +12,8 @@ opt-level = 3
 
 [workspace]
 members = [
-    "igris-accel",
-    "igris-spacial",
+    "rann-accel",
 
     # Used for profiling and debugging
-    "igris-accel/asm-view",
+    "rann-accel/asm-view",
 ]

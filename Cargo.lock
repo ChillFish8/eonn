@@ -39,7 +39,7 @@ checksum = "0952808a6c2afd1aa8947271f3a60f1a6763c7b912d210184c5149b5cf147247"
 name = "asm-view"
 version = "0.1.0"
 dependencies = [
- "igris-accel",
+ "rann-accel",
 ]
 
 [[package]]
@@ -378,35 +378,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "igris"
-version = "0.1.0"
-
-[[package]]
-name = "igris-accel"
-version = "0.1.0"
-dependencies = [
- "blas-src",
- "criterion",
- "ndarray",
- "openblas-src",
- "rand",
- "rand_chacha",
- "simsimd",
-]
-
-[[package]]
-name = "igris-spacial"
-version = "0.1.0"
-dependencies = [
- "fastrand",
- "igris-accel",
- "rayon",
- "serde",
- "serde_json",
- "thiserror",
-]
-
-[[package]]
 name = "is-terminal"
 version = "0.4.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -734,6 +705,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 dependencies = [
  "getrandom",
+]
+
+[[package]]
+name = "rann"
+version = "0.1.0"
+
+[[package]]
+name = "rann-accel"
+version = "0.1.0"
+dependencies = [
+ "blas-src",
+ "criterion",
+ "ndarray",
+ "openblas-src",
+ "rand",
+ "rand_chacha",
+ "simsimd",
 ]
 
 [[package]]
