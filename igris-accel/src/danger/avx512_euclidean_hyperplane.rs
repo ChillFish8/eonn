@@ -234,7 +234,7 @@ unsafe fn execute_f32_x128_block_nofma_hyperplane(
 ) -> [f32; 128] {
     // TODO: Hopefully LLVM is smart enough to optimize this out, but we should
     //       double check that we don't reset the register each time.
-    let div_by_2 = _mm512_set1_ps(2.0);
+    let div_by_2 = _mm512_set1_ps(0.5);
 
     let [x1, x2, x3, x4] = offsets_avx512::<CHUNK_0>(x);
     let [x5, x6, x7, x8] = offsets_avx512::<CHUNK_1>(x);
@@ -278,14 +278,14 @@ unsafe fn execute_f32_x128_block_nofma_hyperplane(
     let sum7 = _mm512_add_ps(x7, y7);
     let sum8 = _mm512_add_ps(x8, y8);
 
-    let mean1 = _mm512_div_ps(sum1, div_by_2);
-    let mean2 = _mm512_div_ps(sum2, div_by_2);
-    let mean3 = _mm512_div_ps(sum3, div_by_2);
-    let mean4 = _mm512_div_ps(sum4, div_by_2);
-    let mean5 = _mm512_div_ps(sum5, div_by_2);
-    let mean6 = _mm512_div_ps(sum6, div_by_2);
-    let mean7 = _mm512_div_ps(sum7, div_by_2);
-    let mean8 = _mm512_div_ps(sum8, div_by_2);
+    let mean1 = _mm512_mul_ps(sum1, div_by_2);
+    let mean2 = _mm512_mul_ps(sum2, div_by_2);
+    let mean3 = _mm512_mul_ps(sum3, div_by_2);
+    let mean4 = _mm512_mul_ps(sum4, div_by_2);
+    let mean5 = _mm512_mul_ps(sum5, div_by_2);
+    let mean6 = _mm512_mul_ps(sum6, div_by_2);
+    let mean7 = _mm512_mul_ps(sum7, div_by_2);
+    let mean8 = _mm512_mul_ps(sum8, div_by_2);
 
     let r1 = _mm512_mul_ps(diff1, mean1);
     let r2 = _mm512_mul_ps(diff2, mean2);
@@ -325,7 +325,7 @@ unsafe fn execute_f32_x128_block_fma_hyperplane(
 ) -> [f32; 128] {
     // TODO: Hopefully LLVM is smart enough to optimize this out, but we should
     //       double check that we don't reset the register each time.
-    let div_by_2 = _mm512_set1_ps(2.0);
+    let div_by_2 = _mm512_set1_ps(0.5);
 
     let [x1, x2, x3, x4] = offsets_avx512::<CHUNK_0>(x);
     let [x5, x6, x7, x8] = offsets_avx512::<CHUNK_1>(x);
@@ -369,14 +369,14 @@ unsafe fn execute_f32_x128_block_fma_hyperplane(
     let sum7 = _mm512_add_ps(x7, y7);
     let sum8 = _mm512_add_ps(x8, y8);
 
-    let mean1 = _mm512_div_ps(sum1, div_by_2);
-    let mean2 = _mm512_div_ps(sum2, div_by_2);
-    let mean3 = _mm512_div_ps(sum3, div_by_2);
-    let mean4 = _mm512_div_ps(sum4, div_by_2);
-    let mean5 = _mm512_div_ps(sum5, div_by_2);
-    let mean6 = _mm512_div_ps(sum6, div_by_2);
-    let mean7 = _mm512_div_ps(sum7, div_by_2);
-    let mean8 = _mm512_div_ps(sum8, div_by_2);
+    let mean1 = _mm512_mul_ps(sum1, div_by_2);
+    let mean2 = _mm512_mul_ps(sum2, div_by_2);
+    let mean3 = _mm512_mul_ps(sum3, div_by_2);
+    let mean4 = _mm512_mul_ps(sum4, div_by_2);
+    let mean5 = _mm512_mul_ps(sum5, div_by_2);
+    let mean6 = _mm512_mul_ps(sum6, div_by_2);
+    let mean7 = _mm512_mul_ps(sum7, div_by_2);
+    let mean8 = _mm512_mul_ps(sum8, div_by_2);
 
     *offset_acc1 = _mm512_fmadd_ps(diff1, mean1, *offset_acc1);
     *offset_acc2 = _mm512_fmadd_ps(diff2, mean2, *offset_acc2);
