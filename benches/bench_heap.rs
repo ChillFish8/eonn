@@ -16,7 +16,7 @@ fn benchmark_heap(c: &mut Criterion) {
             b.iter(|| {
                 let mut heap = SortedNeighbors::new(n);
                 for (p, n, f) in inserts.iter() {
-                    black_box(heap.checked_flagged_heap_push(
+                    black_box(heap.checked_flagged_push(
                         black_box(*p),
                         black_box(*n),
                         black_box(*f),

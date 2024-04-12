@@ -325,9 +325,78 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
 
     fn nn_descent(&self, leaf_array: &[Vec<usize>]) -> DynamicGraph {
         let mut graph = DynamicGraph::new(self.data.len(), self.n_neighbors);
+        self.init_graph_with_rp_forest(&mut graph, leaf_array);
+        self.init_graph_with_rng(&mut graph);
+
+        if self.low_memory {
+            // TODO: Add low memory
+        } else {
+            // TODO: High memory
+        }
 
         graph
     }
 
-    fn init_graph(&self, graph: &mut DynamicGraph, leaf_array: &[Vec<usize>]) {}
+    fn init_graph_with_rp_forest(
+        &self,
+        graph: &mut DynamicGraph,
+        leaf_array: &[Vec<usize>],
+    ) {
+        const BLOCK_SIZE: usize = 65536;
+
+        let n_leaves = leaf_array.len();
+        let n_blocks = n_leaves / BLOCK_SIZE;
+        let mut updates = Vec::new();
+
+        for i in 0..n_blocks + 1 {
+            let block_start = i * BLOCK_SIZE;
+            let block_end = cmp::min(n_leaves, (i + 1) * BLOCK_SIZE);
+
+            let leaf_block = &leaf_array[block_start..block_end];
+            self.generate_leaf_updates(&mut updates, graph, leaf_block);
+
+            // Update graph points `p -> q` and `q -> p`.
+            for (p, q, d) in updates.drain(..) {
+                let point = graph.point_mut(p);
+                point.checked_flagged_push(d, q, true);
+                let point = graph.point_mut(q);
+                point.checked_flagged_push(d, p, true);
+            }
+        }
+    }
+
+    fn init_graph_with_rng(&self, graph: &mut DynamicGraph) {
+        for i in 0..self.data.len() {
+            let point = graph.point_mut(i);
+            if point.furthest().dist() < 0.0 {
+                let fill_n = self.n_neighbors - point.num_lt(0.0);
+                for _ in 0..fill_n {
+                    let idx = fastrand::usize(0..self.data.len());
+                    let d = self.metric.distance(&self.data[idx], &self.data[i]);
+                    point.checked_flagged_push(d, idx, true);
+                }
+            }
+        }
+    }
+
+    fn generate_leaf_updates(
+        &self,
+        updates: &mut Vec<(usize, usize, f32)>,
+        graph: &DynamicGraph,
+        leaf_block: &[Vec<usize>],
+    ) {
+        for block in leaf_block {
+            for i in 0..block.len() {
+                let p = block[i];
+
+                for &q in &block[i + 1..] {
+                    let d = self.metric.distance(&self.data[p], &self.data[q]);
+
+                    if d <= graph.threshold(p) || d <= graph.threshold(q) {
+                        updates.push((p, q, d));
+                    }
+                }
+            }
+        }
+    }
 }

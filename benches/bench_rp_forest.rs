@@ -8,7 +8,7 @@ use rann_accel::{Auto, Vector, X1024};
 mod utils;
 
 const N_TREES: usize = 32;
-const N_VECTORS: usize = 10_000;
+const N_VECTORS: usize = 1_000;
 
 fn benchmark_rp_forest(c: &mut Criterion) {
     fastrand::seed(2352356346463346);
@@ -41,8 +41,7 @@ fn benchmark_rp_forest(c: &mut Criterion) {
 
 criterion_group!(
     name = benches;
-    config = Criterion::default()
-        .measurement_time(Duration::from_secs(60));
+    config = Criterion::default();
     targets = benchmark_rp_forest,
 );
 criterion_main!(benches);

@@ -1,6 +1,8 @@
-use std::collections::BinaryHeap;
+use std::cmp::Ordering;
+use std::mem;
 
 use bitvec::vec::BitVec;
+use fastrand::bool;
 use smallvec::SmallVec;
 
 /// A nearest neighbor graph implementation.
@@ -26,33 +28,68 @@ impl DynamicGraph {
             n_neighbors,
         }
     }
+
+    #[inline]
+    /// Get the point `p`.
+    pub fn point(&self, p: usize) -> &SortedNeighbors {
+        &self.points[p]
+    }
+
+    #[inline]
+    /// Get the point `p`.
+    pub fn point_mut(&mut self, p: usize) -> &mut SortedNeighbors {
+        &mut self.points[p]
+    }
+
+    #[inline]
+    /// The minimum threshold to be within the point's nearest neighbors.
+    pub fn threshold(&self, p: usize) -> f32 {
+        self.point(p).furthest().dist
+    }
 }
 
 /// A BinaryHeap-like structure maintaining a fixed size.
+///
+/// Internally this is actually a set of sorted structures
+/// going from smallest -> highest priority looking at layout.
 pub struct SortedNeighbors {
-    priorities: SmallVec<[f32; 32]>,
-    indices: SmallVec<[u32; 32]>,
-    flags: BitVec,
+    neighbors: SmallVec<[Point; 32]>,
 }
 
 impl SortedNeighbors {
     /// Creates a new sorted neighbor implementation with a given size.
     pub fn new(size: usize) -> Self {
-        let mut priorities = SmallVec::with_capacity(size);
-        let mut indices = SmallVec::with_capacity(size);
-        let mut flags = BitVec::with_capacity(size);
+        let mut neighbors = SmallVec::with_capacity(size);
 
         for _ in 0..size {
-            priorities.push(f32::INFINITY);
-            indices.push(u32::MAX);
-            flags.push(false);
+            neighbors.push(Point::default());
         }
 
-        Self {
-            priorities,
-            indices,
-            flags,
+        Self { neighbors }
+    }
+
+    #[inline]
+    /// The furthest neighbor from the point.
+    pub fn furthest(&self) -> Point {
+        self.neighbors.last().copied().unwrap_or(Point {
+            idx: u32::MAX,
+            dist: f32::INFINITY,
+            flag: false,
+        })
+    }
+
+    #[inline]
+    /// Returns the number of neighbors in the graph below this threshold
+    pub fn num_lt(&self, threshold: f32) -> usize {
+        let mut count = 0;
+        for p in self.neighbors.iter() {
+            if p.dist < threshold {
+                count += 1;
+            } else {
+                break;
+            }
         }
+        count
     }
 
     #[inline]
@@ -61,54 +98,79 @@ impl SortedNeighbors {
     /// This checks if the point already exists.
     ///
     /// Returns if the value was inserted or not.
-    pub fn checked_flagged_heap_push(&mut self, p: f32, n: usize, f: bool) -> bool {
-        if p >= self.priorities[0] {
+    pub fn checked_flagged_push(&mut self, dist: f32, idx: usize, flag: bool) -> bool {
+        // Element does not meet the minimum
+        if dist >= self.furthest().dist {
             return false;
         }
 
-        let n = n as u32;
+        let idx = idx as u32;
 
-        if self.indices.binary_search(&n).is_ok() {
-            return false;
-        }
+        let res = self.neighbors.binary_search_by(|neighbor| {
+            if neighbor.idx == idx {
+                Ordering::Equal
+            } else if neighbor.dist < dist {
+                Ordering::Less
+            } else {
+                Ordering::Greater
+            }
+        });
 
-        self.priorities[0] = p;
-        self.indices[0] = n;
-        self.flags.set(0, f);
+        // Our starting index to begin swapping values to insert.
+        let start = match res {
+            Ok(_) => return false, // Element already exists
+            Err(start) => start,
+        };
 
-        let i = self.sort_heap(p);
-
-        self.priorities[i] = p;
-        self.indices[i] = n;
-        self.flags.set(i, f);
+        let p = Point { idx, dist, flag };
+        self.sift_right(p, start);
 
         true
     }
 
     #[inline]
+    fn sift_right(&mut self, mut p: Point, start: usize) {
+        for i in start..self.neighbors.len() {
+            p = mem::replace(&mut self.neighbors[i], p);
+        }
+    }
+
+    #[inline]
     /// Attempts to insert a new point into the heap.
     ///
     /// This checks if the point already exists.
     ///
     /// Returns if the value was inserted or not.
-    pub fn checked_heap_push(&mut self, p: f32, n: usize) -> bool {
-        if p >= self.priorities[0] {
+    pub fn checked_heap_push(&mut self, dist: f32, idx: usize) -> bool {
+        // Element does not meet the minimum
+        if dist >= self.furthest().dist {
             return false;
         }
 
-        let n = n as u32;
+        let idx = idx as u32;
 
-        if self.indices.binary_search(&n).is_ok() {
-            return false;
-        }
+        let res = self.neighbors.binary_search_by(|neighbor| {
+            if neighbor.idx == idx {
+                Ordering::Equal
+            } else if neighbor.dist < dist {
+                Ordering::Less
+            } else {
+                Ordering::Greater
+            }
+        });
 
-        self.priorities[0] = p;
-        self.indices[0] = n;
+        // Our starting index to begin swapping values to insert.
+        let start = match res {
+            Ok(_) => return false, // Element already exists
+            Err(start) => start,
+        };
 
-        let i = self.sort_heap(p);
-
-        self.priorities[i] = p;
-        self.indices[i] = n;
+        let p = Point {
+            idx,
+            dist,
+            flag: false,
+        };
+        self.sift_right(p, start);
 
         true
     }
@@ -119,56 +181,98 @@ impl SortedNeighbors {
     /// This does not check if the point already exists.
     ///
     /// Returns if the value was inserted or not.
-    pub fn unchecked_heap_push(&mut self, p: f32, n: usize) -> bool {
-        if p >= self.priorities[0] {
+    pub fn unchecked_heap_push(&mut self, dist: f32, idx: usize) -> bool {
+        // Element does not meet the minimum
+        if dist >= self.furthest().dist {
             return false;
         }
 
-        let n = n as u32;
+        let idx = idx as u32;
 
-        self.priorities[0] = p;
-        self.indices[0] = n;
+        let res = self.neighbors.binary_search_by(|neighbor| {
+            if neighbor.dist < dist {
+                Ordering::Less
+            } else {
+                Ordering::Greater
+            }
+        });
 
-        let i = self.sort_heap(p);
+        // Our starting index to begin swapping values to insert.
+        let start = match res {
+            Ok(_) => return false, // Element already exists
+            Err(start) => start,
+        };
 
-        self.priorities[i] = p;
-        self.indices[i] = n;
+        let p = Point {
+            idx,
+            dist,
+            flag: false,
+        };
+        self.sift_right(p, start);
 
         true
     }
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct Point {
+    idx: u32,
+    dist: f32,
+    flag: bool,
+}
+
+impl Default for Point {
+    fn default() -> Self {
+        Self {
+            idx: u32::MAX,
+            dist: f32::INFINITY,
+            flag: false,
+        }
+    }
+}
+
+impl Point {
+    #[inline]
+    pub fn dist(&self) -> f32 {
+        self.dist
+    }
 
     #[inline]
-    fn sort_heap(&mut self, p: f32) -> usize {
-        let size = self.priorities.len();
+    pub fn idx(&self) -> usize {
+        self.idx as usize
+    }
 
-        let mut i = 0;
-        loop {
-            let ic1 = 2 * i + 1;
-            let ic2 = ic1 + 1;
-            let i_swap;
+    #[inline]
+    pub fn flag(&self) -> bool {
+        self.flag
+    }
+}
 
-            if ic1 >= size {
-                break;
-            } else if ic2 >= size {
-                if self.priorities[ic1] <= p {
-                    break;
-                }
-                i_swap = ic1;
-            } else if self.priorities[ic1] >= self.priorities[ic2] {
-                if p < self.priorities[ic1] {
-                    i_swap = ic1;
-                } else {
-                    break;
-                }
-            } else if p < self.priorities[ic2] {
-                i_swap = ic2;
-            } else {
-                break;
-            }
+#[cfg(test)]
+mod tests {
+    use std::ops::Index;
 
-            i = i_swap;
+    use super::*;
+
+    #[test]
+    fn test_checked_flagged_heap_push() {
+        let mut heap = SortedNeighbors::new(1);
+        heap.checked_flagged_push(1.0, 0, true);
+        assert_eq!(heap.neighbors[0].idx, 0);
+        assert_eq!(heap.neighbors[0].dist, 1.0);
+        assert!(heap.neighbors[0].flag);
+
+        let mut heap = SortedNeighbors::new(10);
+        for i in 0..9 {
+            heap.checked_flagged_push(1.0, i, true);
         }
+        assert_eq!(heap.furthest().idx, u32::MAX);
+        assert_eq!(heap.furthest().dist, f32::INFINITY);
+        assert!(!heap.furthest().flag);
 
-        i
+        heap.checked_flagged_push(2.0, 10, false);
+        assert_eq!(heap.furthest().idx, 10);
+        assert_eq!(heap.furthest().dist, 2.0);
+        assert!(!heap.furthest().flag);
     }
 }

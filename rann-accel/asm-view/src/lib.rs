@@ -33,3 +33,9 @@ pub unsafe fn x1024_avx2_fma_dot(x: &[f32], y: &[f32]) -> f32 {
 pub unsafe fn x1024_avx512_fma_dot(x: &[f32], y: &[f32]) -> f32 {
     rann_accel::danger::f32_x1024_avx512_fma_dot(x, y)
 }
+
+#[no_mangle]
+#[inline(never)]
+pub unsafe fn x1024_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
+    rann_accel::danger::f32_x1024_avx2_nofma_dot(x, y)
+}
