@@ -346,20 +346,6 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
         self.init_graph_with_rp_forest(&mut graph, leaf_array);
         self.init_graph_with_rng(&mut graph);
 
-        #[cfg(feature = "rayon")]
-        if self.low_memory {
-            if let Some(pool) = self.thread_pool.as_ref() {
-                self.nn_descent_low_memory_parallel(&mut graph, pool);
-            } else {
-                self.nn_descent_low_memory(&mut graph);
-            }
-        } else if let Some(pool) = self.thread_pool.as_ref() {
-            self.nn_descent_high_memory_parallel(&mut graph, pool);
-        } else {
-            self.nn_descent_high_memory(&mut graph);
-        }
-
-        #[cfg(not(feature = "rayon"))]
         if self.low_memory {
             self.nn_descent_low_memory(&mut graph);
         } else {
@@ -469,25 +455,7 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
         }
     }
 
-    #[cfg(feature = "rayon")]
-    fn nn_descent_low_memory_parallel(
-        &self,
-        _graph: &mut DynamicGraph,
-        _pool: &rayon::ThreadPool,
-    ) {
-        todo!()
-    }
-
     fn nn_descent_high_memory(&self, _graph: &mut DynamicGraph) {
-        todo!()
-    }
-
-    #[cfg(feature = "rayon")]
-    fn nn_descent_high_memory_parallel(
-        &self,
-        _graph: &mut DynamicGraph,
-        _pool: &rayon::ThreadPool,
-    ) {
         todo!()
     }
 
