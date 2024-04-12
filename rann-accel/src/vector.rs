@@ -1,8 +1,9 @@
-use std::fmt::{Display, Formatter};
+use std::fmt::{Debug, Display, Formatter};
 
 use crate::arch::Arch;
 use crate::ops::{DangerousOps, SpacialOps};
 use crate::{Dim, VectorType};
+
 
 /// A fixed-size SIMD accelerated vector of a given type and dimensions.
 ///
@@ -14,6 +15,23 @@ where
 {
     buffer: Vec<T>,
     ops: (D, A),
+}
+
+
+impl<D: Dim + Debug, A: Arch + Debug, T: VectorType + Debug> Debug for Vector<D, A, T>
+    where
+        (D, A): DangerousOps,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        if D::size() != 0 {
+            let first = self.buffer.first().unwrap();
+            let last = self.buffer.last().unwrap();
+            
+            write!(f, "Vector(ops={:?}, [ {first:?} ... {last:?} ])", self.ops)            
+        } else {
+            write!(f, "Vector(ops={:?}, [])", self.ops)
+        }
+    }
 }
 
 impl<D: Dim, A: Arch, T: VectorType> Vector<D, A, T>
@@ -53,7 +71,7 @@ where
     /// If any of these checks are not performed or invalid, this creates immediate UB.
     pub unsafe fn from_vec_unchecked(data: Vec<T>) -> Self {
         debug_assert_eq!(data.len(), D::size());
-        debug_assert!(data.iter().any(|v| !(v.is_finite() || v.is_nan())));
+        debug_assert!(!data.iter().any(|v| !(v.is_finite() || v.is_nan())));
 
         Self {
             buffer: data,
@@ -66,6 +84,25 @@ impl<D: Dim, A: Arch> SpacialOps for Vector<D, A, f32>
 where
     (D, A): DangerousOps,
 {
+    fn len() -> usize {
+        D::size()
+    }
+
+    fn dot(&self, other: &Self) -> f32 {
+        unsafe { self.ops.dot(&self.buffer, &other.buffer) }
+    }
+
+    fn squared_norm(&self) -> f32 {
+        unsafe { self.ops.squared_norm(&self.buffer) }
+    }
+
+    fn normalize(&mut self) {
+        let inverse_norm = 1.0 / self.squared_norm().sqrt();
+        for v in self.buffer.iter_mut() {
+            *v *= inverse_norm;
+        }
+    }
+    
     fn dist_dot(&self, other: &Self) -> f32 {
         let product = unsafe { self.ops.dot(&self.buffer, &other.buffer) };
 

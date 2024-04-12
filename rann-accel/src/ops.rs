@@ -3,6 +3,14 @@ use crate::dims::*;
 
 /// Safe spacial type operations.
 pub trait SpacialOps: Sized {
+    /// Returns the length of the vector.
+    fn len() -> usize;
+    /// Computes the dot product between self and another vector.
+    fn dot(&self, other: &Self) -> f32;
+    /// Computes the squared norm of the vector.
+    fn squared_norm(&self) -> f32;
+    /// Normalizes the vector.
+    fn normalize(&mut self);
     /// Computes the dot product distance between self and another vector.
     fn dist_dot(&self, other: &Self) -> f32;
     /// Computes the cosine distance between self and another vector.
