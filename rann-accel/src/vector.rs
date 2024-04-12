@@ -157,3 +157,5 @@ impl Display for VectorCreateError {
         }
     }
 }
+
+impl std::error::Error for VectorCreateError {}

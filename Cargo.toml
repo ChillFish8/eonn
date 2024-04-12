@@ -39,5 +39,5 @@ members = [
     "rann-accel",
 
     # Used for profiling and debugging
-    "rann-accel/asm-view",
+    "rann-accel/asm-view", "rann-demo",
 ]

@@ -74,6 +74,27 @@ impl<V: SpacialOps> Default for NNDescentBuilder<V> {
         }
     }
 }
+impl NNDescentBuilder {
+    pub fn new() -> Self {
+        Self {
+            data: Vec::new(),
+            metric: Metric::SquaredEuclidean,
+            n_neighbors: 30,
+            n_trees: None,
+            leaf_size: None,
+            pruning_degree_multiplier: 1.5,
+            diversify_prob: 1.0,
+            low_memory: true,
+            max_rptree_depth: 100,
+            n_iters: None,
+            delta: 0.001,
+            skip_normalization: false,
+            max_candidates: 50,
+            #[cfg(feature = "rayon")]
+            thread_pool: None,
+        }
+    }
+}
 
 impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
     /// Sets the initial graph data points.
@@ -506,10 +527,12 @@ fn new_build_candidates(
     let mut new_candidates = Vec::with_capacity(n_vertices);
     let mut old_candidates = Vec::with_capacity(n_vertices);
 
-    for i in 0..n_vertices {
+    for _ in 0..n_vertices {
         new_candidates.push(SortedNeighbors::new(max_candidates));
         old_candidates.push(SortedNeighbors::new(max_candidates));
+    }
 
+    for i in 0..n_vertices {
         let point = graph.point(i);
         for j in 0..n_neighbors {
             let neighbor = point.neighbor(j);
