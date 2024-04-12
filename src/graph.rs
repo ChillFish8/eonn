@@ -141,7 +141,7 @@ impl SortedNeighbors {
     /// This checks if the point already exists.
     ///
     /// Returns if the value was inserted or not.
-    pub fn checked_heap_push(&mut self, dist: f32, idx: usize) -> bool {
+    pub fn checked_push(&mut self, dist: f32, idx: usize) -> bool {
         // Element does not meet the minimum
         if dist >= self.furthest().dist {
             return false;
@@ -181,7 +181,7 @@ impl SortedNeighbors {
     /// This does not check if the point already exists.
     ///
     /// Returns if the value was inserted or not.
-    pub fn unchecked_heap_push(&mut self, dist: f32, idx: usize) -> bool {
+    pub fn unchecked_push(&mut self, dist: f32, idx: usize) -> bool {
         // Element does not meet the minimum
         if dist >= self.furthest().dist {
             return false;
@@ -250,12 +250,10 @@ impl Point {
 
 #[cfg(test)]
 mod tests {
-    use std::ops::Index;
-
     use super::*;
 
     #[test]
-    fn test_checked_flagged_heap_push() {
+    fn test_checked_flagged_push() {
         let mut heap = SortedNeighbors::new(1);
         heap.checked_flagged_push(1.0, 0, true);
         assert_eq!(heap.neighbors[0].idx, 0);
@@ -274,5 +272,24 @@ mod tests {
         assert_eq!(heap.furthest().idx, 10);
         assert_eq!(heap.furthest().dist, 2.0);
         assert!(!heap.furthest().flag);
+    }
+    
+    #[test]
+    fn test_checked_push() {
+        let mut heap = SortedNeighbors::new(1);
+        heap.checked_push(1.0, 0);
+        assert_eq!(heap.neighbors[0].idx, 0);
+        assert_eq!(heap.neighbors[0].dist, 1.0);
+
+        let mut heap = SortedNeighbors::new(10);
+        for i in 0..9 {
+            heap.checked_push(1.0, i);
+        }
+        assert_eq!(heap.furthest().idx, u32::MAX);
+        assert_eq!(heap.furthest().dist, f32::INFINITY);
+
+        heap.checked_push(2.0, 10);
+        assert_eq!(heap.furthest().idx, 10);
+        assert_eq!(heap.furthest().dist, 2.0);
     }
 }

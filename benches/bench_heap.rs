@@ -36,7 +36,7 @@ fn benchmark_heap(c: &mut Criterion) {
             b.iter(|| {
                 let mut heap = SortedNeighbors::new(n);
                 for (p, n) in inserts.iter() {
-                    black_box(heap.checked_heap_push(black_box(*p), black_box(*n)));
+                    black_box(heap.checked_push(black_box(*p), black_box(*n)));
                 }
             })
         });
@@ -52,7 +52,7 @@ fn benchmark_heap(c: &mut Criterion) {
             b.iter(|| {
                 let mut heap = SortedNeighbors::new(n);
                 for (p, n) in inserts.iter() {
-                    black_box(heap.unchecked_heap_push(black_box(*p), black_box(*n)));
+                    black_box(heap.unchecked_push(black_box(*p), black_box(*n)));
                 }
             })
         });
