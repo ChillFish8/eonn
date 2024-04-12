@@ -1,12 +1,12 @@
 use std::cmp;
 use std::time::Instant;
-use tracing::info;
+
 use rann_accel::{Auto, SpacialOps, Vector, X512};
+use tracing::info;
 
 use crate::graph::DynamicGraph;
 use crate::metric::Metric;
 use crate::rp_trees::Tree;
-
 
 /// Approximate nearest neighbour graph construction and search using NNDescent.
 ///
@@ -22,7 +22,6 @@ pub struct NNDescent<V: SpacialOps> {
     data: Vec<V>,
     metric: Metric,
 }
-
 
 /// The builder for configuring the NNDescent process.
 ///
@@ -52,7 +51,6 @@ pub struct NNDescentBuilder<V: SpacialOps = Vector<X512, Auto>> {
     #[cfg(feature = "rayon")]
     thread_pool: Option<rayon::ThreadPool>,
 }
-
 
 impl<V: SpacialOps> Default for NNDescentBuilder<V> {
     fn default() -> Self {
@@ -259,10 +257,8 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
         if let Some(n_trees) = self.n_trees {
             n_trees
         } else {
-            let mut n_trees = 5 + (self.data.len() as f32)
-                .powf(0.25)
-                .round() as usize;
-            n_trees = cmp::max(32, n_trees);  // Only so many trees are useful
+            let mut n_trees = 5 + (self.data.len() as f32).powf(0.25).round() as usize;
+            n_trees = cmp::max(32, n_trees); // Only so many trees are useful
             n_trees
         }
     }
@@ -271,17 +267,15 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
         if let Some(n_iters) = self.n_iters {
             n_iters
         } else {
-            5 + (self.data.len() as f32)
-                .log2()
-                .round() as usize
+            5 + (self.data.len() as f32).log2().round() as usize
         }
     }
 
     #[cfg(not(feature = "rayon"))]
     fn create_rp_forest(&self) -> Vec<Tree<V>> {
-        let leaf_size = self.leaf_size.unwrap_or_else(|| {
-            cmp::max(10, self.n_neighbors)
-        });
+        let leaf_size = self
+            .leaf_size
+            .unwrap_or_else(|| cmp::max(10, self.n_neighbors));
 
         crate::rp_trees::make_forest(
             &self.data,
@@ -296,9 +290,9 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
     fn create_rp_forest(&self) -> Vec<Tree<V>> {
         let n_trees = self.n_trees();
         let angular = self.metric.requires_angular_trees();
-        let leaf_size = self.leaf_size.unwrap_or_else(|| {
-            cmp::max(10, self.n_neighbors)
-        });
+        let leaf_size = self
+            .leaf_size
+            .unwrap_or_else(|| cmp::max(10, self.n_neighbors));
         let parallel = self.thread_pool.is_some();
 
         info!(
@@ -329,19 +323,11 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
         }
     }
 
-    fn nn_descent(
-        &self,
-        leaf_array: &[Vec<usize>],
-    ) -> DynamicGraph {
+    fn nn_descent(&self, leaf_array: &[Vec<usize>]) -> DynamicGraph {
         let mut graph = DynamicGraph::new(self.data.len(), self.n_neighbors);
-
-        
 
         graph
     }
-    
-    fn init_graph(&self, graph: &mut DynamicGraph, leaf_array: &[Vec<usize>]) {
-        
-    }
-}
 
+    fn init_graph(&self, graph: &mut DynamicGraph, leaf_array: &[Vec<usize>]) {}
+}

@@ -30,42 +30,42 @@ pub trait SpacialOps: Sized {
 /// All vectors must contain only finite values.
 pub trait DangerousOps {
     /// Computes the dot product of the two provided vectors.
-    /// 
+    ///
     /// # Safety
     /// All vectors must contain only finite values and be not-nan. The dimensions
     /// of `x` and `y` must also be equal and align with the implementor's required
     /// dimension sizes.
     unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32;
     /// Computes the cosine distance of the two provided vectors.
-    /// 
+    ///
     /// # Safety
     /// All vectors must contain only finite values and be not-nan. The dimensions
     /// of `x` and `y` must also be equal and align with the implementor's required
     /// dimension sizes.
     unsafe fn cosine(&self, x: &[f32], y: &[f32]) -> f32;
     /// Computes the squared Euclidean distance of the two provided vectors.
-    /// 
+    ///
     /// # Safety
     /// All vectors must contain only finite values and be not-nan. The dimensions
     /// of `x` and `y` must also be equal and align with the implementor's required
     /// dimension sizes.
     unsafe fn squared_euclidean(&self, x: &[f32], y: &[f32]) -> f32;
     /// Computes the angular hyperplane to the two vector points.
-    /// 
+    ///
     /// # Safety
     /// All vectors must contain only finite values and be not-nan. The dimensions
     /// of `x` and `y` must also be equal and align with the implementor's required
     /// dimension sizes.
     unsafe fn angular_hyperplane(&self, x: &[f32], y: &[f32]) -> Vec<f32>;
     /// Computes the Euclidean hyperplane and hyperplane offset.
-    /// 
+    ///
     /// # Safety
     /// All vectors must contain only finite values and be not-nan. The dimensions
     /// of `x` and `y` must also be equal and align with the implementor's required
     /// dimension sizes.
     unsafe fn euclidean_hyperplane(&self, x: &[f32], y: &[f32]) -> (Vec<f32>, f32);
     /// Computes the squared norm of the given vector.
-    /// 
+    ///
     /// # Safety
     /// All vectors must contain only finite values and be not-nan. The dimensions
     /// of `x` and `y` must also be equal and align with the implementor's required

@@ -7,8 +7,8 @@ pub enum Metric {
     Dot,
     /// The squared Euclidean distance.
     ///
-    /// The relative distance of vectors is the same as 
-    /// standard Euclidean. 
+    /// The relative distance of vectors is the same as
+    /// standard Euclidean.
     SquaredEuclidean,
     /// The cosine distance.
     Cosine,
@@ -24,7 +24,7 @@ impl Metric {
             Metric::Cosine => x.dist_cosine(y),
         }
     }
-    
+
     #[inline]
     /// Returns if the vectors should be normalized.
     pub fn requires_normalizing(&self) -> bool {

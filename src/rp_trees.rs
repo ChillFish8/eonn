@@ -1,12 +1,12 @@
 use std::cmp;
 use std::ops::Index;
 use std::time::Instant;
+
 use bitvec::bitvec;
 use bitvec::prelude::Lsb0;
 use bitvec::vec::BitVec;
-use tracing::{debug, info};
 use rann_accel::SpacialOps;
-
+use tracing::{debug, info};
 
 #[derive(Debug)]
 pub struct Tree<V> {
@@ -17,7 +17,6 @@ pub struct Tree<V> {
     pub leaf_size: usize,
     pub n_leaves: usize,
 }
-
 
 /// Builds a random project forest with`n_trees`.
 pub fn make_forest<V: SpacialOps>(
@@ -32,12 +31,7 @@ pub fn make_forest<V: SpacialOps>(
     let total = Instant::now();
     for i in 0..n_trees {
         let start = Instant::now();
-        let tree = make_dense_tree(
-            data,
-            leaf_size,
-            angular,
-            max_depth,
-        );
+        let tree = make_dense_tree(data, leaf_size, angular, max_depth);
         trees.push(tree);
         debug!(elapsed = ?start.elapsed(), idx = i, "Built tree");
     }
@@ -47,7 +41,7 @@ pub fn make_forest<V: SpacialOps>(
 }
 
 #[cfg(feature = "rayon")]
-/// Builds a random project forest with `n_trees` in parallel using the 
+/// Builds a random project forest with `n_trees` in parallel using the
 /// given thread pool.
 pub fn make_forest_parallel<V: SpacialOps + Send + Sync + 'static>(
     data: &[V],
@@ -71,12 +65,7 @@ pub fn make_forest_parallel<V: SpacialOps + Send + Sync + 'static>(
             .into_par_iter()
             .map(|idx| {
                 let start = Instant::now();
-                let tree = make_dense_tree(
-                    data,
-                    leaf_size,
-                    angular,
-                    max_depth,
-                );
+                let tree = make_dense_tree(data, leaf_size, angular, max_depth);
                 debug!(elapsed = ?start.elapsed(), idx = idx, "Built tree");
                 tree
             })
@@ -88,11 +77,9 @@ pub fn make_forest_parallel<V: SpacialOps + Send + Sync + 'static>(
     trees
 }
 
-pub fn rp_tree_leaf_array<V: SpacialOps>(
-    forest: &[Tree<V>],
-) -> Vec<Vec<usize>> {
+pub fn rp_tree_leaf_array<V: SpacialOps>(forest: &[Tree<V>]) -> Vec<Vec<usize>> {
     let mut forest_leaves = Vec::with_capacity(forest.len());
-    
+
     for tree in forest {
         let l = get_leaves_from_tree(tree);
         forest_leaves.extend(l);
@@ -101,7 +88,7 @@ pub fn rp_tree_leaf_array<V: SpacialOps>(
     forest_leaves
 }
 
-fn get_leaves_from_tree<V: SpacialOps>(tree: &Tree<V>) -> Vec<Vec<usize>> {    
+fn get_leaves_from_tree<V: SpacialOps>(tree: &Tree<V>) -> Vec<Vec<usize>> {
     let leaves_iter = tree
         .children
         .iter()
@@ -113,7 +100,7 @@ fn get_leaves_from_tree<V: SpacialOps>(tree: &Tree<V>) -> Vec<Vec<usize>> {
     for indices in leaves_iter {
         leaves.push(indices.clone());
     }
-    
+
     leaves
 }
 
@@ -134,23 +121,11 @@ fn make_dense_tree<V: SpacialOps>(
     };
 
     if angular {
-        make_angular_tree(
-            &mut tree,
-            data,
-            indices,
-            leaf_size,
-            max_depth,
-        )
+        make_angular_tree(&mut tree, data, indices, leaf_size, max_depth)
     } else {
-        make_euclidean_tree(
-            &mut tree,
-            data,
-            indices,
-            leaf_size,
-            max_depth,
-        )
+        make_euclidean_tree(&mut tree, data, indices, leaf_size, max_depth)
     }
-    
+
     tree.leaf_size = cmp::max(
         leaf_size,
         tree.point_indices
@@ -158,7 +133,7 @@ fn make_dense_tree<V: SpacialOps>(
             .filter_map(|v| v.as_ref())
             .map(|v| v.len())
             .max()
-            .unwrap_or(leaf_size)
+            .unwrap_or(leaf_size),
     );
 
     tree
@@ -172,29 +147,14 @@ fn make_angular_tree<V: SpacialOps>(
     max_depth: usize,
 ) {
     if indices.len() > leaf_size && max_depth > 0 {
-        let (
-            left_indices,
-            right_indices,
-            hyperplane,
-        ) = angular_random_project_split(data, indices);
+        let (left_indices, right_indices, hyperplane) =
+            angular_random_project_split(data, indices);
 
-        make_angular_tree(
-            tree,
-            data,
-            left_indices,
-            leaf_size,
-            max_depth - 1,
-        );
+        make_angular_tree(tree, data, left_indices, leaf_size, max_depth - 1);
 
         let left_node_num = tree.point_indices.len() - 1;
 
-        make_angular_tree(
-            tree,
-            data,
-            right_indices,
-            leaf_size,
-            max_depth - 1,
-        );
+        make_angular_tree(tree, data, right_indices, leaf_size, max_depth - 1);
 
         let right_node_num = tree.point_indices.len() - 1;
 
@@ -209,8 +169,6 @@ fn make_angular_tree<V: SpacialOps>(
         tree.point_indices.push(Some(indices));
         tree.n_leaves += 1;
     }
-    
-    
 }
 
 fn make_euclidean_tree<V: SpacialOps>(
@@ -221,30 +179,14 @@ fn make_euclidean_tree<V: SpacialOps>(
     max_depth: usize,
 ) {
     if indices.len() > leaf_size && max_depth > 0 {
-        let (
-            left_indices,
-            right_indices,
-            hyperplane,
-            offset,
-        ) = euclidean_random_projection_split(data, indices);
+        let (left_indices, right_indices, hyperplane, offset) =
+            euclidean_random_projection_split(data, indices);
 
-        make_euclidean_tree(
-            tree,
-            data,
-            left_indices,
-            leaf_size,
-            max_depth - 1,
-        );
+        make_euclidean_tree(tree, data, left_indices, leaf_size, max_depth - 1);
 
         let left_node_num = tree.point_indices.len() - 1;
 
-        make_euclidean_tree(
-            tree,
-            data,
-            right_indices,
-            leaf_size,
-            max_depth - 1,
-        );
+        make_euclidean_tree(tree, data, right_indices, leaf_size, max_depth - 1);
 
         let right_node_num = tree.point_indices.len() - 1;
 
@@ -272,45 +214,35 @@ fn angular_random_project_split<V: SpacialOps>(
     let (left, right) = select_left_right(data, &indices);
 
     let hyperplane = left.angular_hyperplane(right);
-    
-    let (left_indices, right_indices) = select_sides(
-        data, 
-        indices,
-        &hyperplane, 
-        0.0,
-    );
-    
+
+    let (left_indices, right_indices) = select_sides(data, indices, &hyperplane, 0.0);
+
     (left_indices, right_indices, hyperplane)
 }
 
 fn euclidean_random_projection_split<V: SpacialOps>(
     data: &[V],
-    indices: Vec<usize>,    
+    indices: Vec<usize>,
 ) -> (Vec<usize>, Vec<usize>, V, f32) {
     let (left, right) = select_left_right(data, &indices);
 
     let (hyperplane, offset) = left.euclidean_hyperplane(right);
 
-    let (left_indices, right_indices) = select_sides(
-        data,
-        indices,
-        &hyperplane,
-        offset,
-    );
+    let (left_indices, right_indices) = select_sides(data, indices, &hyperplane, offset);
 
     (left_indices, right_indices, hyperplane, offset)
 }
 
 fn select_sides<V: SpacialOps>(
-    data: &[V], 
-    indices: Vec<usize>, 
+    data: &[V],
+    indices: Vec<usize>,
     hyperplane: &V,
     offset: f32,
 ) -> (Vec<usize>, Vec<usize>) {
     let mut num_left = 0;
     let mut num_right = 0;
     let mut side: BitVec = bitvec![usize, Lsb0; 0; indices.len()];
-    
+
     for i in 0..indices.len() {
         let margin = offset + hyperplane.dot(&data[indices[i]]);
 
@@ -365,47 +297,44 @@ fn select_sides<V: SpacialOps>(
 }
 
 #[inline]
-fn select_left_right<'a, V: SpacialOps>(data: &'a [V], indices: &[usize]) -> (&'a V, &'a V) {
+fn select_left_right<'a, V: SpacialOps>(
+    data: &'a [V],
+    indices: &[usize],
+) -> (&'a V, &'a V) {
     let mut left_index = fastrand::usize(0..indices.len());
     let mut right_index = fastrand::usize(0..indices.len());
     right_index += (left_index == right_index) as usize;
     right_index %= indices.len();
-    
+
     left_index = indices[left_index];
     right_index = indices[right_index];
-    
+
     (&data[left_index], &data[right_index])
 }
 
-
 #[cfg(test)]
 mod tests {
-    use rann_accel::{Auto, X512, Vector};
+    use rann_accel::{Auto, Vector, X512};
+
     use super::*;
 
     fn test_data() -> Vec<Vector<X512, Auto>> {
         let mut data = Vec::with_capacity(10);
-        
+
         for _ in 0..15 {
-            let v = Vec::from_iter(std::iter::from_fn(|| Some(fastrand::f32())).take(512));
-            let v = Vector::try_from_vec(v)
-                .expect("Load vec");
+            let v =
+                Vec::from_iter(std::iter::from_fn(|| Some(fastrand::f32())).take(512));
+            let v = Vector::try_from_vec(v).expect("Load vec");
             data.push(v);
         }
-        
+
         data
     }
 
     #[test]
     fn test_build_forest() {
         let data = test_data();
-        let forest = make_forest(
-            &data,
-            4,
-            3,
-            true,
-            200,
-        );
+        let forest = make_forest(&data, 4, 3, true, 200);
         dbg!(forest);
     }
 
@@ -417,15 +346,7 @@ mod tests {
             .num_threads(1)
             .build()
             .unwrap();
-        let forest = make_forest_parallel(
-            &data,
-            4,
-            3,
-            true,
-            200,
-            &pool,
-        );
+        let forest = make_forest_parallel(&data, 4, 3, true, 200, &pool);
         dbg!(forest);
     }
-
 }

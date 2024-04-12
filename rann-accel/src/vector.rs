@@ -4,7 +4,6 @@ use crate::arch::Arch;
 use crate::ops::{DangerousOps, SpacialOps};
 use crate::{Dim, VectorType};
 
-
 /// A fixed-size SIMD accelerated vector of a given type and dimensions.
 ///
 /// This type allows for various targeting of CPU features and dimensions
@@ -17,17 +16,16 @@ where
     ops: (D, A),
 }
 
-
 impl<D: Dim + Debug, A: Arch + Debug, T: VectorType + Debug> Debug for Vector<D, A, T>
-    where
-        (D, A): DangerousOps,
+where
+    (D, A): DangerousOps,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         if D::size() != 0 {
             let first = self.buffer.first().unwrap();
             let last = self.buffer.last().unwrap();
-            
-            write!(f, "Vector(ops={:?}, [ {first:?} ... {last:?} ])", self.ops)            
+
+            write!(f, "Vector(ops={:?}, [ {first:?} ... {last:?} ])", self.ops)
         } else {
             write!(f, "Vector(ops={:?}, [])", self.ops)
         }
@@ -102,7 +100,7 @@ where
             *v *= inverse_norm;
         }
     }
-    
+
     fn dist_dot(&self, other: &Self) -> f32 {
         let product = unsafe { self.ops.dot(&self.buffer, &other.buffer) };
 

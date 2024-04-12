@@ -1,6 +1,6 @@
-pub mod rp_trees;
-mod nndescent;
-mod metric;
 pub mod graph;
+mod metric;
+mod nndescent;
+pub mod rp_trees;
 
 pub use metric::Metric;
