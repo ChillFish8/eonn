@@ -4,7 +4,7 @@ use std::time::Instant;
 use rann_accel::{Auto, SpacialOps, Vector, X512};
 use tracing::info;
 
-use crate::graph::DynamicGraph;
+use crate::graph::{DynamicGraph, SortedNeighbors};
 use crate::metric::Metric;
 use crate::rp_trees::Tree;
 
@@ -19,8 +19,8 @@ use crate::rp_trees::Tree;
 /// only supports _dense_ vectors and a limited set of distance measures, in particular,
 /// `dot`, `cosine` and `squared_euclidean`. Which is enough for most cases.
 pub struct NNDescent<V: SpacialOps> {
-    data: Vec<V>,
-    metric: Metric,
+    _data: Vec<V>,
+    _metric: Metric,
 }
 
 /// The builder for configuring the NNDescent process.
@@ -48,6 +48,7 @@ pub struct NNDescentBuilder<V: SpacialOps = Vector<X512, Auto>> {
     n_iters: Option<usize>,
     delta: f32,
     skip_normalization: bool,
+    max_candidates: usize,
     #[cfg(feature = "rayon")]
     thread_pool: Option<rayon::ThreadPool>,
 }
@@ -67,6 +68,7 @@ impl<V: SpacialOps> Default for NNDescentBuilder<V> {
             n_iters: None,
             delta: 0.001,
             skip_normalization: false,
+            max_candidates: 50,
             #[cfg(feature = "rayon")]
             thread_pool: None,
         }
@@ -88,7 +90,8 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
             max_rptree_depth: self.max_rptree_depth,
             n_iters: self.n_iters,
             delta: self.delta,
-            skip_normalization: true,
+            skip_normalization: self.skip_normalization,
+            max_candidates: self.max_candidates,
             #[cfg(feature = "rayon")]
             thread_pool: self.thread_pool,
         }
@@ -167,6 +170,8 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
     /// but it may be composed of many degenerate branches.
     /// Increase leaf_size in order to keep shallower, wider nondegenerate trees.
     /// Such wide trees, however, may yield poor performance of the preparation of the NN descent.
+    ///
+    /// Defaults to `100`
     pub fn with_max_rptree_depth(mut self, depth: usize) -> Self {
         self.max_rptree_depth = depth;
         self
@@ -187,6 +192,8 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
     ///
     /// Larger values will result in earlier aborts, providing less accurate indexes, and
     /// less accurate searching. Don't tweak this value unless you know what you're doing.
+    ///
+    /// Defaults to `0.001`
     pub fn with_delta(mut self, delta: f32) -> Self {
         self.delta = delta;
         self
@@ -199,6 +206,19 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
     /// and your metric actually requires it.
     pub fn with_skip_normalization(mut self, skip: bool) -> Self {
         self.skip_normalization = skip;
+        self
+    }
+
+    /// Internally each "self-join" keeps a maximum number of candidates (
+    /// nearest neighbors and reverse nearest neighbors) to be considered.
+    /// This value controls this aspect of the algorithm. Larger values will
+    /// provide more accurate search results later, but potentially at
+    /// non-negligible computation cost in building the index. Don't tweak
+    /// this value unless you know what you're doing.
+    ///
+    /// Defaults to `50`.
+    pub fn with_max_candidates(mut self, max: usize) -> Self {
+        self.max_candidates = max;
         self
     }
 
@@ -236,7 +256,7 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
     }
 
     /// Constructs the approximate nearest neighbour using the current configuration.
-    pub fn build(mut self) -> NNDescent<V> {
+    pub fn build(mut self) -> DynamicGraph {
         if self.metric.requires_normalizing() && !self.skip_normalization {
             for vector in self.data.iter_mut() {
                 vector.normalize();
@@ -248,9 +268,7 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
         let leaf_array = crate::rp_trees::rp_tree_leaf_array(&rp_forest);
         info!(elapsed = ?start.elapsed(), "Finished creating RP forest");
 
-        let graph = self.nn_descent(&leaf_array);
-
-        todo!()
+        self.nn_descent(&leaf_array)
     }
 
     fn n_trees(&self) -> usize {
@@ -328,10 +346,24 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
         self.init_graph_with_rp_forest(&mut graph, leaf_array);
         self.init_graph_with_rng(&mut graph);
 
+        #[cfg(feature = "rayon")]
         if self.low_memory {
-            // TODO: Add low memory
+            if let Some(pool) = self.thread_pool.as_ref() {
+                self.nn_descent_low_memory_parallel(&mut graph, pool);
+            } else {
+                self.nn_descent_low_memory(&mut graph);
+            }
+        } else if let Some(pool) = self.thread_pool.as_ref() {
+            self.nn_descent_high_memory_parallel(&mut graph, pool);
         } else {
-            // TODO: High memory
+            self.nn_descent_high_memory(&mut graph);
+        }
+
+        #[cfg(not(feature = "rayon"))]
+        if self.low_memory {
+            self.nn_descent_low_memory(&mut graph);
+        } else {
+            self.nn_descent_high_memory(&mut graph);
         }
 
         graph
@@ -399,4 +431,226 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
             }
         }
     }
+
+    fn nn_descent_low_memory(&self, graph: &mut DynamicGraph) {
+        const BLOCK_SIZE: usize = 16384;
+
+        let n_vertices = self.data.len();
+        let n_blocks = n_vertices / BLOCK_SIZE;
+
+        info!(
+            n_iters = self.n_iters(),
+            n_blocks = n_blocks,
+            n_vertices = n_vertices,
+            "Beginning NN-Descent iterations",
+        );
+
+        let start = Instant::now();
+
+        for n in 0..self.n_iters() {
+            let (new_candidate_neighbors, old_candidate_neighbors) =
+                new_build_candidates(graph, self.max_candidates);
+
+            let c = self.process_candidates(
+                graph,
+                new_candidate_neighbors,
+                old_candidate_neighbors,
+                n_blocks,
+                BLOCK_SIZE,
+            );
+            info!(elapsed = ?start.elapsed(), n = n, c = c, "Step completed");
+
+            if c <= (self.delta * self.n_neighbors as f32 * self.data.len() as f32)
+                as usize
+            {
+                info!(elapsed= ?start.elapsed(), total_iters = n + 1, "Completed NN-Descent iterations");
+                break;
+            }
+        }
+    }
+
+    #[cfg(feature = "rayon")]
+    fn nn_descent_low_memory_parallel(
+        &self,
+        _graph: &mut DynamicGraph,
+        _pool: &rayon::ThreadPool,
+    ) {
+        todo!()
+    }
+
+    fn nn_descent_high_memory(&self, _graph: &mut DynamicGraph) {
+        todo!()
+    }
+
+    #[cfg(feature = "rayon")]
+    fn nn_descent_high_memory_parallel(
+        &self,
+        _graph: &mut DynamicGraph,
+        _pool: &rayon::ThreadPool,
+    ) {
+        todo!()
+    }
+
+    fn process_candidates(
+        &self,
+        graph: &mut DynamicGraph,
+        new_candidates: Vec<SortedNeighbors>,
+        old_candidates: Vec<SortedNeighbors>,
+        n_blocks: usize,
+        block_size: usize,
+    ) -> usize {
+        let mut c = 0;
+        let n_vertices = new_candidates.len();
+
+        for i in 0..n_blocks + 1 {
+            let block_start = i * block_size;
+            let block_end = cmp::min(n_vertices, (i + 1) * block_size);
+
+            let new_candidate_block = &new_candidates[block_start..block_end];
+            let old_candidate_block = &old_candidates[block_start..block_end];
+
+            let updates = generate_graph_updates(
+                new_candidate_block,
+                old_candidate_block,
+                graph,
+                &self.data,
+                self.metric,
+                self.max_candidates,
+            );
+
+            c += apply_graph_updates_low_memory(graph, updates);
+        }
+
+        c
+    }
+}
+
+/// Build a heap of candidate neighbors for nearest neighbor descent. For each vertex the
+/// candidate neighbors are any current neighbors, and any vertices that have the vertex
+/// as one of their nearest neighbors.
+fn new_build_candidates(
+    graph: &mut DynamicGraph,
+    max_candidates: usize,
+) -> (Vec<SortedNeighbors>, Vec<SortedNeighbors>) {
+    let n_vertices = graph.n_vertices();
+    let n_neighbors = graph.n_neighbors();
+
+    let mut new_candidates = Vec::with_capacity(n_vertices);
+    let mut old_candidates = Vec::with_capacity(n_vertices);
+
+    for i in 0..n_vertices {
+        new_candidates.push(SortedNeighbors::new(max_candidates));
+        old_candidates.push(SortedNeighbors::new(max_candidates));
+
+        let point = graph.point(i);
+        for j in 0..n_neighbors {
+            let neighbor = point.neighbor(j);
+
+            // Our points are sorted, once we hit this we can abort early
+            if neighbor.idx() == u32::MAX {
+                break;
+            }
+
+            let dist = fastrand::f32();
+            if neighbor.flag() {
+                new_candidates[i].checked_push(dist, neighbor.idx() as usize);
+                new_candidates[neighbor.idx() as usize].checked_push(dist, i);
+            } else {
+                old_candidates[i].checked_push(dist, neighbor.idx() as usize);
+                old_candidates[neighbor.idx() as usize].checked_push(dist, i);
+            }
+        }
+    }
+
+    for i in 0..n_vertices {
+        let point = graph.point_mut(i);
+        for j in 0..n_neighbors {
+            let neighbor = point.neighbor_mut(j);
+
+            for k in 0..max_candidates {
+                if new_candidates[i].neighbor(k).idx() == neighbor.idx() {
+                    neighbor.set_flag(false);
+                    break;
+                }
+            }
+        }
+    }
+
+    (new_candidates, old_candidates)
+}
+
+fn generate_graph_updates<V: SpacialOps>(
+    new_candidates: &[SortedNeighbors],
+    old_candidates: &[SortedNeighbors],
+    graph: &DynamicGraph,
+    data: &[V],
+    metric: Metric,
+    max_candidates: usize,
+) -> Vec<(u32, u32, f32)> {
+    let block_size = new_candidates.len();
+    let mut updates = Vec::new();
+
+    for i in 0..block_size {
+        let point = &new_candidates[i];
+        let old_point = &old_candidates[i];
+        for j in 0..max_candidates {
+            let p = point.neighbor(j);
+            if p.idx() == u32::MAX {
+                break;
+            }
+
+            let p_threshold = graph.point(p.idx() as usize).furthest();
+
+            for k in j..max_candidates {
+                let q = point.neighbor(k);
+                if q.idx() == u32::MAX {
+                    break;
+                }
+
+                let q_threshold = graph.point(q.idx() as usize).furthest();
+
+                let d =
+                    metric.distance(&data[p.idx() as usize], &data[q.idx() as usize]);
+                if d <= p_threshold.dist() || d <= q_threshold.dist() {
+                    updates.push((p.idx(), q.idx(), d));
+                }
+            }
+
+            for k in 0..max_candidates {
+                let q = old_point.neighbor(k);
+                if q.idx() == u32::MAX {
+                    break;
+                }
+
+                let q_threshold = graph.point(q.idx() as usize).furthest();
+
+                let d =
+                    metric.distance(&data[p.idx() as usize], &data[q.idx() as usize]);
+                if d <= p_threshold.dist() || d <= q_threshold.dist() {
+                    updates.push((p.idx(), q.idx(), d));
+                }
+            }
+        }
+    }
+
+    updates
+}
+
+fn apply_graph_updates_low_memory(
+    graph: &mut DynamicGraph,
+    updates: Vec<(u32, u32, f32)>,
+) -> usize {
+    let mut n_changes = 0;
+
+    for (p, q, dist) in updates {
+        let point_p = graph.point_mut(p as usize);
+        let added = point_p.checked_flagged_push(dist, q as usize, true);
+        n_changes += added as usize;
+
+        let point_q = graph.point_mut(q as usize);
+        let added = point_q.checked_flagged_push(dist, p as usize, true);
+        n_changes += added as usize;
+    }
+
+    n_changes
 }

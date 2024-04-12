@@ -1,8 +1,6 @@
 use std::cmp::Ordering;
 use std::mem;
 
-use bitvec::vec::BitVec;
-use fastrand::bool;
 use smallvec::SmallVec;
 
 /// A nearest neighbor graph implementation.
@@ -27,6 +25,16 @@ impl DynamicGraph {
             points,
             n_neighbors,
         }
+    }
+
+    #[inline]
+    pub fn n_neighbors(&self) -> usize {
+        self.n_neighbors
+    }
+
+    #[inline]
+    pub fn n_vertices(&self) -> usize {
+        self.points.len()
     }
 
     #[inline]
@@ -66,6 +74,18 @@ impl SortedNeighbors {
         }
 
         Self { neighbors }
+    }
+
+    #[inline]
+    /// Returns the neighbor at the given point.
+    pub fn neighbor(&self, idx: usize) -> Point {
+        self.neighbors[idx]
+    }
+
+    #[inline]
+    /// Returns the neighbor at the given point.
+    pub fn neighbor_mut(&mut self, idx: usize) -> &mut Point {
+        &mut self.neighbors[idx]
     }
 
     #[inline]
@@ -238,13 +258,18 @@ impl Point {
     }
 
     #[inline]
-    pub fn idx(&self) -> usize {
-        self.idx as usize
+    pub fn idx(&self) -> u32 {
+        self.idx
     }
 
     #[inline]
     pub fn flag(&self) -> bool {
         self.flag
+    }
+
+    #[inline]
+    pub fn set_flag(&mut self, flag: bool) {
+        self.flag = flag;
     }
 }
 
@@ -273,7 +298,7 @@ mod tests {
         assert_eq!(heap.furthest().dist, 2.0);
         assert!(!heap.furthest().flag);
     }
-    
+
     #[test]
     fn test_checked_push() {
         let mut heap = SortedNeighbors::new(1);
