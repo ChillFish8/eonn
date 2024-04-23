@@ -811,9 +811,11 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bytemuck",
+ "mimalloc",
  "rann",
  "rann-accel",
  "safetensors",
+ "tracing",
  "tracing-subscriber",
 ]
 

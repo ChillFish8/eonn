@@ -6,7 +6,7 @@ use bitvec::bitvec;
 use bitvec::prelude::Lsb0;
 use bitvec::vec::BitVec;
 use rann_accel::SpacialOps;
-use tracing::{debug, info};
+use tracing::info;
 
 #[derive(Debug)]
 pub struct Tree<V> {
@@ -33,7 +33,7 @@ pub fn make_forest<V: SpacialOps>(
         let start = Instant::now();
         let tree = make_dense_tree(data, leaf_size, angular, max_depth);
         trees.push(tree);
-        debug!(elapsed = ?start.elapsed(), idx = i, "Built tree");
+        info!(elapsed = ?start.elapsed(), idx = i, "Built tree");
     }
     info!(elapsed = ?total.elapsed(), n_trees = n_trees, "Built forest");
 
@@ -66,7 +66,7 @@ pub fn make_forest_parallel<V: SpacialOps + Send + Sync + 'static>(
             .map(|idx| {
                 let start = Instant::now();
                 let tree = make_dense_tree(data, leaf_size, angular, max_depth);
-                debug!(elapsed = ?start.elapsed(), idx = idx, "Built tree");
+                info!(elapsed = ?start.elapsed(), idx = idx, "Built tree");
                 tree
             })
             .collect()

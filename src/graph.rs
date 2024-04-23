@@ -1,4 +1,5 @@
 use std::cmp::Ordering;
+use std::fmt::{Debug, Formatter};
 use std::mem;
 
 use smallvec::SmallVec;
@@ -75,9 +76,14 @@ impl SortedNeighbors {
 
         Self { neighbors }
     }
+    
+    /// Iterates over the neighbors of the point.
+    pub fn iter_neighbors(&self) -> impl Iterator<Item = Point> + '_ {
+        self.neighbors.iter().take_while(|p| p.idx != u32::MAX).copied()
+    }
 
     #[inline]
-    /// Returns the neighbor at the given point.
+    /// Returns the n'th neighbor at the given point.
     pub fn neighbor(&self, idx: usize) -> Point {
         self.neighbors[idx]
     }
@@ -118,6 +124,10 @@ impl SortedNeighbors {
     /// This checks if the point already exists.
     ///
     /// Returns if the value was inserted or not.
+    ///
+    /// NOTE:
+    /// This implementation **can** have duplicate entries if the distance of the
+    /// two duplicates is not the same, this is due to how the search point is found.
     pub fn checked_flagged_push(&mut self, dist: f32, idx: usize, flag: bool) -> bool {
         // Element does not meet the minimum
         if dist >= self.furthest().dist {
@@ -161,6 +171,10 @@ impl SortedNeighbors {
     /// This checks if the point already exists.
     ///
     /// Returns if the value was inserted or not.
+    ///
+    /// NOTE:
+    /// This implementation **can** have duplicate entries if the distance of the
+    /// two duplicates is not the same, this is due to how the search point is found.
     pub fn checked_push(&mut self, dist: f32, idx: usize) -> bool {
         // Element does not meet the minimum
         if dist >= self.furthest().dist {
@@ -201,6 +215,10 @@ impl SortedNeighbors {
     /// This does not check if the point already exists.
     ///
     /// Returns if the value was inserted or not.
+    ///
+    /// NOTE:
+    /// This implementation **can** have duplicate entries if the distance of the
+    /// two duplicates is not the same, this is due to how the search point is found.
     pub fn unchecked_push(&mut self, dist: f32, idx: usize) -> bool {
         // Element does not meet the minimum
         if dist >= self.furthest().dist {
@@ -234,7 +252,20 @@ impl SortedNeighbors {
     }
 }
 
+impl Debug for SortedNeighbors {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "SortedNeighbors([", )?;
+        
+        for point in self.iter_neighbors() {
+            write!(f, "{point:?}, ")?;
+        }
+                
+        write!(f, "])")
+    }
+}
+
 #[derive(Debug, Copy, Clone)]
+#[cfg_attr(test, derive(PartialEq))]
 pub struct Point {
     idx: u32,
     dist: f32,

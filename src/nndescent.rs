@@ -1,4 +1,5 @@
 use std::cmp;
+use std::io::Read;
 use std::time::Instant;
 
 use rann_accel::{Auto, SpacialOps, Vector, X512};
@@ -43,12 +44,11 @@ pub struct NNDescentBuilder<V: SpacialOps = Vector<X512, Auto>> {
     leaf_size: Option<usize>,
     pruning_degree_multiplier: f32,
     diversify_prob: f32,
-    low_memory: bool,
     max_rptree_depth: usize,
     n_iters: Option<usize>,
     delta: f32,
     skip_normalization: bool,
-    max_candidates: usize,
+    max_candidates: Option<usize>,
     #[cfg(feature = "rayon")]
     thread_pool: Option<rayon::ThreadPool>,
 }
@@ -63,12 +63,11 @@ impl<V: SpacialOps> Default for NNDescentBuilder<V> {
             leaf_size: None,
             pruning_degree_multiplier: 1.5,
             diversify_prob: 1.0,
-            low_memory: true,
             max_rptree_depth: 100,
             n_iters: None,
             delta: 0.001,
             skip_normalization: false,
-            max_candidates: 50,
+            max_candidates: None,
             #[cfg(feature = "rayon")]
             thread_pool: None,
         }
@@ -76,23 +75,7 @@ impl<V: SpacialOps> Default for NNDescentBuilder<V> {
 }
 impl NNDescentBuilder {
     pub fn new() -> Self {
-        Self {
-            data: Vec::new(),
-            metric: Metric::SquaredEuclidean,
-            n_neighbors: 30,
-            n_trees: None,
-            leaf_size: None,
-            pruning_degree_multiplier: 1.5,
-            diversify_prob: 1.0,
-            low_memory: true,
-            max_rptree_depth: 100,
-            n_iters: None,
-            delta: 0.001,
-            skip_normalization: false,
-            max_candidates: 50,
-            #[cfg(feature = "rayon")]
-            thread_pool: None,
-        }
+        Self::default()
     }
 }
 
@@ -107,7 +90,6 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
             leaf_size: self.leaf_size,
             pruning_degree_multiplier: self.pruning_degree_multiplier,
             diversify_prob: self.diversify_prob,
-            low_memory: self.low_memory,
             max_rptree_depth: self.max_rptree_depth,
             n_iters: self.n_iters,
             delta: self.delta,
@@ -175,16 +157,6 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
         self
     }
 
-    /// Enables/disables low memory mode when constructing the graph.
-    ///
-    /// The low memory approach trades off build time for lower memory usage.
-    ///
-    /// Defaults to `true`.
-    pub fn with_set_low_memory_mode(mut self, enabled: bool) -> Self {
-        self.low_memory = enabled;
-        self
-    }
-
     /// Adjusts the maximum recursion depth when constructing RP trees.
     ///
     /// Increasing this may result in a richer, deeper random projection forest,
@@ -237,9 +209,9 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
     /// non-negligible computation cost in building the index. Don't tweak
     /// this value unless you know what you're doing.
     ///
-    /// Defaults to `50`.
+    /// If not set this will be automatically calculated as `min(60, n_neighbors)`
     pub fn with_max_candidates(mut self, max: usize) -> Self {
-        self.max_candidates = max;
+        self.max_candidates = Some(max);
         self
     }
 
@@ -292,35 +264,53 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
         self.nn_descent(&leaf_array)
     }
 
+    #[inline]
     fn n_trees(&self) -> usize {
         if let Some(n_trees) = self.n_trees {
             n_trees
         } else {
             let mut n_trees = 5 + (self.data.len() as f32).powf(0.25).round() as usize;
-            n_trees = cmp::max(32, n_trees); // Only so many trees are useful
+            n_trees = cmp::min(32, n_trees); // Only so many trees are useful
             n_trees
         }
     }
 
+    #[inline]
     fn n_iters(&self) -> usize {
         if let Some(n_iters) = self.n_iters {
             n_iters
         } else {
-            5 + (self.data.len() as f32).log2().round() as usize
+            cmp::max(5, (self.data.len() as f32).log2().round() as usize)
         }
+    }
+    
+    #[inline]
+    fn effective_max_candidates(&self) -> usize {
+        self.max_candidates
+            .unwrap_or_else(|| cmp::min(60, self.n_neighbors))
     }
 
     #[cfg(not(feature = "rayon"))]
     fn create_rp_forest(&self) -> Vec<Tree<V>> {
+        let n_trees = self.n_trees();
+        let angular = self.metric.requires_angular_trees();
         let leaf_size = self
             .leaf_size
             .unwrap_or_else(|| cmp::max(10, self.n_neighbors));
 
+        info!(
+            n_trees = n_trees,
+            angular = angular,
+            leaf_size = leaf_size,
+            parallel = false,
+            "Creating RP forest",
+        );
+        
         crate::rp_trees::make_forest(
             &self.data,
-            self.n_trees(),
+            n_trees,
             leaf_size,
-            self.metric.requires_angular_trees(),
+            angular,
             self.max_rptree_depth,
         )
     }
@@ -367,12 +357,8 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
         self.init_graph_with_rp_forest(&mut graph, leaf_array);
         self.init_graph_with_rng(&mut graph);
 
-        if self.low_memory {
-            self.nn_descent_low_memory(&mut graph);
-        } else {
-            self.nn_descent_high_memory(&mut graph);
-        }
-
+        self.nn_descent_low_memory(&mut graph);
+        
         graph
     }
 
@@ -393,6 +379,8 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
 
             let leaf_block = &leaf_array[block_start..block_end];
             self.generate_leaf_updates(&mut updates, graph, leaf_block);
+            
+            info!(updates = updates.len(), "Generated updates via RP forest");
 
             // Update graph points `p -> q` and `q -> p`.
             for (p, q, d) in updates.drain(..) {
@@ -408,7 +396,7 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
         for i in 0..self.data.len() {
             let point = graph.point_mut(i);
             if point.furthest().dist() < 0.0 {
-                let fill_n = self.n_neighbors - point.num_lt(0.0);
+                let fill_n = point.num_lt(0.0);
                 for _ in 0..fill_n {
                     let idx = fastrand::usize(0..self.data.len());
                     let d = self.metric.distance(&self.data[idx], &self.data[i]);
@@ -431,7 +419,7 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
                 for &q in &block[i + 1..] {
                     let d = self.metric.distance(&self.data[p], &self.data[q]);
 
-                    if d <= graph.threshold(p) || d <= graph.threshold(q) {
+                    if d < graph.threshold(p) || d < graph.threshold(q) {
                         updates.push((p, q, d));
                     }
                 }
@@ -456,7 +444,7 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
 
         for n in 0..self.n_iters() {
             let (new_candidate_neighbors, old_candidate_neighbors) =
-                new_build_candidates(graph, self.max_candidates);
+                new_build_candidates(graph, self.effective_max_candidates(), &self.data, self.metric);
 
             let c = self.process_candidates(
                 graph,
@@ -474,10 +462,6 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
                 break;
             }
         }
-    }
-
-    fn nn_descent_high_memory(&self, _graph: &mut DynamicGraph) {
-        todo!()
     }
 
     fn process_candidates(
@@ -504,8 +488,10 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
                 graph,
                 &self.data,
                 self.metric,
-                self.max_candidates,
+                self.effective_max_candidates(),
             );
+            
+            info!(total_updates = updates.len());
 
             c += apply_graph_updates_low_memory(graph, updates);
         }
@@ -517,9 +503,11 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
 /// Build a heap of candidate neighbors for nearest neighbor descent. For each vertex the
 /// candidate neighbors are any current neighbors, and any vertices that have the vertex
 /// as one of their nearest neighbors.
-fn new_build_candidates(
+fn new_build_candidates<V: SpacialOps>(
     graph: &mut DynamicGraph,
     max_candidates: usize,
+    data: &[V],
+    metric: Metric,
 ) -> (Vec<SortedNeighbors>, Vec<SortedNeighbors>) {
     let n_vertices = graph.n_vertices();
     let n_neighbors = graph.n_neighbors();
@@ -531,28 +519,32 @@ fn new_build_candidates(
         new_candidates.push(SortedNeighbors::new(max_candidates));
         old_candidates.push(SortedNeighbors::new(max_candidates));
     }
-
+    
+    let mut new_inserts = 0;
+    let mut old_inserts = 0;
     for i in 0..n_vertices {
         let point = graph.point(i);
-        for j in 0..n_neighbors {
-            let neighbor = point.neighbor(j);
-
-            // Our points are sorted, once we hit this we can abort early
-            if neighbor.idx() == u32::MAX {
-                break;
-            }
-
-            let dist = fastrand::f32();
+        for neighbor in point.iter_neighbors() {
+            // TODO: Maybe this can be done via fastrand again
+            //  This was changed to be the actual distance metric originally due to the fact
+            //  that the heap implementation relies on the distance to be deterministic one
+            //  insertion in order to detect duplicates.
+            let dist = metric.distance(&data[i], &data[neighbor.idx() as usize]);
+            
             if neighbor.flag() {
+                new_inserts += 1;
                 new_candidates[i].checked_push(dist, neighbor.idx() as usize);
                 new_candidates[neighbor.idx() as usize].checked_push(dist, i);
             } else {
+                old_inserts += 1;
                 old_candidates[i].checked_push(dist, neighbor.idx() as usize);
                 old_candidates[neighbor.idx() as usize].checked_push(dist, i);
             }
         }
     }
-
+    
+    info!(old_inserts, new_inserts);
+    
     for i in 0..n_vertices {
         let point = graph.point_mut(i);
         for j in 0..n_neighbors {
@@ -580,23 +572,16 @@ fn generate_graph_updates<V: SpacialOps>(
 ) -> Vec<(u32, u32, f32)> {
     let block_size = new_candidates.len();
     let mut updates = Vec::new();
-
+    
+    let mut num_steps = 0;
     for i in 0..block_size {
         let point = &new_candidates[i];
         let old_point = &old_candidates[i];
-        for j in 0..max_candidates {
-            let p = point.neighbor(j);
-            if p.idx() == u32::MAX {
-                break;
-            }
-
+        for (offset, p) in point.iter_neighbors().take(max_candidates).enumerate() {
             let p_threshold = graph.point(p.idx() as usize).furthest();
 
-            for k in j..max_candidates {
-                let q = point.neighbor(k);
-                if q.idx() == u32::MAX {
-                    break;
-                }
+            for q in point.iter_neighbors().skip(offset) {
+                num_steps += 1;
 
                 let q_threshold = graph.point(q.idx() as usize).furthest();
 
@@ -607,12 +592,9 @@ fn generate_graph_updates<V: SpacialOps>(
                 }
             }
 
-            for k in 0..max_candidates {
-                let q = old_point.neighbor(k);
-                if q.idx() == u32::MAX {
-                    break;
-                }
-
+            for q in old_point.iter_neighbors().take(max_candidates) {
+                num_steps += 1;
+                
                 let q_threshold = graph.point(q.idx() as usize).furthest();
 
                 let d =
@@ -623,6 +605,8 @@ fn generate_graph_updates<V: SpacialOps>(
             }
         }
     }
+    
+    println!("{num_steps}");
 
     updates
 }
@@ -644,4 +628,73 @@ fn apply_graph_updates_low_memory(
     }
 
     n_changes
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_apply_graph_updates_low_memory_empty() {
+        let mut graph = DynamicGraph::new(10, 3);
+        apply_graph_updates_low_memory(&mut graph, Vec::new());
+    }
+
+    #[test]
+    fn test_apply_graph_updates_low_memory() {
+        let updates = vec![
+            (0, 1, 1.0),    // Dist point 0 <-> point 1 1.0
+            (2, 3, 0.5),    // Dist point 2 <-> point 3, 0.5
+            (2, 5, 1.2),    // Dist point 2 <-> point 5, 1.2
+        ];
+        
+        let mut graph = DynamicGraph::new(10, 3);
+        let changes = apply_graph_updates_low_memory(&mut graph, updates);
+        assert_eq!(changes, 6);
+
+        // Closest (0'th element) to point `n`
+        let point_0 = graph.point(0);
+        assert_eq!(point_0.neighbor(0).idx(), 1);
+        let point_1 = graph.point(1);
+        assert_eq!(point_1.neighbor(0).idx(), 0);
+        let point_2 = graph.point(2);
+        assert_eq!(point_2.neighbor(0).idx(), 3);
+        let point_3 = graph.point(3);
+        assert_eq!(point_3.neighbor(0).idx(), 2);
+        
+        let point_2 = graph.point(2);
+        assert_eq!(point_2.neighbor(1).idx(), 5);
+        let point_5 = graph.point(5);
+        assert_eq!(point_5.neighbor(0).idx(), 2);        
+    }
+    
+    // #[test]
+    // fn test_new_build_candidates_empty() {
+    //     let mut graph = DynamicGraph::new(10, 3);
+    //     let (new, old) = new_build_candidates(&mut graph, 10);
+    //     assert!(new.iter().all(|n| n.iter_neighbors().count() == 0));
+    //     assert!(old.iter().all(|n| n.iter_neighbors().count() == 0));
+    // }
+    //
+    // #[test]
+    // fn test_new_build_candidates() {
+    //     let updates = vec![
+    //         (0, 1, 1.0),    // Dist point 0 <-> point 1 1.0
+    //         (2, 3, 0.5),    // Dist point 2 <-> point 3, 0.5
+    //         (2, 5, 1.2),    // Dist point 2 <-> point 5, 1.2
+    //         (1, 2, 0.5),    // Dist point 1 <-> point 2, 0.5
+    //     ];
+    //
+    //     let mut graph = DynamicGraph::new(10, 3);
+    //     let changes = apply_graph_updates_low_memory(&mut graph, updates);
+    //     assert_eq!(changes, 8);
+    //
+    //     let (new, old) = new_build_candidates(&mut graph, 10);
+    //     for (p, neighbors) in new.into_iter().enumerate() {
+    //         println!("{p} - {neighbors:?}");
+    //     }
+    //
+    //     println!("{old:?}");
+    // }
 }

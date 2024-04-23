@@ -3,7 +3,8 @@ from safetensors.numpy import save_file
 
 from fetch import get_ann_benchmark_data
 
-hdf5_file = get_ann_benchmark_data("mnist-784-euclidean")
+dataset_name = "mnist-784-euclidean"
+hdf5_file = get_ann_benchmark_data(dataset_name)
 test = np.array(hdf5_file["test"])
 train = np.array(hdf5_file["train"])
 
@@ -19,5 +20,5 @@ tensors = {
     "train": train,
 }
 
-save_file(tensors, "../datasets/minst-784-euclidean.safetensors")
+save_file(tensors, f"../datasets/{dataset_name}.safetensors")
 

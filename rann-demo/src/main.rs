@@ -1,7 +1,8 @@
 use std::time::Instant;
 
+use tracing::info;
 use anyhow::Context;
-use rann::NNDescentBuilder;
+use rann::{Metric, NNDescentBuilder};
 use rann_accel::{Auto, Vector, X1024};
 
 fn main() -> anyhow::Result<()> {
@@ -11,7 +12,7 @@ fn main() -> anyhow::Result<()> {
 
     tracing_subscriber::fmt::init();
 
-    let data = std::fs::read("./datasets/minst-784-euclidean.safetensors")
+    let data = std::fs::read("./datasets/mnist-784-euclidean.safetensors")
         .context("Read dataset")?;
     let tensors =
         safetensors::SafeTensors::deserialize(&data).context("Deserialize tensors")?;
@@ -26,13 +27,16 @@ fn main() -> anyhow::Result<()> {
         embeddings.push(Vector::try_from_vec(buf)?);
     }
 
+    info!("Starting graph build");
     let start = Instant::now();
     let graph = NNDescentBuilder::new()
         .with_data(embeddings)
+        .with_metric(Metric::SquaredEuclidean)
         .with_n_neighbors(30)
         .with_skip_normalization(true)
+        // .with_n_threads(4)
         .build();
-    println!("Building took {:?}", start.elapsed());
+    info!("Building took {:?}", start.elapsed());
 
     Ok(())
 }
