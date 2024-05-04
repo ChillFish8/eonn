@@ -1,6 +1,7 @@
 use std::arch::x86_64::*;
 
 use crate::danger::{offsets_avx2, rollup_x8, sum_avx2, CHUNK_0, CHUNK_1};
+use crate::math::*;
 
 macro_rules! unrolled_loop {
     (
@@ -193,6 +194,65 @@ pub unsafe fn f32_x512_avx2_nofma_euclidean(x: &[f32], y: &[f32]) -> f32 {
     sum_avx2(acc)
 }
 
+#[target_feature(enable = "avx2")]
+#[inline]
+/// Computes the squared Euclidean distance of two `f32` vectors.
+///
+/// # Safety
+///
+/// Vectors **MUST** match in size, otherwise this routine
+/// will become immediately UB due to out of bounds pointer accesses.
+///
+/// NOTE:
+/// Values within the vector should also be finite, although it is not
+/// going to crash the program, it is going to produce insane numbers.
+pub unsafe fn f32_xany_avx2_nofma_euclidean(x: &[f32], y: &[f32]) -> f32 {
+    debug_assert_eq!(x.len(), y.len());
+
+    let len = x.len();
+    let mut offset_from = len % 64;
+    let mut total = 0.0;
+
+    if offset_from != 0 {
+        total = linear_euclidean::<StdMath>(x, y, offset_from);
+    }
+
+    let x = x.as_ptr();
+    let y = y.as_ptr();
+
+    _mm_prefetch::<_MM_HINT_T1>(x.cast());
+    _mm_prefetch::<_MM_HINT_T1>(y.cast());
+
+    let mut acc1 = _mm256_setzero_ps();
+    let mut acc2 = _mm256_setzero_ps();
+    let mut acc3 = _mm256_setzero_ps();
+    let mut acc4 = _mm256_setzero_ps();
+    let mut acc5 = _mm256_setzero_ps();
+    let mut acc6 = _mm256_setzero_ps();
+    let mut acc7 = _mm256_setzero_ps();
+    let mut acc8 = _mm256_setzero_ps();
+
+    while offset_from < len {
+        execute_f32_x64_nofma_block_euclidean(
+            x.add(offset_from),
+            y.add(offset_from),
+            &mut acc1,
+            &mut acc2,
+            &mut acc3,
+            &mut acc4,
+            &mut acc5,
+            &mut acc6,
+            &mut acc7,
+            &mut acc8,
+        );
+
+        offset_from += 64;
+    }
+
+    let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
+    total + sum_avx2(acc)
+}
+
 #[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
@@ -355,6 +415,66 @@ pub unsafe fn f32_x512_avx2_fma_euclidean(x: &[f32], y: &[f32]) -> f32 {
     sum_avx2(acc)
 }
 
+#[cfg(feature = "nightly")]
+#[target_feature(enable = "avx2", enable = "fma")]
+#[inline]
+/// Computes the squared Euclidean distance of two `f32` vectors.
+///
+/// # Safety
+///
+/// Vectors **MUST** match in size, otherwise this routine
+/// will become immediately UB due to out of bounds pointer accesses.
+///
+/// NOTE:
+/// Values within the vector should also be finite, although it is not
+/// going to crash the program, it is going to produce insane numbers.
+pub unsafe fn f32_xany_avx2_fma_euclidean(x: &[f32], y: &[f32]) -> f32 {
+    debug_assert_eq!(x.len(), y.len());
+
+    let len = x.len();
+    let mut offset_from = len % 64;
+    let mut total = 0.0;
+
+    if offset_from != 0 {
+        total = linear_euclidean::<FastMath>(x, y, offset_from);
+    }
+
+    let x = x.as_ptr();
+    let y = y.as_ptr();
+
+    _mm_prefetch::<_MM_HINT_T1>(x.cast());
+    _mm_prefetch::<_MM_HINT_T1>(y.cast());
+
+    let mut acc1 = _mm256_setzero_ps();
+    let mut acc2 = _mm256_setzero_ps();
+    let mut acc3 = _mm256_setzero_ps();
+    let mut acc4 = _mm256_setzero_ps();
+    let mut acc5 = _mm256_setzero_ps();
+    let mut acc6 = _mm256_setzero_ps();
+    let mut acc7 = _mm256_setzero_ps();
+    let mut acc8 = _mm256_setzero_ps();
+
+    while offset_from < len {
+        execute_f32_x64_fma_block_euclidean(
+            x.add(offset_from),
+            y.add(offset_from),
+            &mut acc1,
+            &mut acc2,
+            &mut acc3,
+            &mut acc4,
+            &mut acc5,
+            &mut acc6,
+            &mut acc7,
+            &mut acc8,
+        );
+
+        offset_from += 64;
+    }
+
+    let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
+    total + sum_avx2(acc)
+}
+
 #[allow(clippy::too_many_arguments)]
 #[inline(always)]
 unsafe fn execute_f32_x64_nofma_block_euclidean(
@@ -477,6 +597,20 @@ unsafe fn execute_f32_x64_fma_block_euclidean(
     *acc6 = _mm256_fmadd_ps(diff6, diff6, *acc6);
     *acc7 = _mm256_fmadd_ps(diff7, diff7, *acc7);
     *acc8 = _mm256_fmadd_ps(diff8, diff8, *acc8);
+}
+
+unsafe fn linear_euclidean<M: Math>(x: &[f32], y: &[f32], n: usize) -> f32 {
+    let mut total = 0.0;
+
+    for i in 0..n {
+        let x = *x.get_unchecked(i);
+        let y = *y.get_unchecked(i);
+
+        let diff = M::sub(x, y);
+        total = M::add(total, M::mul(diff, diff));
+    }
+
+    total
 }
 
 #[cfg(test)]
