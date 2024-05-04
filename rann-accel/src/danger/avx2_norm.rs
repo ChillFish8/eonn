@@ -2,6 +2,7 @@ use std::arch::x86_64::*;
 
 use crate::danger::utils::{CHUNK_0, CHUNK_1};
 use crate::danger::{offsets_avx2, rollup_x8, sum_avx2};
+use crate::math::*;
 
 macro_rules! unrolled_loop {
     (
@@ -180,6 +181,56 @@ pub unsafe fn f32_x512_avx2_nofma_norm(x: &[f32]) -> f32 {
     sum_avx2(acc)
 }
 
+#[target_feature(enable = "avx2")]
+#[inline]
+/// Computes the squared norm of one f32 vector.
+///
+/// This vector can be any size although it may perform worse than
+/// the specialized size handling.
+///
+/// # Safety
+///
+/// Values within the vector should also be finite, although it is not
+/// going to crash the program, it is going to produce insane numbers.
+pub unsafe fn f32_xany_avx2_nofma_norm(x: &[f32]) -> f32 {
+    let len = x.len();
+    let mut offset_from = len % 64;
+    let mut total = 0.0;
+
+    if offset_from != 0 {
+        total = linear_norm::<StdMath>(x, offset_from);
+    }
+
+    let x = x.as_ptr();
+    let mut acc1 = _mm256_setzero_ps();
+    let mut acc2 = _mm256_setzero_ps();
+    let mut acc3 = _mm256_setzero_ps();
+    let mut acc4 = _mm256_setzero_ps();
+    let mut acc5 = _mm256_setzero_ps();
+    let mut acc6 = _mm256_setzero_ps();
+    let mut acc7 = _mm256_setzero_ps();
+    let mut acc8 = _mm256_setzero_ps();
+
+    while offset_from < len {
+        execute_f32_x64_nofma_block_norm(
+            x.add(offset_from),
+            &mut acc1,
+            &mut acc2,
+            &mut acc3,
+            &mut acc4,
+            &mut acc5,
+            &mut acc6,
+            &mut acc7,
+            &mut acc8,
+        );
+
+        offset_from += 64;
+    }
+
+    let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
+    total + sum_avx2(acc)
+}
+
 #[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
@@ -330,6 +381,57 @@ pub unsafe fn f32_x512_avx2_fma_norm(x: &[f32]) -> f32 {
     sum_avx2(acc)
 }
 
+#[cfg(feature = "nightly")]
+#[target_feature(enable = "avx2", enable = "fma")]
+#[inline]
+/// Computes the squared norm of one f32 vector.
+///
+/// This vector can be any size although it may perform worse than
+/// the specialized size handling.
+///
+/// # Safety
+///
+/// Values within the vector should also be finite, although it is not
+/// going to crash the program, it is going to produce insane numbers.
+pub unsafe fn f32_xany_avx2_fma_norm(x: &[f32]) -> f32 {
+    let len = x.len();
+    let mut offset_from = len % 64;
+    let mut total = 0.0;
+
+    if offset_from != 0 {
+        total = linear_norm::<FastMath>(x, offset_from);
+    }
+
+    let x = x.as_ptr();
+    let mut acc1 = _mm256_setzero_ps();
+    let mut acc2 = _mm256_setzero_ps();
+    let mut acc3 = _mm256_setzero_ps();
+    let mut acc4 = _mm256_setzero_ps();
+    let mut acc5 = _mm256_setzero_ps();
+    let mut acc6 = _mm256_setzero_ps();
+    let mut acc7 = _mm256_setzero_ps();
+    let mut acc8 = _mm256_setzero_ps();
+
+    while offset_from < len {
+        execute_f32_x64_fma_block_norm(
+            x.add(offset_from),
+            &mut acc1,
+            &mut acc2,
+            &mut acc3,
+            &mut acc4,
+            &mut acc5,
+            &mut acc6,
+            &mut acc7,
+            &mut acc8,
+        );
+
+        offset_from += 64;
+    }
+
+    let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
+    total + sum_avx2(acc)
+}
+
 #[allow(clippy::too_many_arguments)]
 #[inline(always)]
 unsafe fn execute_f32_x64_nofma_block_norm(
@@ -409,6 +511,22 @@ unsafe fn execute_f32_x64_fma_block_norm(
     *acc7 = _mm256_fmadd_ps(x7, x7, *acc7);
     *acc8 = _mm256_fmadd_ps(x8, x8, *acc8);
 }
+
+#[inline]
+unsafe fn linear_norm<M: Math>(
+    x: &[f32],
+    n: usize,
+) -> f32 {
+    let mut total = 0.0;
+
+    for i in 0..n {
+        let x = *x.get_unchecked(i);
+        total = M::add(total, M::mul(x, x))
+    }
+
+    total
+}
+
 
 #[cfg(test)]
 mod tests {
