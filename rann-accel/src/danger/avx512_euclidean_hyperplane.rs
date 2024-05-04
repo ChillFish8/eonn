@@ -396,7 +396,7 @@ unsafe fn execute_f32_x128_block_fma_hyperplane(
     mem::transmute(plane)
 }
 
-#[cfg(test)]
+#[cfg(all(test, target_feature = "avx512f"))]
 mod tests {
     use super::*;
     use crate::danger::test_utils::{

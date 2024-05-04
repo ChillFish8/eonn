@@ -159,7 +159,7 @@ pub unsafe fn f32_x512_avx512_fma_cosine(x: &[f32], y: &[f32]) -> f32 {
     cosine::<FastMath>(dot_product, norm_x, norm_y)
 }
 
-#[cfg(test)]
+#[cfg(all(test, target_feature = "avx512f"))]
 mod tests {
     use super::*;
     use crate::danger::test_utils::{get_sample_vectors, is_close, simple_cosine};

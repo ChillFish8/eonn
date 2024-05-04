@@ -350,7 +350,7 @@ unsafe fn execute_f32_x128_block_apply_norm(
     mem::transmute(lanes)
 }
 
-#[cfg(test)]
+#[cfg(all(test, target_feature = "avx512f"))]
 mod tests {
     use super::*;
     use crate::danger::test_utils::{

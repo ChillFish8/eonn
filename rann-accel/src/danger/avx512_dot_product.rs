@@ -415,7 +415,7 @@ unsafe fn execute_f32_x128_fma_block_dot_product(
     *acc8 = _mm512_fmadd_ps(x8, y8, *acc8);
 }
 
-#[cfg(test)]
+#[cfg(all(test, target_feature = "avx512f"))]
 mod tests {
     use super::*;
     use crate::danger::test_utils::{get_sample_vectors, is_close, simple_dot};
