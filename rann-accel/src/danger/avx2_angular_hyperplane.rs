@@ -261,7 +261,7 @@ pub unsafe fn f32_xany_avx2_nofma_angular_hyperplane(x: &[f32], y: &[f32]) -> Ve
         offset_from += 64;
     }
 
-    let mut norm_hyperplane = f32_xany_avx2_nofma_norm(x).sqrt();
+    let mut norm_hyperplane = f32_xany_avx2_nofma_norm(&hyperplane).sqrt();
     if norm_hyperplane.abs() < f32::EPSILON {
         norm_hyperplane = 1.0;
     }
@@ -444,7 +444,7 @@ pub unsafe fn f32_xany_avx2_fma_angular_hyperplane(x: &[f32], y: &[f32]) -> Vec<
         offset_from += 64;
     }
 
-    let mut norm_hyperplane = f32_xany_avx2_fma_norm(x).sqrt();
+    let mut norm_hyperplane = f32_xany_avx2_fma_norm(&hyperplane).sqrt();
     if norm_hyperplane.abs() < f32::EPSILON {
         norm_hyperplane = 1.0;
     }
