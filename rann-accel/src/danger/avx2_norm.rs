@@ -513,10 +513,7 @@ unsafe fn execute_f32_x64_fma_block_norm(
 }
 
 #[inline]
-unsafe fn linear_norm<M: Math>(
-    x: &[f32],
-    n: usize,
-) -> f32 {
+unsafe fn linear_norm<M: Math>(x: &[f32], n: usize) -> f32 {
     let mut total = 0.0;
 
     for i in 0..n {
@@ -526,7 +523,6 @@ unsafe fn linear_norm<M: Math>(
 
     total
 }
-
 
 #[cfg(test)]
 mod tests {
