@@ -265,11 +265,10 @@ impl Debug for SortedNeighbors {
 }
 
 #[derive(Debug, Copy, Clone)]
-#[cfg_attr(test, derive(PartialEq))]
 pub struct Point {
-    idx: u32,
-    dist: f32,
-    flag: bool,
+    pub(crate) idx: u32,
+    pub(crate) dist: f32,
+    pub(crate) flag: bool,
 }
 
 impl Default for Point {
@@ -303,6 +302,30 @@ impl Point {
         self.flag = flag;
     }
 }
+
+impl PartialOrd for Point {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Point {
+    fn cmp(&self, other: &Self) -> Ordering {
+        if self.idx == other.idx {
+            Ordering::Equal
+        } else {
+            self.dist.partial_cmp(&other.dist).unwrap()
+        }
+    }
+}
+
+impl PartialEq for Point {
+    fn eq(&self, other: &Self) -> bool {
+        self.idx == other.idx
+    }
+}
+
+impl Eq for Point {}
 
 #[cfg(test)]
 mod tests {

@@ -1,5 +1,4 @@
 use std::cmp;
-use std::io::Read;
 use std::time::Instant;
 
 use rann_accel::{Auto, SpacialOps, Vector, X512};
@@ -490,8 +489,6 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
                 self.metric,
                 self.effective_max_candidates(),
             );
-            
-            info!(total_updates = updates.len());
 
             c += apply_graph_updates_low_memory(graph, updates);
         }
@@ -605,8 +602,6 @@ fn generate_graph_updates<V: SpacialOps>(
             }
         }
     }
-    
-    println!("{num_steps}");
 
     updates
 }

@@ -3,7 +3,7 @@ from safetensors.numpy import save_file
 
 from fetch import get_ann_benchmark_data
 
-dataset_name = "mnist-784-euclidean"
+dataset_name = "gist-960-euclidean"
 hdf5_file = get_ann_benchmark_data(dataset_name)
 test = np.array(hdf5_file["test"])
 train = np.array(hdf5_file["train"])

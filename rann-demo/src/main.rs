@@ -12,7 +12,7 @@ fn main() -> anyhow::Result<()> {
 
     tracing_subscriber::fmt::init();
 
-    let data = std::fs::read("./datasets/mnist-784-euclidean.safetensors")
+    let data = std::fs::read("./datasets/gist-960-euclidean.safetensors")
         .context("Read dataset")?;
     let tensors =
         safetensors::SafeTensors::deserialize(&data).context("Deserialize tensors")?;
@@ -34,7 +34,7 @@ fn main() -> anyhow::Result<()> {
         .with_metric(Metric::SquaredEuclidean)
         .with_n_neighbors(30)
         .with_skip_normalization(true)
-        // .with_n_threads(4)
+        .with_n_threads(4)
         .build();
     info!("Building took {:?}", start.elapsed());
 

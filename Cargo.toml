@@ -10,6 +10,7 @@ fastrand = "2.0.2"
 tracing = "0.1.40"
 bitvec = "1.0.1"
 smallvec = "1.13.2"
+fnv = "1.0.7"
 
 rann-accel = { version = "0.1.0", path = "rann-accel" }
 
