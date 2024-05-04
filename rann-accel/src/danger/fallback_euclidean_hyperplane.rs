@@ -201,14 +201,14 @@ unsafe fn fallback_euclidean_hyperplane<M: Math, const DIMS: usize>(
         let diff7 = M::sub(x7, y7);
         let diff8 = M::sub(x8, y8);
 
-        offset_acc1 = M::add(offset_acc1, M::mul(diff1, M::div(M::add(x1, y1), 2.0)));
-        offset_acc2 = M::add(offset_acc2, M::mul(diff2, M::div(M::add(x2, y2), 2.0)));
-        offset_acc3 = M::add(offset_acc3, M::mul(diff3, M::div(M::add(x3, y3), 2.0)));
-        offset_acc4 = M::add(offset_acc4, M::mul(diff4, M::div(M::add(x4, y4), 2.0)));
-        offset_acc5 = M::add(offset_acc5, M::mul(diff5, M::div(M::add(x5, y5), 2.0)));
-        offset_acc6 = M::add(offset_acc6, M::mul(diff6, M::div(M::add(x6, y6), 2.0)));
-        offset_acc7 = M::add(offset_acc7, M::mul(diff7, M::div(M::add(x7, y7), 2.0)));
-        offset_acc8 = M::add(offset_acc8, M::mul(diff8, M::div(M::add(x8, y8), 2.0)));
+        offset_acc1 = M::add(offset_acc1, M::mul(diff1, M::mul(M::add(x1, y1), 0.5)));
+        offset_acc2 = M::add(offset_acc2, M::mul(diff2, M::mul(M::add(x2, y2), 0.5)));
+        offset_acc3 = M::add(offset_acc3, M::mul(diff3, M::mul(M::add(x3, y3), 0.5)));
+        offset_acc4 = M::add(offset_acc4, M::mul(diff4, M::mul(M::add(x4, y4), 0.5)));
+        offset_acc5 = M::add(offset_acc5, M::mul(diff5, M::mul(M::add(x5, y5), 0.5)));
+        offset_acc6 = M::add(offset_acc6, M::mul(diff6, M::mul(M::add(x6, y6), 0.5)));
+        offset_acc7 = M::add(offset_acc7, M::mul(diff7, M::mul(M::add(x7, y7), 0.5)));
+        offset_acc8 = M::add(offset_acc8, M::mul(diff8, M::mul(M::add(x8, y8), 0.5)));
 
         hyperplane.extend_from_slice(&[
             diff1, diff2, diff3, diff4, diff5, diff6, diff7, diff8,
