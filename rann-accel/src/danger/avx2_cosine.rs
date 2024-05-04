@@ -7,6 +7,8 @@ use crate::danger::{
     f32_x512_avx2_fma_norm,
     f32_x768_avx2_fma_dot,
     f32_x768_avx2_fma_norm,
+    f32_xany_avx2_fma_dot,
+    f32_xany_avx2_fma_norm,
 };
 use crate::danger::{
     f32_x1024_avx2_nofma_dot,
@@ -15,6 +17,8 @@ use crate::danger::{
     f32_x512_avx2_nofma_norm,
     f32_x768_avx2_nofma_dot,
     f32_x768_avx2_nofma_norm,
+    f32_xany_avx2_nofma_dot,
+    f32_xany_avx2_nofma_norm,
 };
 use crate::math::*;
 
@@ -87,6 +91,28 @@ pub unsafe fn f32_x512_avx2_nofma_cosine(x: &[f32], y: &[f32]) -> f32 {
     cosine::<StdMath>(dot_product, norm_x, norm_y)
 }
 
+#[target_feature(enable = "avx2")]
+#[inline]
+/// Computes the cosine distance of two `f32` vectors.
+///
+/// # Safety
+///
+/// Vectors **MUST** be the same length, otherwise this routine
+/// will become immediately UB due to out of bounds pointer accesses.
+///
+/// NOTE:
+/// Values within the vector should also be finite, although it is not
+/// going to crash the program, it is going to produce insane numbers.
+pub unsafe fn f32_xany_avx2_nofma_cosine(x: &[f32], y: &[f32]) -> f32 {
+    debug_assert_eq!(x.len(), y.len());
+
+    let norm_x = f32_xany_avx2_nofma_norm(x);
+    let norm_y = f32_xany_avx2_nofma_norm(y);
+    let dot_product = f32_xany_avx2_nofma_dot(x, y);
+
+    cosine::<FastMath>(dot_product, norm_x, norm_y)
+}
+
 #[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
@@ -155,6 +181,29 @@ pub unsafe fn f32_x512_avx2_fma_cosine(x: &[f32], y: &[f32]) -> f32 {
     let norm_x = f32_x512_avx2_fma_norm(x);
     let norm_y = f32_x512_avx2_fma_norm(y);
     let dot_product = f32_x512_avx2_fma_dot(x, y);
+
+    cosine::<FastMath>(dot_product, norm_x, norm_y)
+}
+
+#[cfg(feature = "nightly")]
+#[target_feature(enable = "avx2", enable = "fma")]
+#[inline]
+/// Computes the cosine distance of two `f32` vectors.
+///
+/// # Safety
+///
+/// Vectors **MUST** be the same length, otherwise this routine
+/// will become immediately UB due to out of bounds pointer accesses.
+///
+/// NOTE:
+/// Values within the vector should also be finite, although it is not
+/// going to crash the program, it is going to produce insane numbers.
+pub unsafe fn f32_xany_avx2_fma_cosine(x: &[f32], y: &[f32]) -> f32 {
+    debug_assert_eq!(x.len(), y.len());
+
+    let norm_x = f32_xany_avx2_fma_norm(x);
+    let norm_y = f32_xany_avx2_fma_norm(y);
+    let dot_product = f32_xany_avx2_fma_dot(x, y);
 
     cosine::<FastMath>(dot_product, norm_x, norm_y)
 }
