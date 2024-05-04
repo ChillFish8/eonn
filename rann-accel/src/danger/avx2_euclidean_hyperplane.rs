@@ -2,6 +2,7 @@ use std::arch::x86_64::*;
 use std::{mem, ptr};
 
 use crate::danger::{offsets_avx2, rollup_x8, sum_avx2, CHUNK_0, CHUNK_1};
+use crate::math::*;
 
 macro_rules! compute_euclidean_hyperplane {
     (
@@ -150,6 +151,79 @@ pub unsafe fn f32_x512_avx2_nofma_euclidean_hyperplane(
     )
 }
 
+#[target_feature(enable = "avx2")]
+#[inline]
+/// Computes the Euclidean hyperplane of two f32 vectors of any size, assuming
+/// the size of `x` and `y` are the same size.
+///
+/// # Safety
+///
+/// The lengths of `x` and `y` **must** match and contain only finite values.
+pub unsafe fn f32_xany_avx2_nofma_euclidean_hyperplane(
+    x: &[f32],
+    y: &[f32],
+) -> (Vec<f32>, f32) {
+    debug_assert_eq!(x.len(), y.len(), "Provided vectors must match in size");
+
+    let len = x.len();
+    let mut offset_from = len % 64;
+    let mut hyperplane_offset = 0.0;
+    let mut hyperplane = vec![0.0; len];
+
+    if offset_from != 0 {
+        hyperplane_offset =
+            linear_euclidean_hyperplane::<StdMath>(x, y, offset_from, &mut hyperplane);
+    }
+
+    let x = x.as_ptr();
+    let y = y.as_ptr();
+
+    let mut offset_acc1 = _mm256_setzero_ps();
+    let mut offset_acc2 = _mm256_setzero_ps();
+    let mut offset_acc3 = _mm256_setzero_ps();
+    let mut offset_acc4 = _mm256_setzero_ps();
+    let mut offset_acc5 = _mm256_setzero_ps();
+    let mut offset_acc6 = _mm256_setzero_ps();
+    let mut offset_acc7 = _mm256_setzero_ps();
+    let mut offset_acc8 = _mm256_setzero_ps();
+
+    while offset_from < len {
+        let results = execute_f32_x64_block_nofma_hyperplane(
+            x.add(offset_from),
+            y.add(offset_from),
+            &mut offset_acc1,
+            &mut offset_acc2,
+            &mut offset_acc3,
+            &mut offset_acc4,
+            &mut offset_acc5,
+            &mut offset_acc6,
+            &mut offset_acc7,
+            &mut offset_acc8,
+        );
+
+        ptr::copy_nonoverlapping(
+            results.as_ptr(),
+            hyperplane.as_mut_ptr().add(offset_from),
+            results.len(),
+        );
+
+        offset_from += 64;
+    }
+
+    hyperplane_offset += sub_reduce_x8(
+        offset_acc1,
+        offset_acc2,
+        offset_acc3,
+        offset_acc4,
+        offset_acc5,
+        offset_acc6,
+        offset_acc7,
+        offset_acc8,
+    );
+
+    (hyperplane, hyperplane_offset)
+}
+
 #[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
@@ -238,6 +312,83 @@ pub unsafe fn f32_x512_avx2_fma_euclidean_hyperplane(
             0, 64, 128, 192,
             256, 320, 384, 448,
     )
+}
+
+#[cfg(feature = "nightly")]
+#[target_feature(enable = "avx2", enable = "fma")]
+#[inline]
+/// Computes the Euclidean hyperplane of two f32 vectors of any size, assuming
+/// the size of `x` and `y` are the same size.
+///
+/// # Safety
+///
+/// The lengths of `x` and `y` **must** match and contain only finite values.
+pub unsafe fn f32_xany_avx2_fma_euclidean_hyperplane(
+    x: &[f32],
+    y: &[f32],
+) -> (Vec<f32>, f32) {
+    debug_assert_eq!(x.len(), y.len(), "Provided vectors must match in size");
+
+    let len = x.len();
+    let mut offset_from = len % 64;
+    let mut hyperplane_offset = 0.0;
+    let mut hyperplane = vec![0.0; len];
+
+    if offset_from != 0 {
+        hyperplane_offset =
+            linear_euclidean_hyperplane::<FastMath>(x, y, offset_from, &mut hyperplane);
+    }
+
+    let x = x.as_ptr();
+    let y = y.as_ptr();
+
+    let mut offset_acc1 = _mm256_setzero_ps();
+    let mut offset_acc2 = _mm256_setzero_ps();
+    let mut offset_acc3 = _mm256_setzero_ps();
+    let mut offset_acc4 = _mm256_setzero_ps();
+    let mut offset_acc5 = _mm256_setzero_ps();
+    let mut offset_acc6 = _mm256_setzero_ps();
+    let mut offset_acc7 = _mm256_setzero_ps();
+    let mut offset_acc8 = _mm256_setzero_ps();
+
+    while offset_from < len {
+        let results = execute_f32_x64_block_fma_hyperplane(
+            x.add(offset_from),
+            y.add(offset_from),
+            &mut offset_acc1,
+            &mut offset_acc2,
+            &mut offset_acc3,
+            &mut offset_acc4,
+            &mut offset_acc5,
+            &mut offset_acc6,
+            &mut offset_acc7,
+            &mut offset_acc8,
+        );
+
+        ptr::copy_nonoverlapping(
+            results.as_ptr(),
+            hyperplane.as_mut_ptr().add(offset_from),
+            results.len(),
+        );
+
+        offset_from += 64;
+    }
+
+    hyperplane_offset = FastMath::add(
+        hyperplane_offset,
+        sub_reduce_x8(
+            offset_acc1,
+            offset_acc2,
+            offset_acc3,
+            offset_acc4,
+            offset_acc5,
+            offset_acc6,
+            offset_acc7,
+            offset_acc8,
+        ),
+    );
+
+    (hyperplane, hyperplane_offset)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -430,6 +581,29 @@ unsafe fn sub_reduce_x8(
 ) -> f32 {
     acc1 = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
     -sum_avx2(acc1)
+}
+
+#[inline]
+unsafe fn linear_euclidean_hyperplane<M: Math>(
+    x: &[f32],
+    y: &[f32],
+    n: usize,
+    hyperplane: &mut [f32],
+) -> f32 {
+    let mut offset = 0.0;
+
+    for i in 0..n {
+        let x = *x.get_unchecked(i);
+        let y = *y.get_unchecked(i);
+
+        let diff = M::sub(x, y);
+        let mean = M::mul(M::add(x, y), 0.5);
+        offset = M::add(offset, M::mul(diff, mean));
+
+        hyperplane[i] = diff;
+    }
+
+    offset
 }
 
 #[cfg(test)]
