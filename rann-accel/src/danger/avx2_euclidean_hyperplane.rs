@@ -598,7 +598,7 @@ unsafe fn linear_euclidean_hyperplane<M: Math>(
 
         let diff = M::sub(x, y);
         let mean = M::mul(M::add(x, y), 0.5);
-        offset = M::add(offset, M::mul(diff, mean));
+        offset = M::sub(offset, M::mul(diff, mean));
 
         hyperplane[i] = diff;
     }
