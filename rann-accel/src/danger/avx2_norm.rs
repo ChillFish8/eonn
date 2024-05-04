@@ -527,7 +527,7 @@ unsafe fn linear_norm<M: Math>(x: &[f32], n: usize) -> f32 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::danger::test_utils::get_sample_vectors;
+    use crate::danger::test_utils::{get_sample_vectors, is_close, simple_dot};
 
     #[cfg(feature = "nightly")]
     #[test]
@@ -573,5 +573,20 @@ mod tests {
         let (x, _) = get_sample_vectors(512);
         let dist = unsafe { f32_x512_avx2_nofma_norm(&x) };
         assert_eq!(dist, 161.06982);
+    }
+
+    #[cfg(feature = "nightly")]
+    #[test]
+    fn test_xany_fma_norm() {
+        let (x, _) = get_sample_vectors(127);
+        let dist = unsafe { f32_xany_avx2_fma_norm(&x) };
+        assert!(is_close(dist, simple_dot(&x, &x)));
+    }
+
+    #[test]
+    fn test_xany_nofma_norm() {
+        let (x, _) = get_sample_vectors(127);
+        let dist = unsafe { f32_xany_avx2_nofma_norm(&x) };
+        assert!(is_close(dist, simple_dot(&x, &x)));
     }
 }

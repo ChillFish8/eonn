@@ -678,4 +678,25 @@ mod tests {
         assert_is_close(offset, expected_offset);
         assert_is_close_vector(&hyperplane, &expected);
     }
+
+    #[cfg(feature = "nightly")]
+    #[test]
+    fn test_xany_fma_euclidean_hyperplane() {
+        let (x, y) = get_sample_vectors(127);
+        let (hyperplane, offset) =
+            unsafe { f32_xany_avx2_fma_euclidean_hyperplane(&x, &y) };
+        let (expected, expected_offset) = simple_euclidean_hyperplane(&x, &y);
+        assert_is_close(offset, expected_offset);
+        assert_is_close_vector(&hyperplane, &expected);
+    }
+
+    #[test]
+    fn test_xany_nofma_euclidean_hyperplane() {
+        let (x, y) = get_sample_vectors(127);
+        let (hyperplane, offset) =
+            unsafe { f32_xany_avx2_nofma_euclidean_hyperplane(&x, &y) };
+        let (expected, expected_offset) = simple_euclidean_hyperplane(&x, &y);
+        assert_is_close(offset, expected_offset);
+        assert_is_close_vector(&hyperplane, &expected);
+    }
 }

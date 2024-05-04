@@ -6,15 +6,18 @@ use crate::danger::{
     f32_x1024_avx2_fma_norm,
     f32_x512_avx2_fma_norm,
     f32_x768_avx2_fma_norm,
+    f32_xany_avx2_fma_norm,
 };
 use crate::danger::{
     f32_x1024_avx2_nofma_norm,
     f32_x512_avx2_nofma_norm,
     f32_x768_avx2_nofma_norm,
+    f32_xany_avx2_nofma_norm,
     offsets_avx2,
     CHUNK_0,
     CHUNK_1,
 };
+use crate::math::*;
 
 macro_rules! compute_normal_vector_unrolled {
     (
@@ -190,6 +193,110 @@ pub unsafe fn f32_x512_avx2_nofma_angular_hyperplane(x: &[f32], y: &[f32]) -> Ve
     )
 }
 
+#[target_feature(enable = "avx2")]
+#[inline]
+/// Computes the angular hyperplane of two `f32` vectors.
+///
+/// # Safety
+///
+/// Vectors **MUST** be the same length, otherwise this routine
+/// will become immediately UB due to out of bounds pointer accesses.
+///
+/// NOTE:
+/// Values within the vector should also be finite, although it is not
+/// going to crash the program, it is going to produce insane numbers.
+pub unsafe fn f32_xany_avx2_nofma_angular_hyperplane(x: &[f32], y: &[f32]) -> Vec<f32> {
+    debug_assert_eq!(x.len(), y.len());
+
+    let len = x.len();
+    let mut offset_from = len % 64;
+
+    let mut norm_x = f32_xany_avx2_nofma_norm(x).sqrt();
+    let mut norm_y = f32_xany_avx2_nofma_norm(y).sqrt();
+
+    if norm_x.abs() < f32::EPSILON {
+        norm_x = 1.0;
+    }
+
+    if norm_y.abs() < f32::EPSILON {
+        norm_y = 1.0;
+    }
+
+    let mut hyperplane = vec![0.0; len];
+    if offset_from != 0 {
+        linear_apply_normal_vector::<StdMath>(
+            x,
+            y,
+            offset_from,
+            &mut hyperplane,
+            1.0 / norm_x,
+            1.0 / norm_y,
+        );
+    }
+
+    let x_ptr = x.as_ptr();
+    let y_ptr = y.as_ptr();
+    let hyperplane_ptr = hyperplane.as_mut_ptr();
+
+    // Convert the norms to the inverse so we can use mul instructions
+    // instead of divide operations. This prevents the system from
+    // grinding to a crawl.
+    let inverse_norm_x = _mm256_set1_ps(1.0 / norm_x);
+    let inverse_norm_y = _mm256_set1_ps(1.0 / norm_y);
+
+    while offset_from < len {
+        let results = execute_f32_x64_block_normal_vector(
+            x_ptr.add(offset_from),
+            y_ptr.add(offset_from),
+            inverse_norm_x,
+            inverse_norm_y,
+        );
+
+        ptr::copy_nonoverlapping(
+            results.as_ptr(),
+            hyperplane_ptr.add(offset_from),
+            results.len(),
+        );
+
+        offset_from += 64;
+    }
+
+    let mut norm_hyperplane = f32_xany_avx2_nofma_norm(x).sqrt();
+    if norm_hyperplane.abs() < f32::EPSILON {
+        norm_hyperplane = 1.0;
+    }
+
+    // Convert the norms to the inverse so we can use mul instructions
+    // instead of divide operations.This prevents the system from
+    // grinding to a crawl.
+    let inverse_norm_hyperplane = _mm256_set1_ps(1.0 / norm_hyperplane);
+
+    let mut offset_from = len % 64;
+    if offset_from != 0 {
+        linear_apply_norm::<StdMath>(
+            &mut hyperplane,
+            offset_from,
+            1.0 / norm_hyperplane,
+        );
+    }
+
+    while offset_from < len {
+        let results = execute_f32_x64_block_apply_norm(
+            hyperplane_ptr.add(offset_from),
+            inverse_norm_hyperplane,
+        );
+        ptr::copy_nonoverlapping(
+            results.as_ptr(),
+            hyperplane_ptr.add(offset_from),
+            results.len(),
+        );
+
+        offset_from += 64;
+    }
+
+    hyperplane
+}
+
 #[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
@@ -266,6 +373,143 @@ pub unsafe fn f32_x512_avx2_fma_angular_hyperplane(x: &[f32], y: &[f32]) -> Vec<
             0, 64, 128, 192,
             256, 320, 384, 448
     )
+}
+
+#[cfg(feature = "nightly")]
+#[target_feature(enable = "avx2", enable = "fma")]
+#[inline]
+/// Computes the angular hyperplane of two `f32` vectors.
+///
+/// # Safety
+///
+/// Vectors **MUST** be the same length, otherwise this routine
+/// will become immediately UB due to out of bounds pointer accesses.
+///
+/// NOTE:
+/// Values within the vector should also be finite, although it is not
+/// going to crash the program, it is going to produce insane numbers.
+pub unsafe fn f32_xany_avx2_fma_angular_hyperplane(x: &[f32], y: &[f32]) -> Vec<f32> {
+    debug_assert_eq!(x.len(), y.len());
+
+    let len = x.len();
+    let mut offset_from = len % 64;
+
+    let mut norm_x = f32_xany_avx2_fma_norm(x).sqrt();
+    let mut norm_y = f32_xany_avx2_fma_norm(&y).sqrt();
+
+    if norm_x.abs() < f32::EPSILON {
+        norm_x = 1.0;
+    }
+
+    if norm_y.abs() < f32::EPSILON {
+        norm_y = 1.0;
+    }
+
+    let mut hyperplane = vec![0.0; len];
+    if offset_from != 0 {
+        linear_apply_normal_vector::<FastMath>(
+            x,
+            y,
+            offset_from,
+            &mut hyperplane,
+            1.0 / norm_x,
+            1.0 / norm_y,
+        );
+    }
+
+    let x_ptr = x.as_ptr();
+    let y_ptr = y.as_ptr();
+    let hyperplane_ptr = hyperplane.as_mut_ptr();
+
+    // Convert the norms to the inverse so we can use mul instructions
+    // instead of divide operations. This prevents the system from
+    // grinding to a crawl.
+    let inverse_norm_x = _mm256_set1_ps(1.0 / norm_x);
+    let inverse_norm_y = _mm256_set1_ps(1.0 / norm_y);
+
+    while offset_from < len {
+        let results = execute_f32_x64_block_normal_vector(
+            x_ptr.add(offset_from),
+            y_ptr.add(offset_from),
+            inverse_norm_x,
+            inverse_norm_y,
+        );
+
+        ptr::copy_nonoverlapping(
+            results.as_ptr(),
+            hyperplane_ptr.add(offset_from),
+            results.len(),
+        );
+
+        offset_from += 64;
+    }
+
+    let mut norm_hyperplane = f32_xany_avx2_fma_norm(x).sqrt();
+    if norm_hyperplane.abs() < f32::EPSILON {
+        norm_hyperplane = 1.0;
+    }
+
+    // Convert the norms to the inverse so we can use mul instructions
+    // instead of divide operations.This prevents the system from
+    // grinding to a crawl.
+    let inverse_norm_hyperplane = _mm256_set1_ps(1.0 / norm_hyperplane);
+
+    let mut offset_from = len % 64;
+    if offset_from != 0 {
+        linear_apply_norm::<FastMath>(
+            &mut hyperplane,
+            offset_from,
+            1.0 / norm_hyperplane,
+        );
+    }
+
+    while offset_from < len {
+        let results = execute_f32_x64_block_apply_norm(
+            hyperplane_ptr.add(offset_from),
+            inverse_norm_hyperplane,
+        );
+        ptr::copy_nonoverlapping(
+            results.as_ptr(),
+            hyperplane_ptr.add(offset_from),
+            results.len(),
+        );
+
+        offset_from += 64;
+    }
+
+    hyperplane
+}
+
+#[inline]
+unsafe fn linear_apply_normal_vector<M: Math>(
+    x: &[f32],
+    y: &[f32],
+    n: usize,
+    hyperplane: &mut [f32],
+    inverse_norm_x: f32,
+    inverse_norm_y: f32,
+) {
+    for i in 0..n {
+        let x = *x.get_unchecked(i);
+        let y = *y.get_unchecked(i);
+
+        let norm_applied_x = M::mul(x, inverse_norm_x);
+        let norm_applied_y = M::mul(y, inverse_norm_y);
+
+        hyperplane[i] = M::sub(norm_applied_x, norm_applied_y);
+    }
+}
+
+#[inline]
+unsafe fn linear_apply_norm<M: Math>(
+    hyperplane: &mut [f32],
+    n: usize,
+    inverse_norm_hyperplane: f32,
+) {
+    for i in 0..n {
+        let x = hyperplane.get_unchecked_mut(i);
+        *x = M::mul(*x, inverse_norm_hyperplane);
+    }
 }
 
 #[inline(always)]
@@ -427,6 +671,23 @@ mod tests {
     fn test_x512_nofma_angular_hyperplane() {
         let (x, y) = get_sample_vectors(512);
         let hyperplane = unsafe { f32_x512_avx2_nofma_angular_hyperplane(&x, &y) };
+        let expected = simple_angular_hyperplane(&x, &y);
+        assert_is_close_vector(&hyperplane, &expected);
+    }
+
+    #[cfg(feature = "nightly")]
+    #[test]
+    fn test_xany_fma_angular_hyperplane() {
+        let (x, y) = get_sample_vectors(127);
+        let hyperplane = unsafe { f32_xany_avx2_fma_angular_hyperplane(&x, &y) };
+        let expected = simple_angular_hyperplane(&x, &y);
+        assert_is_close_vector(&hyperplane, &expected);
+    }
+
+    #[test]
+    fn test_xany_nofma_angular_hyperplane() {
+        let (x, y) = get_sample_vectors(127);
+        let hyperplane = unsafe { f32_xany_avx2_nofma_angular_hyperplane(&x, &y) };
         let expected = simple_angular_hyperplane(&x, &y);
         assert_is_close_vector(&hyperplane, &expected);
     }

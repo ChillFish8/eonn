@@ -250,7 +250,6 @@ pub unsafe fn f32_xany_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
     total + sum_avx2(acc)
 }
 
-
 #[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
@@ -635,6 +634,21 @@ mod tests {
     fn test_x512_nofma_dot() {
         let (x, y) = get_sample_vectors(512);
         let dist = unsafe { f32_x512_avx2_nofma_dot(&x, &y) };
+        assert!(is_close(dist, simple_dot(&x, &y)))
+    }
+
+    #[cfg(feature = "nightly")]
+    #[test]
+    fn test_xany_fma_dot() {
+        let (x, y) = get_sample_vectors(127);
+        let dist = unsafe { f32_xany_avx2_fma_dot(&x, &y) };
+        assert!(is_close(dist, simple_dot(&x, &y)))
+    }
+
+    #[test]
+    fn test_xany_nofma_dot() {
+        let (x, y) = get_sample_vectors(127);
+        let dist = unsafe { f32_xany_avx2_nofma_dot(&x, &y) };
         assert!(is_close(dist, simple_dot(&x, &y)))
     }
 }

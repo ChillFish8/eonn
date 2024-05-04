@@ -257,4 +257,19 @@ mod tests {
         let dist = unsafe { f32_x512_avx2_nofma_cosine(&x, &y) };
         assert!(is_close(dist, simple_cosine(&x, &y)))
     }
+
+    #[cfg(feature = "nightly")]
+    #[test]
+    fn test_xany_fma_cosine() {
+        let (x, y) = get_sample_vectors(127);
+        let dist = unsafe { f32_xany_avx2_fma_cosine(&x, &y) };
+        assert!(is_close(dist, simple_cosine(&x, &y)))
+    }
+
+    #[test]
+    fn test_xany_nofma_cosine() {
+        let (x, y) = get_sample_vectors(127);
+        let dist = unsafe { f32_xany_avx2_nofma_cosine(&x, &y) };
+        assert!(is_close(dist, simple_cosine(&x, &y)))
+    }
 }
