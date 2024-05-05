@@ -10,9 +10,9 @@ use crate::danger::{
     f32_x768_avx512_fma_norm,
     f32_x768_avx512_nofma_norm,
     f32_xany_avx512_fma_norm,
-    f32_xany_avx512_nofma_div,
+    f32_xany_avx512_nofma_div_value,
     f32_xany_avx512_nofma_norm,
-    f32_xconst_avx512_nofma_div,
+    f32_xconst_avx512_nofma_div_value,
     load_two_variable_size_avx512,
     offsets_avx512,
     CHUNK_0,
@@ -85,7 +85,7 @@ macro_rules! compute_angular_hyperplane {
             norm_hyperplane = 1.0;
         }
 
-        f32_xconst_avx512_nofma_div::<$dims>(&mut hyperplane, norm_hyperplane);
+        f32_xconst_avx512_nofma_div_value::<$dims>(&mut hyperplane, norm_hyperplane);
 
         hyperplane
     }};
@@ -203,7 +203,7 @@ pub unsafe fn f32_xany_avx512_nofma_angular_hyperplane(
         norm_hyperplane = 1.0;
     }
 
-    f32_xany_avx512_nofma_div(&mut hyperplane, norm_hyperplane);
+    f32_xany_avx512_nofma_div_value(&mut hyperplane, norm_hyperplane);
 
     hyperplane
 }
@@ -308,7 +308,7 @@ pub unsafe fn f32_xany_avx512_fma_angular_hyperplane(x: &[f32], y: &[f32]) -> Ve
         norm_hyperplane = 1.0;
     }
 
-    f32_xany_avx512_nofma_div(&mut hyperplane, norm_hyperplane);
+    f32_xany_avx512_nofma_div_value(&mut hyperplane, norm_hyperplane);
 
     hyperplane
 }

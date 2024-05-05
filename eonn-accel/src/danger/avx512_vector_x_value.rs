@@ -21,11 +21,11 @@ use crate::danger::{
 ///
 /// This method assumes AVX512 instructions are available, if this method is executed
 /// on non-AVX512 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
-pub unsafe fn f32_xconst_avx512_nofma_div<const DIMS: usize>(
+pub unsafe fn f32_xconst_avx512_nofma_div_value<const DIMS: usize>(
     arr: &mut [f32],
     divider: f32,
 ) {
-    f32_xconst_avx512_nofma_mul::<DIMS>(arr, 1.0 / divider)
+    f32_xconst_avx512_nofma_mul_value::<DIMS>(arr, 1.0 / divider)
 }
 
 #[target_feature(enable = "avx512f")]
@@ -36,8 +36,8 @@ pub unsafe fn f32_xconst_avx512_nofma_div<const DIMS: usize>(
 ///
 /// This method assumes AVX512 instructions are available, if this method is executed
 /// on non-AVX512 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
-pub unsafe fn f32_xany_avx512_nofma_div(arr: &mut [f32], divider: f32) {
-    f32_xany_avx512_nofma_mul(arr, 1.0 / divider)
+pub unsafe fn f32_xany_avx512_nofma_div_value(arr: &mut [f32], divider: f32) {
+    f32_xany_avx512_nofma_mul_value(arr, 1.0 / divider)
 }
 
 #[target_feature(enable = "avx512f")]
@@ -52,7 +52,7 @@ pub unsafe fn f32_xany_avx512_nofma_div(arr: &mut [f32], divider: f32) {
 ///
 /// This method assumes AVX512 instructions are available, if this method is executed
 /// on non-AVX512 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
-pub unsafe fn f32_xconst_avx512_nofma_mul<const DIMS: usize>(
+pub unsafe fn f32_xconst_avx512_nofma_mul_value<const DIMS: usize>(
     arr: &mut [f32],
     multiplier: f32,
 ) {
@@ -77,7 +77,7 @@ pub unsafe fn f32_xconst_avx512_nofma_mul<const DIMS: usize>(
 ///
 /// This method assumes AVX512 instructions are available, if this method is executed
 /// on non-AVX512 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
-pub unsafe fn f32_xany_avx512_nofma_mul(arr: &mut [f32], multiplier: f32) {
+pub unsafe fn f32_xany_avx512_nofma_mul_value(arr: &mut [f32], multiplier: f32) {
     let len = arr.len();
     let mut offset_from = len % 128;
 
@@ -115,7 +115,7 @@ pub unsafe fn f32_xany_avx512_nofma_mul(arr: &mut [f32], multiplier: f32) {
 ///
 /// This method assumes AVX512 instructions are available, if this method is executed
 /// on non-AVX512 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
-pub unsafe fn f32_xconst_avx512_nofma_add<const DIMS: usize>(
+pub unsafe fn f32_xconst_avx512_nofma_add_value<const DIMS: usize>(
     arr: &mut [f32],
     value: f32,
 ) {
@@ -140,7 +140,7 @@ pub unsafe fn f32_xconst_avx512_nofma_add<const DIMS: usize>(
 ///
 /// This method assumes AVX512 instructions are available, if this method is executed
 /// on non-AVX512 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
-pub unsafe fn f32_xany_avx512_nofma_add(arr: &mut [f32], value: f32) {
+pub unsafe fn f32_xany_avx512_nofma_add_value(arr: &mut [f32], value: f32) {
     let len = arr.len();
     let mut offset_from = len % 128;
 
@@ -186,7 +186,7 @@ pub unsafe fn f32_xany_avx512_nofma_add(arr: &mut [f32], value: f32) {
 ///
 /// This method assumes AVX512 instructions are available, if this method is executed
 /// on non-AVX512 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
-pub unsafe fn f32_xconst_avx512_nofma_sub<const DIMS: usize>(
+pub unsafe fn f32_xconst_avx512_nofma_sub_value<const DIMS: usize>(
     arr: &mut [f32],
     value: f32,
 ) {
@@ -211,7 +211,7 @@ pub unsafe fn f32_xconst_avx512_nofma_sub<const DIMS: usize>(
 ///
 /// This method assumes AVX512 instructions are available, if this method is executed
 /// on non-AVX512 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
-pub unsafe fn f32_xany_avx512_nofma_sub(arr: &mut [f32], value: f32) {
+pub unsafe fn f32_xany_avx512_nofma_sub_value(arr: &mut [f32], value: f32) {
     let len = arr.len();
     let mut offset_from = len % 128;
 
@@ -348,7 +348,7 @@ mod tests {
         let value = 2.0;
         let (mut x, _) = get_sample_vectors(557);
         let expected = x.iter().copied().map(|v| v / value).collect::<Vec<_>>();
-        unsafe { f32_xany_avx512_nofma_div(&mut x, value) };
+        unsafe { f32_xany_avx512_nofma_div_value(&mut x, value) };
         assert_is_close_vector(&x, &expected);
     }
 
@@ -357,7 +357,7 @@ mod tests {
         let value = 2.0;
         let (mut x, _) = get_sample_vectors(557);
         let expected = x.iter().copied().map(|v| v * value).collect::<Vec<_>>();
-        unsafe { f32_xany_avx512_nofma_mul(&mut x, value) };
+        unsafe { f32_xany_avx512_nofma_mul_value(&mut x, value) };
         assert_is_close_vector(&x, &expected);
     }
 
@@ -366,7 +366,7 @@ mod tests {
         let value = 2.0;
         let (mut x, _) = get_sample_vectors(557);
         let expected = x.iter().copied().map(|v| v + value).collect::<Vec<_>>();
-        unsafe { f32_xany_avx512_nofma_add(&mut x, value) };
+        unsafe { f32_xany_avx512_nofma_add_value(&mut x, value) };
         assert_is_close_vector(&x, &expected);
     }
 
@@ -375,7 +375,7 @@ mod tests {
         let value = 2.0;
         let (mut x, _) = get_sample_vectors(557);
         let expected = x.iter().copied().map(|v| v - value).collect::<Vec<_>>();
-        unsafe { f32_xany_avx512_nofma_sub(&mut x, value) };
+        unsafe { f32_xany_avx512_nofma_sub_value(&mut x, value) };
         assert_is_close_vector(&x, &expected);
     }
 
@@ -384,7 +384,7 @@ mod tests {
         let value = 2.0;
         let (mut x, _) = get_sample_vectors(512);
         let expected = x.iter().copied().map(|v| v / value).collect::<Vec<_>>();
-        unsafe { f32_xconst_avx512_nofma_div::<512>(&mut x, value) };
+        unsafe { f32_xconst_avx512_nofma_div_value::<512>(&mut x, value) };
         assert_is_close_vector(&x, &expected);
     }
 
@@ -393,7 +393,7 @@ mod tests {
         let value = 2.0;
         let (mut x, _) = get_sample_vectors(512);
         let expected = x.iter().copied().map(|v| v * value).collect::<Vec<_>>();
-        unsafe { f32_xconst_avx512_nofma_mul::<512>(&mut x, value) };
+        unsafe { f32_xconst_avx512_nofma_mul_value::<512>(&mut x, value) };
         assert_is_close_vector(&x, &expected);
     }
 
@@ -402,7 +402,7 @@ mod tests {
         let value = 2.0;
         let (mut x, _) = get_sample_vectors(512);
         let expected = x.iter().copied().map(|v| v + value).collect::<Vec<_>>();
-        unsafe { f32_xconst_avx512_nofma_add::<512>(&mut x, value) };
+        unsafe { f32_xconst_avx512_nofma_add_value::<512>(&mut x, value) };
         assert_is_close_vector(&x, &expected);
     }
 
@@ -411,7 +411,7 @@ mod tests {
         let value = 2.0;
         let (mut x, _) = get_sample_vectors(512);
         let expected = x.iter().copied().map(|v| v - value).collect::<Vec<_>>();
-        unsafe { f32_xconst_avx512_nofma_sub::<512>(&mut x, value) };
+        unsafe { f32_xconst_avx512_nofma_sub_value::<512>(&mut x, value) };
         assert_is_close_vector(&x, &expected);
     }
 }
