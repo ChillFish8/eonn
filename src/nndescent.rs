@@ -228,7 +228,7 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
         } else {
             let pool = rayon::ThreadPoolBuilder::new()
                 .num_threads(n_threads)
-                .thread_name(|idx| format!("rann-worker-{idx}"))
+                .thread_name(|idx| format!("eonn-worker-{idx}"))
                 .build()
                 .expect("Create threadpool");
             self.thread_pool = Some(pool);

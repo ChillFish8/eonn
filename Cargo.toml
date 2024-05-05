@@ -32,7 +32,7 @@ harness = false
 name = "bench_rp_forest"
 harness = false
 
-[profile.dev.package.rann-accel]
+[profile.dev.package.eonn-accel]
 opt-level = 3
 
 [workspace]
