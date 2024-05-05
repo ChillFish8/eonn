@@ -1,6 +1,14 @@
 use std::arch::x86_64::*;
 
-use crate::danger::{offsets_avx2, rollup_x8, sum_avx2, CHUNK_0, CHUNK_1};
+use crate::danger::{
+    f32_xany_fallback_fma_euclidean,
+    f32_xany_fallback_nofma_euclidean,
+    offsets_avx2,
+    rollup_x8,
+    sum_avx2,
+    CHUNK_0,
+    CHUNK_1,
+};
 use crate::math::*;
 
 macro_rules! unrolled_loop {
@@ -214,7 +222,9 @@ pub unsafe fn f32_xany_avx2_nofma_euclidean(x: &[f32], y: &[f32]) -> f32 {
     let mut total = 0.0;
 
     if offset_from != 0 {
-        total = linear_euclidean::<StdMath>(x, y, offset_from);
+        let x_subsection = &x[..offset_from];
+        let y_subsection = &y[..offset_from];
+        total = f32_xany_fallback_nofma_euclidean(x_subsection, y_subsection);
     }
 
     let x = x.as_ptr();
@@ -436,7 +446,9 @@ pub unsafe fn f32_xany_avx2_fma_euclidean(x: &[f32], y: &[f32]) -> f32 {
     let mut total = 0.0;
 
     if offset_from != 0 {
-        total = linear_euclidean::<FastMath>(x, y, offset_from);
+        let x_subsection = &x[..offset_from];
+        let y_subsection = &y[..offset_from];
+        total = f32_xany_fallback_fma_euclidean(x_subsection, y_subsection);
     }
 
     let x = x.as_ptr();

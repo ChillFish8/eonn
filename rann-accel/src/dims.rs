@@ -7,29 +7,38 @@ pub struct X768;
 #[derive(Debug, Copy, Clone, Default)]
 /// Vector dimensions of 512
 pub struct X512;
+#[derive(Debug, Copy, Clone, Default)]
+/// Vector dimensions of any size.
+pub struct XAny;
 
 /// Dimension specification information.
 pub trait Dim: Default {
     /// The size of the dim.
     ///
     /// This is used for validation, not compute.
-    fn size() -> usize;
+    fn const_size() -> Option<usize>;
 }
 
 impl Dim for X1024 {
-    fn size() -> usize {
-        1024
+    fn const_size() -> Option<usize> {
+        Some(1024)
     }
 }
 
 impl Dim for X768 {
-    fn size() -> usize {
-        768
+    fn const_size() -> Option<usize> {
+        Some(768)
     }
 }
 
 impl Dim for X512 {
-    fn size() -> usize {
-        512
+    fn const_size() -> Option<usize> {
+        Some(512)
+    }
+}
+
+impl Dim for XAny {
+    fn const_size() -> Option<usize> {
+        None
     }
 }

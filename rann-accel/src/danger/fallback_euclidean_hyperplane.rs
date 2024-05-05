@@ -52,7 +52,7 @@ pub unsafe fn f32_xany_fallback_fma_euclidean_hyperplane(
     (hyperplane, offset)
 }
 
-unsafe fn fallback_euclidean_hyperplane<M: Math>(
+pub(crate) unsafe fn fallback_euclidean_hyperplane<M: Math>(
     x: &[f32],
     y: &[f32],
     hyperplane: &mut [f32],

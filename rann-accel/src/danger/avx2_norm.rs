@@ -1,7 +1,13 @@
 use std::arch::x86_64::*;
 
 use crate::danger::utils::{CHUNK_0, CHUNK_1};
-use crate::danger::{offsets_avx2, rollup_x8, sum_avx2};
+use crate::danger::{
+    f32_xany_fallback_fma_dot,
+    f32_xany_fallback_nofma_dot,
+    offsets_avx2,
+    rollup_x8,
+    sum_avx2,
+};
 use crate::math::*;
 
 macro_rules! unrolled_loop {
@@ -198,7 +204,8 @@ pub unsafe fn f32_xany_avx2_nofma_norm(x: &[f32]) -> f32 {
     let mut total = 0.0;
 
     if offset_from != 0 {
-        total = linear_norm::<StdMath>(x, offset_from);
+        let subsection = &x[..offset_from];
+        total = f32_xany_fallback_nofma_dot(subsection, subsection);
     }
 
     let x = x.as_ptr();
@@ -399,7 +406,8 @@ pub unsafe fn f32_xany_avx2_fma_norm(x: &[f32]) -> f32 {
     let mut total = 0.0;
 
     if offset_from != 0 {
-        total = linear_norm::<FastMath>(x, offset_from);
+        let subsection = &x[..offset_from];
+        total = f32_xany_fallback_fma_dot(subsection, subsection);
     }
 
     let x = x.as_ptr();
@@ -510,18 +518,6 @@ unsafe fn execute_f32_x64_fma_block_norm(
     *acc6 = _mm256_fmadd_ps(x6, x6, *acc6);
     *acc7 = _mm256_fmadd_ps(x7, x7, *acc7);
     *acc8 = _mm256_fmadd_ps(x8, x8, *acc8);
-}
-
-#[inline]
-unsafe fn linear_norm<M: Math>(x: &[f32], n: usize) -> f32 {
-    let mut total = 0.0;
-
-    for i in 0..n {
-        let x = *x.get_unchecked(i);
-        total = M::add(total, M::mul(x, x))
-    }
-
-    total
 }
 
 #[cfg(test)]

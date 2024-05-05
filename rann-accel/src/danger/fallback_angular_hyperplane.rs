@@ -50,7 +50,7 @@ pub unsafe fn f32_xany_fallback_fma_angular_hyperplane(
     hyperplane
 }
 
-unsafe fn fallback_angular_hyperplane<M: Math>(
+pub(crate) unsafe fn fallback_angular_hyperplane<M: Math>(
     x: &[f32],
     y: &[f32],
     hyperplane: &mut [f32],

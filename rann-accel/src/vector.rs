@@ -21,7 +21,7 @@ where
     (D, A): DangerousOps,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        if D::size() != 0 {
+        if self.buffer.len() != 0 {
             let first = self.buffer.first().unwrap();
             let last = self.buffer.last().unwrap();
 
@@ -44,11 +44,13 @@ where
     ///
     /// This method does not allocate.
     pub fn try_from_vec(data: Vec<T>) -> Result<Self, VectorCreateError> {
-        if data.len() != D::size() {
-            return Err(VectorCreateError::BadDimensions {
-                expected: D::size(),
-                got: data.len(),
-            });
+        if let Some(expected_dim) = D::const_size() {
+            if data.len() != expected_dim {
+                return Err(VectorCreateError::BadDimensions {
+                    expected: expected_dim,
+                    got: data.len(),
+                });
+            }
         }
 
         if data.iter().any(|v| !(v.is_finite() || v.is_nan())) {
@@ -68,7 +70,16 @@ where
     ///
     /// If any of these checks are not performed or invalid, this creates immediate UB.
     pub unsafe fn from_vec_unchecked(data: Vec<T>) -> Self {
-        debug_assert_eq!(data.len(), D::size());
+        if cfg!(debug_assertions) {
+            if let Some(expected_dim) = D::const_size() {
+                assert_eq!(
+                    data.len(),
+                    expected_dim,
+                    "Dimensions of const size must match"
+                );
+            }
+        }
+
         debug_assert!(!data.iter().any(|v| !(v.is_finite() || v.is_nan())));
 
         Self {
@@ -82,8 +93,8 @@ impl<D: Dim, A: Arch> SpacialOps for Vector<D, A, f32>
 where
     (D, A): DangerousOps,
 {
-    fn len() -> usize {
-        D::size()
+    fn len(&self) -> usize {
+        self.buffer.len()
     }
 
     fn dot(&self, other: &Self) -> f32 {

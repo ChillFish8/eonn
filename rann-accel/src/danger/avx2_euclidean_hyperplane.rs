@@ -1,7 +1,14 @@
 use std::arch::x86_64::*;
 use std::{mem, ptr};
 
-use crate::danger::{offsets_avx2, rollup_x8, sum_avx2, CHUNK_0, CHUNK_1};
+use crate::danger::{
+    fallback_euclidean_hyperplane,
+    offsets_avx2,
+    rollup_x8,
+    sum_avx2,
+    CHUNK_0,
+    CHUNK_1,
+};
 use crate::math::*;
 
 macro_rules! compute_euclidean_hyperplane {
@@ -171,8 +178,13 @@ pub unsafe fn f32_xany_avx2_nofma_euclidean_hyperplane(
     let mut hyperplane = vec![0.0; len];
 
     if offset_from != 0 {
-        hyperplane_offset =
-            linear_euclidean_hyperplane::<StdMath>(x, y, offset_from, &mut hyperplane);
+        let x_subsection = &x[..offset_from];
+        let y_subsection = &y[..offset_from];
+        hyperplane_offset = fallback_euclidean_hyperplane::<StdMath>(
+            x_subsection,
+            y_subsection,
+            &mut hyperplane,
+        );
     }
 
     let x = x.as_ptr();
@@ -335,8 +347,13 @@ pub unsafe fn f32_xany_avx2_fma_euclidean_hyperplane(
     let mut hyperplane = vec![0.0; len];
 
     if offset_from != 0 {
-        hyperplane_offset =
-            linear_euclidean_hyperplane::<FastMath>(x, y, offset_from, &mut hyperplane);
+        let x_subsection = &x[..offset_from];
+        let y_subsection = &y[..offset_from];
+        hyperplane_offset = fallback_euclidean_hyperplane::<FastMath>(
+            x_subsection,
+            y_subsection,
+            &mut hyperplane,
+        );
     }
 
     let x = x.as_ptr();
@@ -581,29 +598,6 @@ unsafe fn sub_reduce_x8(
 ) -> f32 {
     acc1 = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
     -sum_avx2(acc1)
-}
-
-#[inline]
-unsafe fn linear_euclidean_hyperplane<M: Math>(
-    x: &[f32],
-    y: &[f32],
-    n: usize,
-    hyperplane: &mut [f32],
-) -> f32 {
-    let mut offset = 0.0;
-
-    for i in 0..n {
-        let x = *x.get_unchecked(i);
-        let y = *y.get_unchecked(i);
-
-        let diff = M::sub(x, y);
-        let mean = M::mul(M::add(x, y), 0.5);
-        offset = M::sub(offset, M::mul(diff, mean));
-
-        hyperplane[i] = diff;
-    }
-
-    offset
 }
 
 #[cfg(test)]

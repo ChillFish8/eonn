@@ -1,8 +1,13 @@
 use std::arch::x86_64::*;
 
 use crate::danger::utils::{CHUNK_0, CHUNK_1};
-use crate::danger::{offsets_avx2, rollup_x8, sum_avx2};
-use crate::math::{FastMath, Math, StdMath};
+use crate::danger::{
+    f32_xany_fallback_fma_dot,
+    f32_xany_fallback_nofma_dot,
+    offsets_avx2,
+    rollup_x8,
+    sum_avx2,
+};
 
 macro_rules! unrolled_loop {
     (
@@ -215,7 +220,9 @@ pub unsafe fn f32_xany_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
     let mut total = 0.0;
 
     if offset_from != 0 {
-        total = linear_dot::<StdMath>(x, y, offset_from);
+        let x_subsection = &x[..offset_from];
+        let y_subsection = &y[..offset_from];
+        total = f32_xany_fallback_nofma_dot(x_subsection, y_subsection);
     }
 
     let x = x.as_ptr();
@@ -433,7 +440,9 @@ pub unsafe fn f32_xany_avx2_fma_dot(x: &[f32], y: &[f32]) -> f32 {
     let mut total = 0.0;
 
     if offset_from != 0 {
-        total = linear_dot::<FastMath>(x, y, offset_from);
+        let x_subsection = &x[..offset_from];
+        let y_subsection = &y[..offset_from];
+        total = f32_xany_fallback_fma_dot(x_subsection, y_subsection);
     }
 
     let x = x.as_ptr();
@@ -572,19 +581,6 @@ unsafe fn execute_f32_x64_fma_block_dot_product(
     *acc6 = _mm256_fmadd_ps(x6, y6, *acc6);
     *acc7 = _mm256_fmadd_ps(x7, y7, *acc7);
     *acc8 = _mm256_fmadd_ps(x8, y8, *acc8);
-}
-
-#[inline]
-unsafe fn linear_dot<M: Math>(x: &[f32], y: &[f32], n: usize) -> f32 {
-    let mut total = 0.0;
-
-    for i in 0..n {
-        let x = *x.get_unchecked(i);
-        let y = *y.get_unchecked(i);
-        total = M::add(total, M::mul(x, y));
-    }
-
-    total
 }
 
 #[cfg(test)]
