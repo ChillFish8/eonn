@@ -172,9 +172,25 @@ pub(crate) unsafe fn load_one_variable_size_avx512(x: *const f32, n: usize) -> _
 /// NOTE:
 /// This will implicitly cap the number of elements to `min(len, 16)` to prevent
 /// going out of bounds on the register.
-pub(crate) unsafe fn copy_register_to(arr: *mut f32, reg: __m512, len: usize) {
+pub(crate) unsafe fn copy_masked_avx512_register_to(
+    arr: *mut f32,
+    reg: __m512,
+    len: usize,
+) {
     let result = mem::transmute::<__m512, [f32; 16]>(reg);
     ptr::copy_nonoverlapping(result.as_ptr(), arr, cmp::min(16, len));
+}
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[inline(always)]
+/// Copies the data from the given `reg` into `arr` for upto `len` elements.
+///
+/// NOTE:
+/// This will implicitly cap the number of elements to `min(len, 16)` to prevent
+/// going out of bounds on the register.
+pub(crate) unsafe fn copy_avx2_register_to(arr: *mut f32, reg: __m256) {
+    let result = mem::transmute::<__m256, [f32; 8]>(reg);
+    ptr::copy_nonoverlapping(result.as_ptr(), arr, result.len());
 }
 
 #[cfg(test)]

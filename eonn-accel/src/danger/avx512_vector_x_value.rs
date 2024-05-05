@@ -2,7 +2,7 @@ use std::arch::x86_64::*;
 use std::{mem, ptr};
 
 use crate::danger::{
-    copy_register_to,
+    copy_masked_avx512_register_to,
     load_one_variable_size_avx512,
     offsets_avx512,
     CHUNK_0,
@@ -91,7 +91,7 @@ pub unsafe fn f32_xany_avx512_nofma_mul(arr: &mut [f32], multiplier: f32) {
             let arr = arr.add(i);
             let x = load_one_variable_size_avx512(arr, offset_from - i);
             let r = _mm512_mul_ps(x, multiplier);
-            copy_register_to(arr, r, n);
+            copy_masked_avx512_register_to(arr, r, n);
 
             i += 16;
         }
@@ -162,7 +162,7 @@ pub unsafe fn f32_xany_avx512_nofma_add(arr: &mut [f32], value: f32) {
                 _mm512_add_ps(x, value)
             };
 
-            copy_register_to(arr, r, n);
+            copy_masked_avx512_register_to(arr, r, n);
 
             i += 16;
         }
@@ -233,7 +233,7 @@ pub unsafe fn f32_xany_avx512_nofma_sub(arr: &mut [f32], value: f32) {
                 _mm512_sub_ps(x, value)
             };
 
-            copy_register_to(arr, r, n);
+            copy_masked_avx512_register_to(arr, r, n);
 
             i += 16;
         }

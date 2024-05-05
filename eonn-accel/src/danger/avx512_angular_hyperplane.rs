@@ -2,7 +2,7 @@ use std::arch::x86_64::*;
 use std::{mem, ptr};
 
 use crate::danger::{
-    copy_register_to,
+    copy_masked_avx512_register_to,
     f32_x1024_avx512_fma_norm,
     f32_x1024_avx512_nofma_norm,
     f32_x512_avx512_fma_norm,
@@ -340,7 +340,7 @@ unsafe fn any_size_f32_hyperplane(
             let normalized_y = _mm512_mul_ps(y, inverse_norm_y);
             let diff = _mm512_sub_ps(normalized_x, normalized_y);
 
-            copy_register_to(hyperplane_ptr.add(i), diff, n);
+            copy_masked_avx512_register_to(hyperplane_ptr.add(i), diff, n);
 
             i += 16;
         }

@@ -10,6 +10,8 @@ mod avx2_euclidean;
 mod avx2_euclidean_hyperplane;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 mod avx2_norm;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+mod avx2_vector_x_value;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 mod avx512_angular_hyperplane;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
@@ -47,6 +49,8 @@ pub use self::avx2_euclidean::*;
 pub use self::avx2_euclidean_hyperplane::*;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub use self::avx2_norm::*;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+pub use self::avx2_vector_x_value::*;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 pub use self::avx512_angular_hyperplane::*;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]

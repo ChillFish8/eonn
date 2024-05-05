@@ -2,8 +2,8 @@ use std::hint::black_box;
 use std::time::Duration;
 
 use criterion::{criterion_group, criterion_main, Criterion};
-use rann::rp_trees::make_forest;
 use eonn_accel::{Auto, Vector, X1024};
+use rann::rp_trees::make_forest;
 
 mod utils;
 
