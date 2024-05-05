@@ -1,4 +1,5 @@
 use std::fmt::{Debug, Display, Formatter};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
 use crate::arch::Arch;
 use crate::ops::{DangerousOps, SpacialOps};
@@ -143,6 +144,110 @@ where
                 self.ops.euclidean_hyperplane(&self.buffer, &other.buffer);
             (Self::from_vec_unchecked(data), offset)
         }
+    }
+}
+
+impl<D: Dim, A: Arch> Add<f32> for Vector<D, A, f32>
+where
+    (D, A): DangerousOps,
+{
+    type Output = Self;
+
+    #[inline]
+    fn add(mut self, rhs: f32) -> Self::Output {
+        self += rhs;
+        self
+    }
+}
+
+impl<D: Dim, A: Arch> AddAssign<f32> for Vector<D, A, f32>
+where
+    (D, A): DangerousOps,
+{
+    #[inline]
+    fn add_assign(&mut self, rhs: f32) {
+        // We cannot avoid these asserts, because it is out of control of what gets
+        // passed in here.
+        assert!(rhs.is_finite() && !rhs.is_nan());
+        unsafe { self.ops.add_value(&mut self.buffer, rhs) };
+    }
+}
+
+impl<D: Dim, A: Arch> Sub<f32> for Vector<D, A, f32>
+where
+    (D, A): DangerousOps,
+{
+    type Output = Self;
+
+    #[inline]
+    fn sub(mut self, rhs: f32) -> Self::Output {
+        self -= rhs;
+        self
+    }
+}
+
+impl<D: Dim, A: Arch> SubAssign<f32> for Vector<D, A, f32>
+where
+    (D, A): DangerousOps,
+{
+    #[inline]
+    fn sub_assign(&mut self, rhs: f32) {
+        // We cannot avoid these asserts, because it is out of control of what gets
+        // passed in here.
+        assert!(rhs.is_finite() && !rhs.is_nan());
+        unsafe { self.ops.sub_value(&mut self.buffer, rhs) };
+    }
+}
+
+impl<D: Dim, A: Arch> Mul<f32> for Vector<D, A, f32>
+where
+    (D, A): DangerousOps,
+{
+    type Output = Self;
+
+    #[inline]
+    fn mul(mut self, rhs: f32) -> Self::Output {
+        self *= rhs;
+        self
+    }
+}
+
+impl<D: Dim, A: Arch> MulAssign<f32> for Vector<D, A, f32>
+where
+    (D, A): DangerousOps,
+{
+    #[inline]
+    fn mul_assign(&mut self, rhs: f32) {
+        // We cannot avoid these asserts, because it is out of control of what gets
+        // passed in here.
+        assert!(rhs.is_finite() && !rhs.is_nan());
+        unsafe { self.ops.mul_value(&mut self.buffer, rhs) };
+    }
+}
+
+impl<D: Dim, A: Arch> Div<f32> for Vector<D, A, f32>
+where
+    (D, A): DangerousOps,
+{
+    type Output = Self;
+
+    #[inline]
+    fn div(mut self, rhs: f32) -> Self::Output {
+        self /= rhs;
+        self
+    }
+}
+
+impl<D: Dim, A: Arch> DivAssign<f32> for Vector<D, A, f32>
+where
+    (D, A): DangerousOps,
+{
+    #[inline]
+    fn div_assign(&mut self, rhs: f32) {
+        // We cannot avoid these asserts, because it is out of control of what gets
+        // passed in here.
+        assert!(rhs.is_finite() && !rhs.is_nan());
+        unsafe { self.ops.div_value(&mut self.buffer, rhs) };
     }
 }
 

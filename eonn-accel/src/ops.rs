@@ -1,6 +1,7 @@
 use crate::arch::*;
 use crate::dims::*;
 
+#[allow(clippy::len_without_is_empty)]
 /// Safe spacial type operations.
 pub trait SpacialOps: Sized {
     /// Returns the length of the vector.
@@ -71,6 +72,34 @@ pub trait DangerousOps {
     /// of `x` and `y` must also be equal and align with the implementor's required
     /// dimension sizes.
     unsafe fn squared_norm(&self, x: &[f32]) -> f32;
+    /// Adds the value `val` to each element in the vector `x`.
+    ///
+    /// # Safety
+    /// All vectors must contain only finite values and be not-nan. The dimensions
+    /// of `x` and `y` must also be equal and align with the implementor's required
+    /// dimension sizes.
+    unsafe fn add_value(&self, x: &mut [f32], val: f32);
+    /// Adds the value `val` to each element in the vector `x`.
+    ///
+    /// # Safety
+    /// All vectors must contain only finite values and be not-nan. The dimensions
+    /// of `x` and `y` must also be equal and align with the implementor's required
+    /// dimension sizes.
+    unsafe fn sub_value(&self, x: &mut [f32], val: f32);
+    /// Adds the value `val` to each element in the vector `x`.
+    ///
+    /// # Safety
+    /// All vectors must contain only finite values and be not-nan. The dimensions
+    /// of `x` and `y` must also be equal and align with the implementor's required
+    /// dimension sizes.
+    unsafe fn mul_value(&self, x: &mut [f32], val: f32);
+    /// Adds the value `val` to each element in the vector `x`.
+    ///
+    /// # Safety
+    /// All vectors must contain only finite values and be not-nan. The dimensions
+    /// of `x` and `y` must also be equal and align with the implementor's required
+    /// dimension sizes.
+    unsafe fn div_value(&self, x: &mut [f32], val: f32);
 }
 
 impl<D: Dim> DangerousOps for (D, Fallback) {
@@ -102,6 +131,26 @@ impl<D: Dim> DangerousOps for (D, Fallback) {
     #[inline]
     unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
         crate::danger::f32_xany_fallback_nofma_dot(x, x)
+    }
+
+    #[inline]
+    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xany_fallback_nofma_add_value(x, val)
+    }
+
+    #[inline]
+    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xany_fallback_nofma_sub_value(x, val)
+    }
+
+    #[inline]
+    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xany_fallback_nofma_mul_value(x, val)
+    }
+
+    #[inline]
+    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xany_fallback_nofma_div_value(x, val)
     }
 }
 
@@ -136,6 +185,26 @@ impl DangerousOps for (X1024, Avx2) {
     unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
         crate::danger::f32_x1024_avx2_nofma_norm(x)
     }
+
+    #[inline]
+    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx2_nofma_add_value::<1024>(x, val)
+    }
+
+    #[inline]
+    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx2_nofma_sub_value::<1024>(x, val)
+    }
+
+    #[inline]
+    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx2_nofma_mul_value::<1024>(x, val)
+    }
+
+    #[inline]
+    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx2_nofma_div_value::<1024>(x, val)
+    }
 }
 
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
@@ -168,6 +237,26 @@ impl DangerousOps for (X768, Avx2) {
     #[inline]
     unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
         crate::danger::f32_x768_avx2_nofma_norm(x)
+    }
+
+    #[inline]
+    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx2_nofma_add_value::<768>(x, val)
+    }
+
+    #[inline]
+    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx2_nofma_sub_value::<768>(x, val)
+    }
+
+    #[inline]
+    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx2_nofma_mul_value::<768>(x, val)
+    }
+
+    #[inline]
+    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx2_nofma_div_value::<768>(x, val)
     }
 }
 
@@ -202,6 +291,26 @@ impl DangerousOps for (X512, Avx2) {
     unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
         crate::danger::f32_x512_avx2_nofma_norm(x)
     }
+
+    #[inline]
+    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx2_nofma_add_value::<512>(x, val)
+    }
+
+    #[inline]
+    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx2_nofma_sub_value::<512>(x, val)
+    }
+
+    #[inline]
+    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx2_nofma_mul_value::<512>(x, val)
+    }
+
+    #[inline]
+    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx2_nofma_div_value::<512>(x, val)
+    }
 }
 
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
@@ -234,6 +343,26 @@ impl DangerousOps for (XAny, Avx2) {
     #[inline]
     unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
         crate::danger::f32_xany_avx2_nofma_norm(x)
+    }
+
+    #[inline]
+    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xany_avx2_nofma_add_value(x, val)
+    }
+
+    #[inline]
+    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xany_avx2_nofma_sub_value(x, val)
+    }
+
+    #[inline]
+    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xany_avx2_nofma_mul_value(x, val)
+    }
+
+    #[inline]
+    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xany_avx2_nofma_div_value(x, val)
     }
 }
 
@@ -268,6 +397,26 @@ impl DangerousOps for (X1024, Avx512) {
     unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
         crate::danger::f32_x1024_avx512_nofma_norm(x)
     }
+
+    #[inline]
+    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx512_nofma_add_value::<1024>(x, val)
+    }
+
+    #[inline]
+    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx512_nofma_sub_value::<1024>(x, val)
+    }
+
+    #[inline]
+    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx512_nofma_mul_value::<1024>(x, val)
+    }
+
+    #[inline]
+    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx512_nofma_div_value::<1024>(x, val)
+    }
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
@@ -300,6 +449,26 @@ impl DangerousOps for (X768, Avx512) {
     #[inline]
     unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
         crate::danger::f32_x768_avx512_nofma_norm(x)
+    }
+
+    #[inline]
+    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx512_nofma_add_value::<1024>(x, val)
+    }
+
+    #[inline]
+    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx512_nofma_sub_value::<1024>(x, val)
+    }
+
+    #[inline]
+    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx512_nofma_mul_value::<1024>(x, val)
+    }
+
+    #[inline]
+    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx512_nofma_div_value::<1024>(x, val)
     }
 }
 
@@ -334,6 +503,26 @@ impl DangerousOps for (X512, Avx512) {
     unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
         crate::danger::f32_x512_avx512_nofma_norm(x)
     }
+
+    #[inline]
+    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx512_nofma_add_value::<512>(x, val)
+    }
+
+    #[inline]
+    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx512_nofma_sub_value::<512>(x, val)
+    }
+
+    #[inline]
+    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx512_nofma_mul_value::<512>(x, val)
+    }
+
+    #[inline]
+    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx512_nofma_div_value::<512>(x, val)
+    }
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
@@ -366,6 +555,26 @@ impl DangerousOps for (XAny, Avx512) {
     #[inline]
     unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
         crate::danger::f32_xany_avx512_nofma_norm(x)
+    }
+
+    #[inline]
+    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xany_avx512_nofma_add_value(x, val)
+    }
+
+    #[inline]
+    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xany_avx512_nofma_sub_value(x, val)
+    }
+
+    #[inline]
+    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xany_avx512_nofma_mul_value(x, val)
+    }
+
+    #[inline]
+    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xany_avx512_nofma_div_value(x, val)
     }
 }
 
@@ -400,6 +609,26 @@ impl<D: Dim> DangerousOps for (D, (Fallback, Fma)) {
     unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
         crate::danger::f32_xany_fallback_fma_dot(x, x)
     }
+
+    #[inline]
+    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xany_fallback_nofma_add_value(x, val)
+    }
+
+    #[inline]
+    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xany_fallback_nofma_sub_value(x, val)
+    }
+
+    #[inline]
+    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xany_fallback_nofma_mul_value(x, val)
+    }
+
+    #[inline]
+    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xany_fallback_nofma_div_value(x, val)
+    }
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
@@ -432,6 +661,26 @@ impl DangerousOps for (X1024, (Avx2, Fma)) {
     #[inline]
     unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
         crate::danger::f32_x1024_avx2_fma_norm(x)
+    }
+
+    #[inline]
+    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx2_nofma_add_value::<1024>(x, val)
+    }
+
+    #[inline]
+    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx2_nofma_sub_value::<1024>(x, val)
+    }
+
+    #[inline]
+    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx2_nofma_mul_value::<1024>(x, val)
+    }
+
+    #[inline]
+    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx2_nofma_div_value::<1024>(x, val)
     }
 }
 
@@ -466,6 +715,26 @@ impl DangerousOps for (X768, (Avx2, Fma)) {
     unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
         crate::danger::f32_x768_avx2_fma_norm(x)
     }
+
+    #[inline]
+    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx2_nofma_add_value::<768>(x, val)
+    }
+
+    #[inline]
+    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx2_nofma_sub_value::<768>(x, val)
+    }
+
+    #[inline]
+    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx2_nofma_mul_value::<768>(x, val)
+    }
+
+    #[inline]
+    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx2_nofma_div_value::<768>(x, val)
+    }
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
@@ -498,6 +767,26 @@ impl DangerousOps for (X512, (Avx2, Fma)) {
     #[inline]
     unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
         crate::danger::f32_x512_avx2_fma_norm(x)
+    }
+
+    #[inline]
+    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx2_nofma_add_value::<512>(x, val)
+    }
+
+    #[inline]
+    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx2_nofma_sub_value::<512>(x, val)
+    }
+
+    #[inline]
+    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx2_nofma_mul_value::<512>(x, val)
+    }
+
+    #[inline]
+    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx2_nofma_div_value::<512>(x, val)
     }
 }
 
@@ -532,6 +821,26 @@ impl DangerousOps for (XAny, (Avx2, Fma)) {
     unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
         crate::danger::f32_xany_avx2_fma_norm(x)
     }
+
+    #[inline]
+    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xany_avx2_nofma_add_value(x, val)
+    }
+
+    #[inline]
+    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xany_avx2_nofma_sub_value(x, val)
+    }
+
+    #[inline]
+    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xany_avx2_nofma_mul_value(x, val)
+    }
+
+    #[inline]
+    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xany_avx2_nofma_div_value(x, val)
+    }
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
@@ -564,6 +873,26 @@ impl DangerousOps for (X1024, (Avx512, Fma)) {
     #[inline]
     unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
         crate::danger::f32_x1024_avx512_fma_norm(x)
+    }
+
+    #[inline]
+    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx512_nofma_add_value::<1024>(x, val)
+    }
+
+    #[inline]
+    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx512_nofma_sub_value::<1024>(x, val)
+    }
+
+    #[inline]
+    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx512_nofma_mul_value::<1024>(x, val)
+    }
+
+    #[inline]
+    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx512_nofma_div_value::<1024>(x, val)
     }
 }
 
@@ -598,6 +927,26 @@ impl DangerousOps for (X768, (Avx512, Fma)) {
     unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
         crate::danger::f32_x768_avx512_fma_norm(x)
     }
+
+    #[inline]
+    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx512_nofma_add_value::<768>(x, val)
+    }
+
+    #[inline]
+    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx512_nofma_sub_value::<768>(x, val)
+    }
+
+    #[inline]
+    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx512_nofma_mul_value::<768>(x, val)
+    }
+
+    #[inline]
+    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx512_nofma_div_value::<768>(x, val)
+    }
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
@@ -631,6 +980,26 @@ impl DangerousOps for (X512, (Avx512, Fma)) {
     unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
         crate::danger::f32_x512_avx512_fma_norm(x)
     }
+
+    #[inline]
+    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx512_nofma_add_value::<512>(x, val)
+    }
+
+    #[inline]
+    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx512_nofma_sub_value::<512>(x, val)
+    }
+
+    #[inline]
+    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx512_nofma_mul_value::<512>(x, val)
+    }
+
+    #[inline]
+    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xconst_avx512_nofma_div_value::<512>(x, val)
+    }
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
@@ -663,6 +1032,26 @@ impl DangerousOps for (XAny, (Avx512, Fma)) {
     #[inline]
     unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
         crate::danger::f32_xany_avx512_fma_norm(x)
+    }
+
+    #[inline]
+    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xany_avx512_nofma_add_value(x, val)
+    }
+
+    #[inline]
+    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xany_avx512_nofma_sub_value(x, val)
+    }
+
+    #[inline]
+    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xany_avx512_nofma_mul_value(x, val)
+    }
+
+    #[inline]
+    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
+        crate::danger::f32_xany_avx512_nofma_div_value(x, val)
     }
 }
 
@@ -858,6 +1247,158 @@ impl DangerousOps for (X1024, Auto) {
             SelectedArch::FallbackFma => crate::danger::f32_xany_fallback_fma_dot(x, x),
         }
     }
+
+    #[inline]
+    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_add_value::<1024>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_add_value::<1024>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_add_value::<1024>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_add_value::<1024>(x, val)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_add_value(x, val)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_add_value(x, val)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_sub_value::<1024>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_sub_value::<1024>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_sub_value::<1024>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_sub_value::<1024>(x, val)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_sub_value(x, val)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_sub_value(x, val)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_mul_value::<1024>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_mul_value::<1024>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_mul_value::<1024>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_mul_value::<1024>(x, val)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_mul_value(x, val)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_mul_value(x, val)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_div_value::<1024>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_div_value::<1024>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_div_value::<1024>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_div_value::<1024>(x, val)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_div_value(x, val)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_div_value(x, val)
+            },
+        }
+    }
 }
 
 impl DangerousOps for (X768, Auto) {
@@ -1048,6 +1589,158 @@ impl DangerousOps for (X768, Auto) {
             SelectedArch::Fallback => crate::danger::f32_xany_fallback_nofma_dot(x, x),
             #[cfg(feature = "nightly")]
             SelectedArch::FallbackFma => crate::danger::f32_xany_fallback_fma_dot(x, x),
+        }
+    }
+
+    #[inline]
+    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_add_value::<768>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_add_value::<768>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_add_value::<768>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_add_value::<768>(x, val)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_add_value(x, val)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_add_value(x, val)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_sub_value::<768>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_sub_value::<768>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_sub_value::<768>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_sub_value::<768>(x, val)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_sub_value(x, val)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_sub_value(x, val)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_mul_value::<768>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_mul_value::<768>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_mul_value::<768>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_mul_value::<768>(x, val)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_mul_value(x, val)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_mul_value(x, val)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_div_value::<768>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_div_value::<768>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_div_value::<768>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_div_value::<768>(x, val)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_div_value(x, val)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_div_value(x, val)
+            },
         }
     }
 }
@@ -1242,6 +1935,158 @@ impl DangerousOps for (X512, Auto) {
             SelectedArch::FallbackFma => crate::danger::f32_xany_fallback_fma_dot(x, x),
         }
     }
+
+    #[inline]
+    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_add_value::<512>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_add_value::<512>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_add_value::<512>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_add_value::<512>(x, val)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_add_value(x, val)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_add_value(x, val)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_sub_value::<512>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_sub_value::<512>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_sub_value::<512>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_sub_value::<512>(x, val)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_sub_value(x, val)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_sub_value(x, val)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_mul_value::<512>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_mul_value::<512>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_mul_value::<512>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_mul_value::<512>(x, val)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_mul_value(x, val)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_mul_value(x, val)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_div_value::<512>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_div_value::<512>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_div_value::<512>(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_div_value::<512>(x, val)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_sub_value(x, val)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_sub_value(x, val)
+            },
+        }
+    }
 }
 
 impl DangerousOps for (XAny, Auto) {
@@ -1432,6 +2277,150 @@ impl DangerousOps for (XAny, Auto) {
             SelectedArch::Fallback => crate::danger::f32_xany_fallback_nofma_dot(x, x),
             #[cfg(feature = "nightly")]
             SelectedArch::FallbackFma => crate::danger::f32_xany_fallback_fma_dot(x, x),
+        }
+    }
+
+    #[inline]
+    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_add_value(x, val),
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xany_avx2_nofma_add_value(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xany_avx512_nofma_add_value(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xany_avx512_nofma_add_value(x, val)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_add_value(x, val)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_nofma_add_value(x, val)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_sub_value(x, val),
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xany_avx2_nofma_sub_value(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xany_avx512_nofma_sub_value(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xany_avx512_nofma_sub_value(x, val)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_sub_value(x, val)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_nofma_sub_value(x, val)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_mul_value(x, val),
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xany_avx2_nofma_mul_value(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xany_avx512_nofma_mul_value(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xany_avx512_nofma_mul_value(x, val)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_mul_value(x, val)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_nofma_mul_value(x, val)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_div_value(x, val),
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xany_avx2_nofma_div_value(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xany_avx512_nofma_div_value(x, val)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xany_avx512_nofma_div_value(x, val)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_div_value(x, val)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_div_value(x, val)
+            },
         }
     }
 }

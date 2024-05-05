@@ -118,7 +118,10 @@ pub unsafe fn f32_xany_avx2_nofma_mul_value(arr: &mut [f32], multiplier: f32) {
 ///
 /// This method assumes avx2 instructions are available, if this method is executed
 /// on non-avx2 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
-pub unsafe fn f32_xconst_avx2_nofma_add_value<const DIMS: usize>(arr: &mut [f32], value: f32) {
+pub unsafe fn f32_xconst_avx2_nofma_add_value<const DIMS: usize>(
+    arr: &mut [f32],
+    value: f32,
+) {
     debug_assert_eq!(arr.len(), DIMS);
     debug_assert_eq!(DIMS % 64, 0, "Input dimensions must be multiple of 64");
 
@@ -187,7 +190,10 @@ pub unsafe fn f32_xany_avx2_nofma_add_value(arr: &mut [f32], value: f32) {
 ///
 /// This method assumes avx2 instructions are available, if this method is executed
 /// on non-avx2 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
-pub unsafe fn f32_xconst_avx2_nofma_sub_value<const DIMS: usize>(arr: &mut [f32], value: f32) {
+pub unsafe fn f32_xconst_avx2_nofma_sub_value<const DIMS: usize>(
+    arr: &mut [f32],
+    value: f32,
+) {
     debug_assert_eq!(arr.len(), DIMS);
     debug_assert_eq!(DIMS % 64, 0, "Input dimensions must be multiple of 64");
 

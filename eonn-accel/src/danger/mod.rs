@@ -31,6 +31,7 @@ mod fallback_cosine;
 mod fallback_dot_product;
 mod fallback_euclidean;
 mod fallback_euclidean_hyperplane;
+mod fallback_vector_x_value;
 #[cfg(test)]
 mod test_utils;
 mod utils;
@@ -65,9 +66,9 @@ pub use self::avx512_euclidean_hyperplane::*;
 pub use self::avx512_norm::*;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 pub use self::avx512_vector_x_value::*;
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub use self::fallback_angular_hyperplane::*;
 pub use self::fallback_cosine::*;
 pub use self::fallback_dot_product::*;
 pub use self::fallback_euclidean::*;
 pub use self::fallback_euclidean_hyperplane::*;
+pub use self::fallback_vector_x_value::*;
