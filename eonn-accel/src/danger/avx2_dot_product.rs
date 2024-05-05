@@ -1,13 +1,9 @@
 use std::arch::x86_64::*;
 
+#[cfg(feature = "nightly")]
+use crate::danger::f32_xany_fallback_fma_dot;
 use crate::danger::utils::{CHUNK_0, CHUNK_1};
-use crate::danger::{
-    f32_xany_fallback_fma_dot,
-    f32_xany_fallback_nofma_dot,
-    offsets_avx2,
-    rollup_x8,
-    sum_avx2,
-};
+use crate::danger::{f32_xany_fallback_nofma_dot, offsets_avx2, rollup_x8, sum_avx2};
 
 macro_rules! unrolled_loop {
     (

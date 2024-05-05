@@ -22,6 +22,8 @@ mod avx512_euclidean;
 mod avx512_euclidean_hyperplane;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 mod avx512_norm;
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+mod avx512_vector_x_value;
 mod fallback_angular_hyperplane;
 mod fallback_cosine;
 mod fallback_dot_product;
@@ -57,6 +59,8 @@ pub use self::avx512_euclidean::*;
 pub use self::avx512_euclidean_hyperplane::*;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 pub use self::avx512_norm::*;
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+pub use self::avx512_vector_x_value::*;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub use self::fallback_angular_hyperplane::*;
 pub use self::fallback_cosine::*;

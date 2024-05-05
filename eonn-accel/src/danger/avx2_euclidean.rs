@@ -1,7 +1,8 @@
 use std::arch::x86_64::*;
 
+#[cfg(feature = "nightly")]
+use crate::danger::f32_xany_fallback_fma_euclidean;
 use crate::danger::{
-    f32_xany_fallback_fma_euclidean,
     f32_xany_fallback_nofma_euclidean,
     offsets_avx2,
     rollup_x8,
@@ -9,7 +10,6 @@ use crate::danger::{
     CHUNK_0,
     CHUNK_1,
 };
-use crate::math::*;
 
 macro_rules! unrolled_loop {
     (
@@ -611,38 +611,28 @@ unsafe fn execute_f32_x64_fma_block_euclidean(
     *acc8 = _mm256_fmadd_ps(diff8, diff8, *acc8);
 }
 
-unsafe fn linear_euclidean<M: Math>(x: &[f32], y: &[f32], n: usize) -> f32 {
-    let mut total = 0.0;
-
-    for i in 0..n {
-        let x = *x.get_unchecked(i);
-        let y = *y.get_unchecked(i);
-
-        let diff = M::sub(x, y);
-        total = M::add(total, M::mul(diff, diff));
-    }
-
-    total
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::danger::test_utils::{get_sample_vectors, is_close, simple_euclidean};
+    use crate::danger::test_utils::{
+        assert_is_close,
+        get_sample_vectors,
+        simple_euclidean,
+    };
 
     #[cfg(feature = "nightly")]
     #[test]
     fn test_x1024_fma_euclidean() {
         let (x, y) = get_sample_vectors(1024);
         let dist = unsafe { f32_x1024_avx2_fma_euclidean(&x, &y) };
-        assert!(is_close(dist, simple_euclidean(&x, &y)));
+        assert_is_close(dist, simple_euclidean(&x, &y));
     }
 
     #[test]
     fn test_x1024_nofma_euclidean() {
         let (x, y) = get_sample_vectors(1024);
         let dist = unsafe { f32_x1024_avx2_nofma_euclidean(&x, &y) };
-        assert!(is_close(dist, simple_euclidean(&x, &y)));
+        assert_is_close(dist, simple_euclidean(&x, &y));
     }
 
     #[cfg(feature = "nightly")]
@@ -650,14 +640,14 @@ mod tests {
     fn test_x768_fma_euclidean() {
         let (x, y) = get_sample_vectors(768);
         let dist = unsafe { f32_x768_avx2_fma_euclidean(&x, &y) };
-        assert!(is_close(dist, simple_euclidean(&x, &y)));
+        assert_is_close(dist, simple_euclidean(&x, &y));
     }
 
     #[test]
     fn test_x768_nofma_euclidean() {
         let (x, y) = get_sample_vectors(768);
         let dist = unsafe { f32_x768_avx2_nofma_euclidean(&x, &y) };
-        assert!(is_close(dist, simple_euclidean(&x, &y)));
+        assert_is_close(dist, simple_euclidean(&x, &y));
     }
 
     #[cfg(feature = "nightly")]
@@ -665,14 +655,14 @@ mod tests {
     fn test_x512_fma_euclidean() {
         let (x, y) = get_sample_vectors(512);
         let dist = unsafe { f32_x512_avx2_fma_euclidean(&x, &y) };
-        assert!(is_close(dist, simple_euclidean(&x, &y)));
+        assert_is_close(dist, simple_euclidean(&x, &y));
     }
 
     #[test]
     fn test_x512_nofma_euclidean() {
         let (x, y) = get_sample_vectors(512);
         let dist = unsafe { f32_x512_avx2_nofma_euclidean(&x, &y) };
-        assert!(is_close(dist, simple_euclidean(&x, &y)));
+        assert_is_close(dist, simple_euclidean(&x, &y));
     }
 
     #[cfg(feature = "nightly")]
@@ -680,13 +670,13 @@ mod tests {
     fn test_xany_fma_euclidean() {
         let (x, y) = get_sample_vectors(127);
         let dist = unsafe { f32_xany_avx2_fma_euclidean(&x, &y) };
-        assert!(is_close(dist, simple_euclidean(&x, &y)));
+        assert_is_close(dist, simple_euclidean(&x, &y));
     }
 
     #[test]
     fn test_xany_nofma_euclidean() {
         let (x, y) = get_sample_vectors(127);
         let dist = unsafe { f32_xany_avx2_nofma_euclidean(&x, &y) };
-        assert!(is_close(dist, simple_euclidean(&x, &y)));
+        assert_is_close(dist, simple_euclidean(&x, &y));
     }
 }

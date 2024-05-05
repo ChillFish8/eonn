@@ -1,4 +1,5 @@
 use std::arch::x86_64::*;
+use std::{cmp, mem, ptr};
 
 use crate::math::Math;
 
@@ -134,6 +135,46 @@ pub fn rollup_scalar_x8<M: Math>(
     acc5 = M::add(acc5, acc7);
 
     M::add(acc1, acc5)
+}
+
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+pub(crate) unsafe fn load_two_variable_size_avx512(
+    x: *const f32,
+    y: *const f32,
+    n: usize,
+) -> (__m512, __m512) {
+    if n < 16 {
+        let mask = _bzhi_u32(0xFFFFFFFF, n as u32) as _;
+        let x = _mm512_maskz_loadu_ps(mask, x);
+        let y = _mm512_maskz_loadu_ps(mask, y);
+        (x, y)
+    } else {
+        let x = _mm512_loadu_ps(x);
+        let y = _mm512_loadu_ps(y);
+        (x, y)
+    }
+}
+
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+pub(crate) unsafe fn load_one_variable_size_avx512(x: *const f32, n: usize) -> __m512 {
+    if n < 16 {
+        let mask = _bzhi_u32(0xFFFFFFFF, n as u32) as _;
+        _mm512_maskz_loadu_ps(mask, x)
+    } else {
+        _mm512_loadu_ps(x)
+    }
+}
+
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+#[inline(always)]
+/// Copies the data from the given `reg` into `arr` for upto `len` elements.
+///
+/// NOTE:
+/// This will implicitly cap the number of elements to `min(len, 16)` to prevent
+/// going out of bounds on the register.
+pub(crate) unsafe fn copy_register_to(arr: *mut f32, reg: __m512, len: usize) {
+    let result = mem::transmute::<__m512, [f32; 16]>(reg);
+    ptr::copy_nonoverlapping(result.as_ptr(), arr, cmp::min(16, len));
 }
 
 #[cfg(test)]

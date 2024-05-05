@@ -163,6 +163,52 @@ pub unsafe fn f32_x512_avx512_nofma_norm(x: &[f32]) -> f32 {
 
 #[target_feature(enable = "avx512f")]
 #[inline]
+/// Computes the squared norm of one `f32` vector.
+///
+/// # Safety
+///
+/// NOTE:
+/// Values within the vector should also be finite, although it is not
+/// going to crash the program, it is going to produce insane numbers.
+pub unsafe fn f32_xany_avx512_nofma_norm(x: &[f32]) -> f32 {
+    let len = x.len();
+    let mut offset_from = len % 128;
+    let x = x.as_ptr();
+
+    let mut acc1 = _mm512_setzero_ps();
+    let mut acc2 = _mm512_setzero_ps();
+    let mut acc3 = _mm512_setzero_ps();
+    let mut acc4 = _mm512_setzero_ps();
+    let mut acc5 = _mm512_setzero_ps();
+    let mut acc6 = _mm512_setzero_ps();
+    let mut acc7 = _mm512_setzero_ps();
+    let mut acc8 = _mm512_setzero_ps();
+
+    if offset_from != 0 {
+        execute_f32_xany_nofma_block_norm(x, offset_from, &mut acc1);
+    }
+
+    while offset_from < len {
+        execute_f32_x128_nofma_block_norm(
+            x.add(offset_from),
+            &mut acc1,
+            &mut acc2,
+            &mut acc3,
+            &mut acc4,
+            &mut acc5,
+            &mut acc6,
+            &mut acc7,
+            &mut acc8,
+        );
+
+        offset_from += 128;
+    }
+
+    sum_avx512_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
+}
+
+#[target_feature(enable = "avx512f")]
+#[inline]
 /// Computes the squared norm of one `[f32; 1024]` vector.
 ///
 /// # Safety
@@ -290,6 +336,52 @@ pub unsafe fn f32_x512_avx512_fma_norm(x: &[f32]) -> f32 {
     sum_avx512_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
 }
 
+#[target_feature(enable = "avx512f")]
+#[inline]
+/// Computes the squared norm of one `f32` vector.
+///
+/// # Safety
+///
+/// NOTE:
+/// Values within the vector should also be finite, although it is not
+/// going to crash the program, it is going to produce insane numbers.
+pub unsafe fn f32_xany_avx512_fma_norm(x: &[f32]) -> f32 {
+    let len = x.len();
+    let mut offset_from = len % 128;
+    let x = x.as_ptr();
+
+    let mut acc1 = _mm512_setzero_ps();
+    let mut acc2 = _mm512_setzero_ps();
+    let mut acc3 = _mm512_setzero_ps();
+    let mut acc4 = _mm512_setzero_ps();
+    let mut acc5 = _mm512_setzero_ps();
+    let mut acc6 = _mm512_setzero_ps();
+    let mut acc7 = _mm512_setzero_ps();
+    let mut acc8 = _mm512_setzero_ps();
+
+    if offset_from != 0 {
+        execute_f32_xany_fma_block_norm(x, offset_from, &mut acc1);
+    }
+
+    while offset_from < len {
+        execute_f32_x128_fma_block_norm(
+            x.add(offset_from),
+            &mut acc1,
+            &mut acc2,
+            &mut acc3,
+            &mut acc4,
+            &mut acc5,
+            &mut acc6,
+            &mut acc7,
+            &mut acc8,
+        );
+
+        offset_from += 128;
+    }
+
+    sum_avx512_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
+}
+
 #[allow(clippy::too_many_arguments)]
 #[inline(always)]
 unsafe fn execute_f32_x128_nofma_block_norm(
@@ -369,10 +461,51 @@ unsafe fn execute_f32_x128_fma_block_norm(
     *acc8 = _mm512_fmadd_ps(x8, x8, *acc8);
 }
 
+#[inline(always)]
+unsafe fn execute_f32_xany_fma_block_norm(x: *const f32, n: usize, acc: &mut __m512) {
+    let mut i = 0;
+    while i < n {
+        let cap = n - i;
+        let addr = x.add(i);
+
+        let x = if cap < 16 {
+            let mask = _bzhi_u32(0xFFFFFFFF, cap as u32) as _;
+            _mm512_maskz_loadu_ps(mask, addr)
+        } else {
+            _mm512_loadu_ps(addr)
+        };
+
+        *acc = _mm512_fmadd_ps(x, x, *acc);
+
+        i += 16
+    }
+}
+
+#[inline(always)]
+unsafe fn execute_f32_xany_nofma_block_norm(x: *const f32, n: usize, acc: &mut __m512) {
+    let mut i = 0;
+    while i < n {
+        let cap = n - i;
+        let addr = x.add(i);
+
+        let x = if cap < 16 {
+            let mask = _bzhi_u32(0xFFFFFFFF, cap as u32) as _;
+            _mm512_maskz_loadu_ps(mask, addr)
+        } else {
+            _mm512_loadu_ps(addr)
+        };
+
+        let r = _mm512_mul_ps(x, x);
+        *acc = _mm512_add_ps(*acc, r);
+
+        i += 16
+    }
+}
+
 #[cfg(all(test, target_feature = "avx512f"))]
 mod tests {
     use super::*;
-    use crate::danger::test_utils::get_sample_vectors;
+    use crate::danger::test_utils::{assert_is_close, get_sample_vectors, simple_dot};
 
     #[test]
     fn test_x1024_fma_norm() {
@@ -414,5 +547,19 @@ mod tests {
         let (x, _) = get_sample_vectors(512);
         let dist = unsafe { f32_x512_avx512_nofma_norm(&x) };
         assert_eq!(dist, 161.06982);
+    }
+
+    #[test]
+    fn test_xany_fma_norm() {
+        let (x, _) = get_sample_vectors(547);
+        let dist = unsafe { f32_xany_avx512_fma_norm(&x) };
+        assert_is_close(dist, simple_dot(&x, &x));
+    }
+
+    #[test]
+    fn test_xany_nofma_norm() {
+        let (x, _) = get_sample_vectors(547);
+        let dist = unsafe { f32_xany_avx512_nofma_norm(&x) };
+        assert_is_close(dist, simple_dot(&x, &x));
     }
 }

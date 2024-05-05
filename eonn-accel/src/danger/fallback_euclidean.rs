@@ -68,7 +68,7 @@ unsafe fn fallback_euclidean<M: Math>(x: &[f32], y: &[f32]) -> f32 {
             let y = *y.get_unchecked(i);
 
             let diff = M::sub(x, y);
-            acc1 = M::sub(acc1, M::mul(diff, diff));
+            acc1 = M::add(acc1, M::mul(diff, diff));
         }
     }
 
@@ -113,4 +113,29 @@ unsafe fn fallback_euclidean<M: Math>(x: &[f32], y: &[f32]) -> f32 {
     }
 
     rollup_scalar_x8::<M>(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::danger::test_utils::{
+        assert_is_close,
+        get_sample_vectors,
+        simple_euclidean,
+    };
+
+    #[test]
+    fn test_xany_nofma_euclidean() {
+        let (x, y) = get_sample_vectors(127);
+        let dist = unsafe { f32_xany_fallback_nofma_euclidean(&x, &y) };
+        assert_is_close(dist, simple_euclidean(&x, &y));
+    }
+
+    #[cfg(feature = "nightly")]
+    #[test]
+    fn test_xany_fma_euclidean() {
+        let (x, y) = get_sample_vectors(127);
+        let dist = unsafe { f32_xany_fallback_fma_euclidean(&x, &y) };
+        assert_is_close(dist, simple_euclidean(&x, &y));
+    }
 }

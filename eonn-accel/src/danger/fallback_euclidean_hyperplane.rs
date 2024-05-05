@@ -62,9 +62,8 @@ pub(crate) unsafe fn fallback_euclidean_hyperplane<M: Math>(
         x.len(),
         "Improper implementation detected, vectors must match in size"
     );
-    debug_assert_eq!(
-        hyperplane.len(),
-        x.len(),
+    debug_assert!(
+        hyperplane.len() >= x.len(),
         "Input hyperplane must match length of input vectors"
     );
 

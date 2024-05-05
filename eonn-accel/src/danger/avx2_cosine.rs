@@ -110,7 +110,7 @@ pub unsafe fn f32_xany_avx2_nofma_cosine(x: &[f32], y: &[f32]) -> f32 {
     let norm_y = f32_xany_avx2_nofma_norm(y);
     let dot_product = f32_xany_avx2_nofma_dot(x, y);
 
-    cosine::<FastMath>(dot_product, norm_x, norm_y)
+    cosine::<StdMath>(dot_product, norm_x, norm_y)
 }
 
 #[cfg(feature = "nightly")]
