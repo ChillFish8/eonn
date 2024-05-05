@@ -22,7 +22,7 @@ where
     (D, A): DangerousOps,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        if self.buffer.len() != 0 {
+        if !self.buffer.is_empty() {
             let first = self.buffer.first().unwrap();
             let last = self.buffer.last().unwrap();
 

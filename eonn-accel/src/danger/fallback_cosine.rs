@@ -47,3 +47,30 @@ pub unsafe fn f32_xany_fallback_fma_cosine(x: &[f32], y: &[f32]) -> f32 {
     let dot_product = f32_xany_fallback_fma_dot(x, y);
     cosine::<FastMath>(dot_product, norm_x, norm_y)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::danger::test_utils::{
+        assert_is_close,
+        get_sample_vectors,
+        simple_cosine,
+    };
+
+    #[test]
+    fn test_f32_xany_nofma_dot() {
+        let (x, y) = get_sample_vectors(514);
+        let dist = unsafe { f32_xany_fallback_nofma_cosine(&x, &y) };
+        let expected = simple_cosine(&x, &y);
+        assert_is_close(dist, expected);
+    }
+
+    #[cfg(feature = "nightly")]
+    #[test]
+    fn test_f32_xany_fma_dot() {
+        let (x, y) = get_sample_vectors(514);
+        let dist = unsafe { f32_xany_fallback_fma_cosine(&x, &y) };
+        let expected = simple_cosine(&x, &y);
+        assert_is_close(dist, expected);
+    }
+}

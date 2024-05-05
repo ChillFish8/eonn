@@ -317,26 +317,31 @@ impl DangerousOps for (X512, Avx2) {
 impl DangerousOps for (XAny, Avx2) {
     #[inline]
     unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_avx2_nofma_dot(x, y)
     }
 
     #[inline]
     unsafe fn cosine(&self, x: &[f32], y: &[f32]) -> f32 {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_avx2_nofma_cosine(x, y)
     }
 
     #[inline]
     unsafe fn squared_euclidean(&self, x: &[f32], y: &[f32]) -> f32 {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_avx2_nofma_euclidean(x, y)
     }
 
     #[inline]
     unsafe fn angular_hyperplane(&self, x: &[f32], y: &[f32]) -> Vec<f32> {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_avx2_nofma_angular_hyperplane(x, y)
     }
 
     #[inline]
     unsafe fn euclidean_hyperplane(&self, x: &[f32], y: &[f32]) -> (Vec<f32>, f32) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_avx2_nofma_euclidean_hyperplane(x, y)
     }
 
@@ -529,26 +534,31 @@ impl DangerousOps for (X512, Avx512) {
 impl DangerousOps for (XAny, Avx512) {
     #[inline]
     unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_avx512_nofma_dot(x, y)
     }
 
     #[inline]
     unsafe fn cosine(&self, x: &[f32], y: &[f32]) -> f32 {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_avx512_nofma_cosine(x, y)
     }
 
     #[inline]
     unsafe fn squared_euclidean(&self, x: &[f32], y: &[f32]) -> f32 {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_avx512_nofma_euclidean(x, y)
     }
 
     #[inline]
     unsafe fn angular_hyperplane(&self, x: &[f32], y: &[f32]) -> Vec<f32> {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_avx512_nofma_angular_hyperplane(x, y)
     }
 
     #[inline]
     unsafe fn euclidean_hyperplane(&self, x: &[f32], y: &[f32]) -> (Vec<f32>, f32) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_avx512_nofma_euclidean_hyperplane(x, y)
     }
 
@@ -582,26 +592,31 @@ impl DangerousOps for (XAny, Avx512) {
 impl<D: Dim> DangerousOps for (D, (Fallback, Fma)) {
     #[inline]
     unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_fallback_fma_dot(x, y)
     }
 
     #[inline]
     unsafe fn cosine(&self, x: &[f32], y: &[f32]) -> f32 {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_fallback_fma_cosine(x, y)
     }
 
     #[inline]
     unsafe fn squared_euclidean(&self, x: &[f32], y: &[f32]) -> f32 {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_fallback_fma_euclidean(x, y)
     }
 
     #[inline]
     unsafe fn angular_hyperplane(&self, x: &[f32], y: &[f32]) -> Vec<f32> {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_fallback_fma_angular_hyperplane(x, y)
     }
 
     #[inline]
     unsafe fn euclidean_hyperplane(&self, x: &[f32], y: &[f32]) -> (Vec<f32>, f32) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_fallback_fma_euclidean_hyperplane(x, y)
     }
 
@@ -794,26 +809,31 @@ impl DangerousOps for (X512, (Avx2, Fma)) {
 impl DangerousOps for (XAny, (Avx2, Fma)) {
     #[inline]
     unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_avx2_fma_dot(x, y)
     }
 
     #[inline]
     unsafe fn cosine(&self, x: &[f32], y: &[f32]) -> f32 {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_avx2_fma_cosine(x, y)
     }
 
     #[inline]
     unsafe fn squared_euclidean(&self, x: &[f32], y: &[f32]) -> f32 {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_avx2_fma_euclidean(x, y)
     }
 
     #[inline]
     unsafe fn angular_hyperplane(&self, x: &[f32], y: &[f32]) -> Vec<f32> {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_avx2_fma_angular_hyperplane(x, y)
     }
 
     #[inline]
     unsafe fn euclidean_hyperplane(&self, x: &[f32], y: &[f32]) -> (Vec<f32>, f32) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_avx2_fma_euclidean_hyperplane(x, y)
     }
 
@@ -1006,26 +1026,31 @@ impl DangerousOps for (X512, (Avx512, Fma)) {
 impl DangerousOps for (XAny, (Avx512, Fma)) {
     #[inline]
     unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_avx512_fma_dot(x, y)
     }
 
     #[inline]
     unsafe fn cosine(&self, x: &[f32], y: &[f32]) -> f32 {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_avx512_fma_cosine(x, y)
     }
 
     #[inline]
     unsafe fn squared_euclidean(&self, x: &[f32], y: &[f32]) -> f32 {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_avx512_fma_euclidean(x, y)
     }
 
     #[inline]
     unsafe fn angular_hyperplane(&self, x: &[f32], y: &[f32]) -> Vec<f32> {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_avx512_fma_angular_hyperplane(x, y)
     }
 
     #[inline]
     unsafe fn euclidean_hyperplane(&self, x: &[f32], y: &[f32]) -> (Vec<f32>, f32) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_avx512_fma_euclidean_hyperplane(x, y)
     }
 
@@ -2092,6 +2117,7 @@ impl DangerousOps for (X512, Auto) {
 impl DangerousOps for (XAny, Auto) {
     #[inline]
     unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         match self.1 .0 {
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_dot(x, y),
@@ -2118,6 +2144,7 @@ impl DangerousOps for (XAny, Auto) {
 
     #[inline]
     unsafe fn cosine(&self, x: &[f32], y: &[f32]) -> f32 {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         match self.1 .0 {
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_cosine(x, y),
@@ -2148,6 +2175,7 @@ impl DangerousOps for (XAny, Auto) {
 
     #[inline]
     unsafe fn squared_euclidean(&self, x: &[f32], y: &[f32]) -> f32 {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         match self.1 .0 {
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_euclidean(x, y),
@@ -2180,6 +2208,7 @@ impl DangerousOps for (XAny, Auto) {
 
     #[inline]
     unsafe fn angular_hyperplane(&self, x: &[f32], y: &[f32]) -> Vec<f32> {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         match self.1 .0 {
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2 => {
@@ -2218,6 +2247,7 @@ impl DangerousOps for (XAny, Auto) {
 
     #[inline]
     unsafe fn euclidean_hyperplane(&self, x: &[f32], y: &[f32]) -> (Vec<f32>, f32) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         match self.1 .0 {
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2 => {
