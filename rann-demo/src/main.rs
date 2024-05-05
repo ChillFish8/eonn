@@ -1,9 +1,9 @@
 use std::time::Instant;
 
-use tracing::info;
 use anyhow::Context;
 use rann::{Metric, NNDescentBuilder};
 use rann_accel::{Auto, Vector, X1024};
+use tracing::info;
 
 fn main() -> anyhow::Result<()> {
     if std::env::var("RUST_LOG").is_err() {

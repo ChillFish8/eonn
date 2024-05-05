@@ -76,10 +76,13 @@ impl SortedNeighbors {
 
         Self { neighbors }
     }
-    
+
     /// Iterates over the neighbors of the point.
     pub fn iter_neighbors(&self) -> impl Iterator<Item = Point> + '_ {
-        self.neighbors.iter().take_while(|p| p.idx != u32::MAX).copied()
+        self.neighbors
+            .iter()
+            .take_while(|p| p.idx != u32::MAX)
+            .copied()
     }
 
     #[inline]
@@ -254,12 +257,12 @@ impl SortedNeighbors {
 
 impl Debug for SortedNeighbors {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "SortedNeighbors([", )?;
-        
+        write!(f, "SortedNeighbors([",)?;
+
         for point in self.iter_neighbors() {
             write!(f, "{point:?}, ")?;
         }
-                
+
         write!(f, "])")
     }
 }

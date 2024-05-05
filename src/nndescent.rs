@@ -282,7 +282,7 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
             cmp::max(5, (self.data.len() as f32).log2().round() as usize)
         }
     }
-    
+
     #[inline]
     fn effective_max_candidates(&self) -> usize {
         self.max_candidates
@@ -304,7 +304,7 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
             parallel = false,
             "Creating RP forest",
         );
-        
+
         crate::rp_trees::make_forest(
             &self.data,
             n_trees,
@@ -357,7 +357,7 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
         self.init_graph_with_rng(&mut graph);
 
         self.nn_descent_low_memory(&mut graph);
-        
+
         graph
     }
 
@@ -378,7 +378,7 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
 
             let leaf_block = &leaf_array[block_start..block_end];
             self.generate_leaf_updates(&mut updates, graph, leaf_block);
-            
+
             info!(updates = updates.len(), "Generated updates via RP forest");
 
             // Update graph points `p -> q` and `q -> p`.
@@ -443,7 +443,12 @@ impl<V: SpacialOps + Send + Sync + 'static> NNDescentBuilder<V> {
 
         for n in 0..self.n_iters() {
             let (new_candidate_neighbors, old_candidate_neighbors) =
-                new_build_candidates(graph, self.effective_max_candidates(), &self.data, self.metric);
+                new_build_candidates(
+                    graph,
+                    self.effective_max_candidates(),
+                    &self.data,
+                    self.metric,
+                );
 
             let c = self.process_candidates(
                 graph,
@@ -516,7 +521,7 @@ fn new_build_candidates<V: SpacialOps>(
         new_candidates.push(SortedNeighbors::new(max_candidates));
         old_candidates.push(SortedNeighbors::new(max_candidates));
     }
-    
+
     let mut new_inserts = 0;
     let mut old_inserts = 0;
     for i in 0..n_vertices {
@@ -527,7 +532,7 @@ fn new_build_candidates<V: SpacialOps>(
             //  that the heap implementation relies on the distance to be deterministic one
             //  insertion in order to detect duplicates.
             let dist = metric.distance(&data[i], &data[neighbor.idx() as usize]);
-            
+
             if neighbor.flag() {
                 new_inserts += 1;
                 new_candidates[i].checked_push(dist, neighbor.idx() as usize);
@@ -539,9 +544,9 @@ fn new_build_candidates<V: SpacialOps>(
             }
         }
     }
-    
+
     info!(old_inserts, new_inserts);
-    
+
     for i in 0..n_vertices {
         let point = graph.point_mut(i);
         for j in 0..n_neighbors {
@@ -569,7 +574,7 @@ fn generate_graph_updates<V: SpacialOps>(
 ) -> Vec<(u32, u32, f32)> {
     let block_size = new_candidates.len();
     let mut updates = Vec::new();
-    
+
     let mut num_steps = 0;
     for i in 0..block_size {
         let point = &new_candidates[i];
@@ -591,7 +596,7 @@ fn generate_graph_updates<V: SpacialOps>(
 
             for q in old_point.iter_neighbors().take(max_candidates) {
                 num_steps += 1;
-                
+
                 let q_threshold = graph.point(q.idx() as usize).furthest();
 
                 let d =
@@ -625,7 +630,6 @@ fn apply_graph_updates_low_memory(
     n_changes
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -639,11 +643,11 @@ mod tests {
     #[test]
     fn test_apply_graph_updates_low_memory() {
         let updates = vec![
-            (0, 1, 1.0),    // Dist point 0 <-> point 1 1.0
-            (2, 3, 0.5),    // Dist point 2 <-> point 3, 0.5
-            (2, 5, 1.2),    // Dist point 2 <-> point 5, 1.2
+            (0, 1, 1.0), // Dist point 0 <-> point 1 1.0
+            (2, 3, 0.5), // Dist point 2 <-> point 3, 0.5
+            (2, 5, 1.2), // Dist point 2 <-> point 5, 1.2
         ];
-        
+
         let mut graph = DynamicGraph::new(10, 3);
         let changes = apply_graph_updates_low_memory(&mut graph, updates);
         assert_eq!(changes, 6);
@@ -657,13 +661,13 @@ mod tests {
         assert_eq!(point_2.neighbor(0).idx(), 3);
         let point_3 = graph.point(3);
         assert_eq!(point_3.neighbor(0).idx(), 2);
-        
+
         let point_2 = graph.point(2);
         assert_eq!(point_2.neighbor(1).idx(), 5);
         let point_5 = graph.point(5);
-        assert_eq!(point_5.neighbor(0).idx(), 2);        
+        assert_eq!(point_5.neighbor(0).idx(), 2);
     }
-    
+
     // #[test]
     // fn test_new_build_candidates_empty() {
     //     let mut graph = DynamicGraph::new(10, 3);

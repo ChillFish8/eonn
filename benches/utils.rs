@@ -4,8 +4,8 @@ pub fn random_vector<D: Dim, A: Arch>() -> Vector<D, A>
 where
     (D, A): DangerousOps,
 {
-    let mut vector = Vec::with_capacity(D::size());
-    for _ in 0..D::size() {
+    let mut vector = Vec::with_capacity(D::const_size());
+    for _ in 0..D::const_size() {
         vector.push(fastrand::f32());
     }
 
