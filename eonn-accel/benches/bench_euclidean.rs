@@ -6,7 +6,7 @@ use std::ops::Sub;
 use std::time::Duration;
 
 use criterion::{criterion_group, criterion_main, Criterion};
-use rann_accel::danger::*;
+use eonn_accel::danger::*;
 use simsimd::SpatialSimilarity;
 
 mod utils;

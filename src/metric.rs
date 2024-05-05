@@ -1,4 +1,4 @@
-use rann_accel::SpacialOps;
+use eonn_accel::SpacialOps;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 /// The distance metrics available.

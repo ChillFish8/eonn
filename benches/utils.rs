@@ -1,4 +1,4 @@
-use rann_accel::{Arch, DangerousOps, Dim, Vector};
+use eonn_accel::{Arch, DangerousOps, Dim, Vector};
 
 pub fn random_vector<D: Dim, A: Arch>() -> Vector<D, A>
 where

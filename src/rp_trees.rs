@@ -5,7 +5,7 @@ use std::time::Instant;
 use bitvec::bitvec;
 use bitvec::prelude::Lsb0;
 use bitvec::vec::BitVec;
-use rann_accel::SpacialOps;
+use eonn_accel::SpacialOps;
 use tracing::info;
 
 #[derive(Debug)]
@@ -314,7 +314,7 @@ fn select_left_right<'a, V: SpacialOps>(
 
 #[cfg(test)]
 mod tests {
-    use rann_accel::{Auto, Vector, X512};
+    use eonn_accel::{Auto, Vector, X512};
 
     use super::*;
 

@@ -1,7 +1,7 @@
 use std::cmp;
 use std::time::Instant;
 
-use rann_accel::{Auto, SpacialOps, Vector, X512};
+use eonn_accel::{Auto, SpacialOps, Vector, X512};
 use tracing::info;
 
 use crate::graph::{DynamicGraph, SortedNeighbors};

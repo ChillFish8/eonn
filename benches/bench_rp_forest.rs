@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use criterion::{criterion_group, criterion_main, Criterion};
 use rann::rp_trees::make_forest;
-use rann_accel::{Auto, Vector, X1024};
+use eonn_accel::{Auto, Vector, X1024};
 
 mod utils;
 

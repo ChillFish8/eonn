@@ -1,8 +1,8 @@
 use std::time::Instant;
 
 use anyhow::Context;
-use rann::{Metric, NNDescentBuilder};
-use rann_accel::{Auto, Vector, X1024};
+use eonn::{Metric, NNDescentBuilder};
+use eonn_accel::{Auto, Vector, X1024};
 use tracing::info;
 
 fn main() -> anyhow::Result<()> {
