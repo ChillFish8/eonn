@@ -1,9 +1,10 @@
-# rann-accel
+# eonn-accel
 
 Various specialised vector operations, primarily designed for similarity search.
 
 This system has several specializations for various CPU features and vector dimensions,
-currently only `f32` vectors with dimensions of `512`, `768` or `1024` are supported.
+currently only `f32` vectors with dimensions of  any size are supported, but with 
+specialized `512`, `768` or `1024` dimension implementations.
 
 Supported CPU features include `Avx512`, `Avx2` and `Fma`, fallback implementations can
 be optimized relatively well by the compiler for other architectures e.g. ARM or SSE.

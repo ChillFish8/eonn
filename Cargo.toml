@@ -1,5 +1,5 @@
 [package]
-name = "rann"
+name = "eonn"
 version = "0.1.0"
 edition = "2021"
 
@@ -12,7 +12,7 @@ bitvec = "1.0.1"
 smallvec = "1.13.2"
 fnv = "1.0.7"
 
-rann-accel = { version = "0.1.0", path = "rann-accel" }
+rann-accel = { version = "0.1.0", path = "eonn-accel" }
 
 rayon = { version = "1.10.0", optional = true }
 
@@ -37,10 +37,10 @@ opt-level = 3
 
 [workspace]
 members = [
-    "rann-accel",
-    "rann-pq",
+    "eonn-accel",
+    "eonn-pq",
 
     # Used for profiling and debugging
-    "rann-demo",
-    "rann-accel/asm-view",
+    "eonn-demo",
+    "eonn-accel/asm-view",
 ]

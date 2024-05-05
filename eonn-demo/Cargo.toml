@@ -1,5 +1,5 @@
 [package]
-name = "rann-demo"
+name = "eonn-demo"
 version = "0.1.0"
 edition = "2021"
 
@@ -13,6 +13,6 @@ safetensors = "0.4.2"
 bytemuck = "1.15.0"
 rayon = "1.10.0"
 
-rann-accel = { version = "0.1.0", path = "../rann-accel" }
-rann = { version = "0.1.0", path = "..", features = ["rayon"] }
+eonn-accel = { version = "0.1.0", path = "../eonn-accel" }
+eonn = { version = "0.1.0", path = "..", features = ["rayon"] }
 mimalloc = { version = "0.1.39", default-features = false }
