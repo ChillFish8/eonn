@@ -11,16 +11,38 @@ be optimized relatively well by the compiler for other architectures e.g. ARM or
 
 ### Supported Operations & Distances
 
-- Dot product
-- Cosine 
-  * _NOTE: The current cosine implementation is significantly slower than dot product or Euclidean
-    and could still do with some more niche optimizations, that being said it is still faster than a BLAS
-    configuration on my machine, but if you are doing cosine heavy work, 
-    [simsimd](https://github.com/ashvardanian/SimSIMD) may be a better choice._
-- Squared Euclidean
-- Angular Hyperplanes
-- Euclidean Hyperplanes
-- Squared Norm
+- `vector.dot(other)`
+- `vector.dist_dot(other)`
+- `vector.dist_cosine(other)`
+- `vector.dist_squared_euclidean(other)`
+- `vector.angular_hyperplane(other)`
+- `vector.euclidean_hyperplane(other)`
+- `vector.squared_norm()`
+- `vector / value`
+- `vector * value`
+- `vector + value`
+- `vector - value`
+- `vector.max()`
+- `vector.min()`
+
+### Dangerous routine naming convention
+
+If you've looked at the `danger` folder at all, you'll notice all functions implement a certain
+naming scheme to indicate their specialization.
+
+```
+<dtype>_x<dims>_<arch>_<(no)fma>_<op_name>
+```
+
+#### Notes on what `nofma` and `fma` mean
+
+`FMA` in this system indicated _both_ the `fma` CPU feature flag is available _and_ to use `fast-math`
+intrinsics in the compiler.
+
+Note that the fallback implementations will only use the intrinsics and will let the compiler
+optimize for those intrinsics, however, it is likely that you do not want to use `_fma_op` 
+type functions on any platform that does not support the `fma` CPU feature except maybe for
+ARM, but this is untested.
 
 ### Features
 
