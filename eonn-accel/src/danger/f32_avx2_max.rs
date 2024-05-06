@@ -5,7 +5,7 @@ use crate::danger::{offsets_avx2, CHUNK_0, CHUNK_1};
 
 #[target_feature(enable = "avx2")]
 #[inline]
-/// Computes the horizontal minimum of the given vector that is `[f32; DIMS]`.
+/// Computes the horizontal maximum of the given vector that is `[f32; DIMS]`.
 ///
 /// # Safety
 ///
