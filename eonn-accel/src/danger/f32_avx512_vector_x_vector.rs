@@ -392,7 +392,7 @@ unsafe fn write_x128_block(
     ptr::copy_nonoverlapping(results.as_ptr(), x, results.len());
 }
 
-#[cfg(test)]
+#[cfg(all(test, target_feature = "avx512f"))]
 mod tests {
     use super::*;
     use crate::test_utils::{assert_is_close_vector, get_sample_vectors};

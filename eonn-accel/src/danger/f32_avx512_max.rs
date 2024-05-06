@@ -323,7 +323,7 @@ unsafe fn rollup_max_acc(
     _mm512_reduce_max_ps(acc1)
 }
 
-#[cfg(test)]
+#[cfg(all(test, target_feature = "avx512f"))]
 mod tests {
     use super::*;
     use crate::test_utils::get_sample_vectors;
