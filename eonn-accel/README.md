@@ -24,6 +24,8 @@ be optimized relatively well by the compiler for other architectures e.g. ARM or
 - `vector - value`
 - `vector.max()`
 - `vector.min()`
+- `[vector].vertical_min()`
+- `[vector].vertical_max()`
 
 ### Dangerous routine naming convention
 

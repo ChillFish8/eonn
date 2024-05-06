@@ -9,9 +9,15 @@ mod f32_avx2_euclidean;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 mod f32_avx2_euclidean_hyperplane;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+mod f32_avx2_max;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+mod f32_avx2_min;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 mod f32_avx2_norm;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 mod f32_avx2_vector_x_value;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+mod f32_avx2_vector_x_vector;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 mod f32_avx512_angular_hyperplane;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
@@ -47,9 +53,15 @@ pub use self::f32_avx2_euclidean::*;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub use self::f32_avx2_euclidean_hyperplane::*;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+pub use self::f32_avx2_max::*;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+pub use self::f32_avx2_min::*;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub use self::f32_avx2_norm::*;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub use self::f32_avx2_vector_x_value::*;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+pub use self::f32_avx2_vector_x_vector::*;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 pub use self::f32_avx512_angular_hyperplane::*;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
