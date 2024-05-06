@@ -1,6 +1,6 @@
 use crate::arch::*;
 use crate::dims::*;
-use crate::ops::*;
+use crate::f32_ops::*;
 use crate::test_utils::{
     assert_is_close,
     assert_is_close_vector,

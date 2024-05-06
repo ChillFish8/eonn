@@ -1,72 +1,72 @@
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-mod avx2_angular_hyperplane;
+mod f32_avx2_angular_hyperplane;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-mod avx2_cosine;
+mod f32_avx2_cosine;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-mod avx2_dot_product;
+mod f32_avx2_dot_product;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-mod avx2_euclidean;
+mod f32_avx2_euclidean;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-mod avx2_euclidean_hyperplane;
+mod f32_avx2_euclidean_hyperplane;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-mod avx2_norm;
+mod f32_avx2_norm;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-mod avx2_vector_x_value;
+mod f32_avx2_vector_x_value;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-mod avx512_angular_hyperplane;
+mod f32_avx512_angular_hyperplane;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-mod avx512_cosine;
+mod f32_avx512_cosine;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-mod avx512_dot_product;
+mod f32_avx512_dot_product;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-mod avx512_euclidean;
+mod f32_avx512_euclidean;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-mod avx512_euclidean_hyperplane;
+mod f32_avx512_euclidean_hyperplane;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-mod avx512_norm;
+mod f32_avx512_norm;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-mod avx512_vector_x_value;
-mod fallback_angular_hyperplane;
-mod fallback_cosine;
-mod fallback_dot_product;
-mod fallback_euclidean;
-mod fallback_euclidean_hyperplane;
-mod fallback_vector_x_value;
+mod f32_avx512_vector_x_value;
+mod f32_fallback_angular_hyperplane;
+mod f32_fallback_cosine;
+mod f32_fallback_dot_product;
+mod f32_fallback_euclidean;
+mod f32_fallback_euclidean_hyperplane;
+mod f32_fallback_vector_x_value;
 mod utils;
 
 pub(crate) use utils::*;
 
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-pub use self::avx2_angular_hyperplane::*;
+pub use self::f32_avx2_angular_hyperplane::*;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-pub use self::avx2_cosine::*;
+pub use self::f32_avx2_cosine::*;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-pub use self::avx2_dot_product::*;
+pub use self::f32_avx2_dot_product::*;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-pub use self::avx2_euclidean::*;
+pub use self::f32_avx2_euclidean::*;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-pub use self::avx2_euclidean_hyperplane::*;
+pub use self::f32_avx2_euclidean_hyperplane::*;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-pub use self::avx2_norm::*;
+pub use self::f32_avx2_norm::*;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-pub use self::avx2_vector_x_value::*;
+pub use self::f32_avx2_vector_x_value::*;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-pub use self::avx512_angular_hyperplane::*;
+pub use self::f32_avx512_angular_hyperplane::*;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-pub use self::avx512_cosine::*;
+pub use self::f32_avx512_cosine::*;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-pub use self::avx512_dot_product::*;
+pub use self::f32_avx512_dot_product::*;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-pub use self::avx512_euclidean::*;
+pub use self::f32_avx512_euclidean::*;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-pub use self::avx512_euclidean_hyperplane::*;
+pub use self::f32_avx512_euclidean_hyperplane::*;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-pub use self::avx512_norm::*;
+pub use self::f32_avx512_norm::*;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-pub use self::avx512_vector_x_value::*;
-pub use self::fallback_angular_hyperplane::*;
-pub use self::fallback_cosine::*;
-pub use self::fallback_dot_product::*;
-pub use self::fallback_euclidean::*;
-pub use self::fallback_euclidean_hyperplane::*;
-pub use self::fallback_vector_x_value::*;
+pub use self::f32_avx512_vector_x_value::*;
+pub use self::f32_fallback_angular_hyperplane::*;
+pub use self::f32_fallback_cosine::*;
+pub use self::f32_fallback_dot_product::*;
+pub use self::f32_fallback_euclidean::*;
+pub use self::f32_fallback_euclidean_hyperplane::*;
+pub use self::f32_fallback_vector_x_value::*;

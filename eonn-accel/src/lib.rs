@@ -17,7 +17,7 @@ pub(crate) mod math;
 pub mod danger;
 #[cfg(not(feature = "dangerous-access"))]
 pub(crate) mod danger;
-mod ops;
+mod f32_ops;
 #[cfg(test)]
 mod test_ops;
 #[cfg(test)]
@@ -27,6 +27,6 @@ mod vector;
 
 pub use self::arch::*;
 pub use self::dims::{Dim, X1024, X512, X768};
-pub use self::ops::{DangerousOps, SpacialOps};
+pub use self::f32_ops::{DangerousOps, SpacialOps};
 pub use self::types::VectorType;
 pub use self::vector::{Vector, VectorCreateError};

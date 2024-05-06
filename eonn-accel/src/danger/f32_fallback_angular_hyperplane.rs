@@ -1,4 +1,4 @@
-use crate::danger::fallback_dot_product::fallback_dot;
+use crate::danger::f32_fallback_dot_product::fallback_dot;
 #[cfg(feature = "nightly")]
 use crate::danger::{f32_xany_fallback_fma_div_value, f32_xany_fallback_fma_dot};
 use crate::danger::{f32_xany_fallback_nofma_div_value, f32_xany_fallback_nofma_dot};
