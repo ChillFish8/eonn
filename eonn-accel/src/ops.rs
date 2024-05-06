@@ -589,7 +589,7 @@ impl DangerousOps for (XAny, Avx512) {
 }
 
 #[cfg(feature = "nightly")]
-impl<D: Dim> DangerousOps for (D, (Fallback, Fma)) {
+impl<D: Dim> DangerousOps for (D, FallbackFma) {
     #[inline]
     unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
         assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
@@ -647,7 +647,7 @@ impl<D: Dim> DangerousOps for (D, (Fallback, Fma)) {
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-impl DangerousOps for (X1024, (Avx2, Fma)) {
+impl DangerousOps for (X1024, Avx2Fma) {
     #[inline]
     unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
         crate::danger::f32_x1024_avx2_fma_dot(x, y)
@@ -700,7 +700,7 @@ impl DangerousOps for (X1024, (Avx2, Fma)) {
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-impl DangerousOps for (X768, (Avx2, Fma)) {
+impl DangerousOps for (X768, Avx2Fma) {
     #[inline]
     unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
         crate::danger::f32_x768_avx2_fma_dot(x, y)
@@ -753,7 +753,7 @@ impl DangerousOps for (X768, (Avx2, Fma)) {
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-impl DangerousOps for (X512, (Avx2, Fma)) {
+impl DangerousOps for (X512, Avx2Fma) {
     #[inline]
     unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
         crate::danger::f32_x512_avx2_fma_dot(x, y)
@@ -806,7 +806,7 @@ impl DangerousOps for (X512, (Avx2, Fma)) {
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-impl DangerousOps for (XAny, (Avx2, Fma)) {
+impl DangerousOps for (XAny, Avx2Fma) {
     #[inline]
     unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
         assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
@@ -864,7 +864,7 @@ impl DangerousOps for (XAny, (Avx2, Fma)) {
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-impl DangerousOps for (X1024, (Avx512, Fma)) {
+impl DangerousOps for (X1024, Avx512Fma) {
     #[inline]
     unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
         crate::danger::f32_x1024_avx512_fma_dot(x, y)
@@ -917,7 +917,7 @@ impl DangerousOps for (X1024, (Avx512, Fma)) {
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-impl DangerousOps for (X768, (Avx512, Fma)) {
+impl DangerousOps for (X768, Avx512Fma) {
     #[inline]
     unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
         crate::danger::f32_x768_avx512_fma_dot(x, y)
@@ -970,7 +970,7 @@ impl DangerousOps for (X768, (Avx512, Fma)) {
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-impl DangerousOps for (X512, (Avx512, Fma)) {
+impl DangerousOps for (X512, Avx512Fma) {
     #[inline]
     unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
         crate::danger::f32_x512_avx512_fma_dot(x, y)
@@ -1023,7 +1023,7 @@ impl DangerousOps for (X512, (Avx512, Fma)) {
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-impl DangerousOps for (XAny, (Avx512, Fma)) {
+impl DangerousOps for (XAny, Avx512Fma) {
     #[inline]
     unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
         assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");

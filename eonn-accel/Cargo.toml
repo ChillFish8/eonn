@@ -12,6 +12,7 @@ description = "Accelerated operations for EONN"
 rand = "0.8.5"
 rand_chacha = "0.3.1"
 simsimd = "4.3.0"
+paste = "1.0.14"
 
 criterion = { version = "0.5.1", features = ["html_reports"] }
 

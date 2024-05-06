@@ -1,5 +1,5 @@
 use std::fmt::{Debug, Display, Formatter};
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Deref, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
 use crate::arch::Arch;
 use crate::ops::{DangerousOps, SpacialOps};
@@ -33,6 +33,26 @@ where
     }
 }
 
+impl<D: Dim, A: Arch, T: VectorType> AsRef<[T]> for Vector<D, A, T>
+where
+    (D, A): DangerousOps,
+{
+    fn as_ref(&self) -> &[T] {
+        &self.buffer
+    }
+}
+
+impl<D: Dim, A: Arch, T: VectorType> Deref for Vector<D, A, T>
+where
+    (D, A): DangerousOps,
+{
+    type Target = [T];
+    
+    fn deref(&self) -> &Self::Target {
+        &self.buffer
+    }
+}
+
 impl<D: Dim, A: Arch, T: VectorType> Vector<D, A, T>
 where
     (D, A): DangerousOps,
@@ -54,7 +74,7 @@ where
             }
         }
 
-        if data.iter().any(|v| !(v.is_finite() || v.is_nan())) {
+        if data.iter().any(|v| !v.is_finite() || v.is_nan()) {
             return Err(VectorCreateError::NonFinite);
         }
 
@@ -107,10 +127,8 @@ where
     }
 
     fn normalize(&mut self) {
-        let inverse_norm = 1.0 / self.squared_norm().sqrt();
-        for v in self.buffer.iter_mut() {
-            *v *= inverse_norm;
-        }
+        let norm_self = self.squared_norm().sqrt();
+        self.div_assign(norm_self);
     }
 
     fn dist_dot(&self, other: &Self) -> f32 {

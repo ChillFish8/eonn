@@ -40,20 +40,31 @@ pub struct Fallback(());
 pub struct Fma(());
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-impl Default for Fma {
+pub struct Avx2Fma(Avx2, Fma);
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+impl Default for Avx2Fma {
     fn default() -> Self {
-        assert!(
-            is_x86_feature_detected!("fma"),
-            "FMA support is not available on the current platform"
-        );
-        Self(())
+        Self(Avx2(()), Fma(()))
     }
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-pub type Avx2Fma = (Avx2, Fma);
+pub struct Avx512Fma(Avx512, Fma);
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-pub type Avx512Fma = (Avx512, Fma);
+impl Default for Avx512Fma {
+    fn default() -> Self {
+        Self(Avx512(()), Fma(()))
+    }
+}
+
+#[cfg(feature = "nightly")]
+pub struct FallbackFma(Fallback, Fma);
+#[cfg(feature = "nightly")]
+impl Default for FallbackFma {
+    fn default() -> Self {
+        Self(Fallback(()), Fma(()))
+    }
+}
 
 #[derive(Debug, Copy, Clone, Default)]
 /// A dynamically selectable arch.
@@ -134,10 +145,16 @@ impl Default for SelectedArch {
 pub trait Arch: Default {}
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 impl Arch for Avx2 {}
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+impl Arch for Avx2Fma {}
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 impl Arch for Avx512 {}
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+impl Arch for Avx512Fma {}
 impl Arch for Auto {}
 impl Arch for Fallback {}
+#[cfg(feature = "nightly")]
+impl Arch for FallbackFma {}
 
 #[cfg(test)]
 mod tests {
@@ -162,18 +179,6 @@ mod tests {
         } else {
             assert!(
                 std::panic::catch_unwind(Avx512::default).is_err(),
-                "Type should panic due to missing cpu flags",
-            );
-        }
-    }
-
-    #[test]
-    fn test_if_fma_enabled() {
-        if is_x86_feature_detected!("fma") {
-            Fma::default();
-        } else {
-            assert!(
-                std::panic::catch_unwind(Fma::default).is_err(),
                 "Type should panic due to missing cpu flags",
             );
         }
