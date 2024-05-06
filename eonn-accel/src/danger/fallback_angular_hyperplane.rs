@@ -148,7 +148,7 @@ pub(crate) unsafe fn fallback_angular_hyperplane<M: Math>(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::danger::test_utils::{
+    use crate::test_utils::{
         assert_is_close_vector,
         get_sample_vectors,
         simple_angular_hyperplane,

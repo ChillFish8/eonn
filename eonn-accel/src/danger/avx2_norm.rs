@@ -518,7 +518,7 @@ unsafe fn execute_f32_x64_fma_block_norm(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::danger::test_utils::{get_sample_vectors, is_close, simple_dot};
+    use crate::test_utils::{get_sample_vectors, is_close, simple_dot};
 
     #[cfg(feature = "nightly")]
     #[test]

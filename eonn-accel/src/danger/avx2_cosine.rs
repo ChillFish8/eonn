@@ -211,7 +211,7 @@ pub unsafe fn f32_xany_avx2_fma_cosine(x: &[f32], y: &[f32]) -> f32 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::danger::test_utils::{get_sample_vectors, is_close, simple_cosine};
+    use crate::test_utils::{get_sample_vectors, is_close, simple_cosine};
 
     #[cfg(feature = "nightly")]
     #[test]

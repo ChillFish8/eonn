@@ -569,7 +569,7 @@ unsafe fn execute_f32_x128_fma_block_euclidean(
 #[cfg(all(test, target_feature = "avx512f"))]
 mod tests {
     use super::*;
-    use crate::danger::test_utils::{get_sample_vectors, is_close, simple_euclidean};
+    use crate::test_utils::{get_sample_vectors, is_close, simple_euclidean};
 
     #[test]
     fn test_x1024_fma_euclidean() {

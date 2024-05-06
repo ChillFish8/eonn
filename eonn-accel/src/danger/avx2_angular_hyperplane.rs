@@ -618,7 +618,7 @@ unsafe fn execute_f32_x64_block_apply_norm(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::danger::test_utils::{
+    use crate::test_utils::{
         assert_is_close_vector,
         get_sample_vectors,
         simple_angular_hyperplane,

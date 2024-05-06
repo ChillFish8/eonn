@@ -341,7 +341,7 @@ unsafe fn execute_f32_x128_sub(x: *mut f32, value: __m512) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::danger::test_utils::{assert_is_close_vector, get_sample_vectors};
+    use crate::test_utils::{assert_is_close_vector, get_sample_vectors};
 
     #[test]
     fn test_f32_xany_div() {

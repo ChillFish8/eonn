@@ -99,7 +99,7 @@ pub(super) unsafe fn fallback_dot<M: Math>(x: &[f32], y: &[f32]) -> f32 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::danger::test_utils::{assert_is_close, get_sample_vectors, simple_dot};
+    use crate::test_utils::{assert_is_close, get_sample_vectors, simple_dot};
 
     #[test]
     fn test_f32_xany_nofma_dot() {

@@ -32,8 +32,6 @@ mod fallback_dot_product;
 mod fallback_euclidean;
 mod fallback_euclidean_hyperplane;
 mod fallback_vector_x_value;
-#[cfg(test)]
-mod test_utils;
 mod utils;
 
 pub(crate) use utils::*;

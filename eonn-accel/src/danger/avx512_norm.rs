@@ -505,7 +505,7 @@ unsafe fn execute_f32_xany_nofma_block_norm(x: *const f32, n: usize, acc: &mut _
 #[cfg(all(test, target_feature = "avx512f"))]
 mod tests {
     use super::*;
-    use crate::danger::test_utils::{assert_is_close, get_sample_vectors, simple_dot};
+    use crate::test_utils::{assert_is_close, get_sample_vectors, simple_dot};
 
     #[test]
     fn test_x1024_fma_norm() {

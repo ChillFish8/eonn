@@ -118,7 +118,7 @@ unsafe fn fallback_euclidean<M: Math>(x: &[f32], y: &[f32]) -> f32 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::danger::test_utils::{
+    use crate::test_utils::{
         assert_is_close,
         get_sample_vectors,
         simple_euclidean,

@@ -429,7 +429,7 @@ unsafe fn execute_f32_x128_block_normal_vector(
 #[cfg(all(test, target_feature = "avx512f"))]
 mod tests {
     use super::*;
-    use crate::danger::test_utils::{
+    use crate::test_utils::{
         assert_is_close_vector,
         get_sample_vectors,
         simple_angular_hyperplane,

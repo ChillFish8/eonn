@@ -549,7 +549,7 @@ unsafe fn execute_f32_x128_fma_block_dot_product(
 #[cfg(all(test, target_feature = "avx512f"))]
 mod tests {
     use super::*;
-    use crate::danger::test_utils::{get_sample_vectors, is_close, simple_dot};
+    use crate::test_utils::{get_sample_vectors, is_close, simple_dot};
 
     #[test]
     fn test_x1024_fma_dot() {

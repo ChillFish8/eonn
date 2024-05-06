@@ -1,7 +1,7 @@
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 
-use crate::danger::utils::cosine;
+use crate::danger::cosine;
 use crate::math::StdMath;
 
 const SEED: u64 = 2837564324875;
