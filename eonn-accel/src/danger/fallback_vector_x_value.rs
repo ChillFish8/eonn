@@ -206,3 +206,85 @@ unsafe fn f32_xany_fallback_sub_impl<M: Math>(arr: &mut [f32], value: f32) {
         offset_from += 8;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test_utils::{assert_is_close_vector, get_sample_vectors};
+
+    #[test]
+    fn test_f32_xany_nofma_div() {
+        let value = 2.0;
+        let (mut x, _) = get_sample_vectors(557);
+        let expected = x.iter().copied().map(|v| v / value).collect::<Vec<_>>();
+        unsafe { f32_xany_fallback_nofma_div_value(&mut x, value) };
+        assert_is_close_vector(&x, &expected);
+    }
+
+    #[test]
+    fn test_f32_xany_nofma_mul() {
+        let value = 2.0;
+        let (mut x, _) = get_sample_vectors(557);
+        let expected = x.iter().copied().map(|v| v * value).collect::<Vec<_>>();
+        unsafe { f32_xany_fallback_nofma_mul_value(&mut x, value) };
+        assert_is_close_vector(&x, &expected);
+    }
+
+    #[test]
+    fn test_f32_xany_nofma_add() {
+        let value = 2.0;
+        let (mut x, _) = get_sample_vectors(557);
+        let expected = x.iter().copied().map(|v| v + value).collect::<Vec<_>>();
+        unsafe { f32_xany_fallback_nofma_add_value(&mut x, value) };
+        assert_is_close_vector(&x, &expected);
+    }
+
+    #[test]
+    fn test_f32_xany_nofma_sub() {
+        let value = 2.0;
+        let (mut x, _) = get_sample_vectors(557);
+        let expected = x.iter().copied().map(|v| v - value).collect::<Vec<_>>();
+        unsafe { f32_xany_fallback_nofma_sub_value(&mut x, value) };
+        assert_is_close_vector(&x, &expected);
+    }
+    
+    #[cfg(feature = "nightly")]
+    #[test]
+    fn test_f32_xany_fma_div() {
+        let value = 2.0;
+        let (mut x, _) = get_sample_vectors(557);
+        let expected = x.iter().copied().map(|v| v / value).collect::<Vec<_>>();
+        unsafe { f32_xany_fallback_fma_div_value(&mut x, value) };
+        assert_is_close_vector(&x, &expected);
+    }
+
+    #[cfg(feature = "nightly")]
+    #[test]
+    fn test_f32_xany_fma_mul() {
+        let value = 2.0;
+        let (mut x, _) = get_sample_vectors(557);
+        let expected = x.iter().copied().map(|v| v * value).collect::<Vec<_>>();
+        unsafe { f32_xany_fallback_fma_mul_value(&mut x, value) };
+        assert_is_close_vector(&x, &expected);
+    }
+
+    #[cfg(feature = "nightly")]
+    #[test]
+    fn test_f32_xany_fma_add() {
+        let value = 2.0;
+        let (mut x, _) = get_sample_vectors(557);
+        let expected = x.iter().copied().map(|v| v + value).collect::<Vec<_>>();
+        unsafe { f32_xany_fallback_fma_add_value(&mut x, value) };
+        assert_is_close_vector(&x, &expected);
+    }
+
+    #[cfg(feature = "nightly")]
+    #[test]
+    fn test_f32_xany_fma_sub() {
+        let value = 2.0;
+        let (mut x, _) = get_sample_vectors(557);
+        let expected = x.iter().copied().map(|v| v - value).collect::<Vec<_>>();
+        unsafe { f32_xany_fallback_fma_sub_value(&mut x, value) };
+        assert_is_close_vector(&x, &expected);
+    }
+}
