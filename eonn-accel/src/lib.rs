@@ -18,12 +18,12 @@ pub mod danger;
 #[cfg(not(feature = "dangerous-access"))]
 pub(crate) mod danger;
 mod ops;
-mod types;
-mod vector;
 #[cfg(test)]
 mod test_ops;
 #[cfg(test)]
 mod test_utils;
+mod types;
+mod vector;
 
 pub use self::arch::*;
 pub use self::dims::{Dim, X1024, X512, X768};

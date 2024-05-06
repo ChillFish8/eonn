@@ -247,7 +247,7 @@ mod tests {
         unsafe { f32_xany_fallback_nofma_sub_value(&mut x, value) };
         assert_is_close_vector(&x, &expected);
     }
-    
+
     #[cfg(feature = "nightly")]
     #[test]
     fn test_f32_xany_fma_div() {

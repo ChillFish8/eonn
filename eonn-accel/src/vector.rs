@@ -47,7 +47,7 @@ where
     (D, A): DangerousOps,
 {
     type Target = [T];
-    
+
     fn deref(&self) -> &Self::Target {
         &self.buffer
     }

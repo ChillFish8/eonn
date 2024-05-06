@@ -614,11 +614,7 @@ unsafe fn execute_f32_x64_fma_block_euclidean(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::{
-        assert_is_close,
-        get_sample_vectors,
-        simple_euclidean,
-    };
+    use crate::test_utils::{assert_is_close, get_sample_vectors, simple_euclidean};
 
     #[cfg(feature = "nightly")]
     #[test]
