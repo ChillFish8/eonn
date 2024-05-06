@@ -157,7 +157,7 @@ mod tests {
     #[cfg(feature = "nightly")]
     #[test]
     fn test_xany_fma_angular_hyperplane() {
-        let (x, y) = get_sample_vectors(512);
+        let (x, y) = get_sample_vectors(517);
         let hyperplane = unsafe { f32_xany_fallback_fma_angular_hyperplane(&x, &y) };
         let expected = simple_angular_hyperplane(&x, &y);
         assert_is_close_vector(&hyperplane, &expected);
@@ -165,7 +165,7 @@ mod tests {
 
     #[test]
     fn test_xany_nofma_angular_hyperplane() {
-        let (x, y) = get_sample_vectors(512);
+        let (x, y) = get_sample_vectors(517);
         let hyperplane = unsafe { f32_xany_fallback_nofma_angular_hyperplane(&x, &y) };
         let expected = simple_angular_hyperplane(&x, &y);
         assert_is_close_vector(&hyperplane, &expected);
