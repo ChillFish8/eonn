@@ -1,4 +1,7 @@
 use crate::danger::fallback_dot_product::fallback_dot;
+#[cfg(feature = "nightly")]
+use crate::danger::{f32_xany_fallback_fma_div_value, f32_xany_fallback_fma_dot};
+use crate::danger::{f32_xany_fallback_nofma_div_value, f32_xany_fallback_nofma_dot};
 use crate::math::*;
 
 #[inline]
@@ -22,6 +25,15 @@ pub unsafe fn f32_xany_fallback_nofma_angular_hyperplane(
 ) -> Vec<f32> {
     let mut hyperplane = vec![0.0; x.len()];
     fallback_angular_hyperplane::<StdMath>(x, y, &mut hyperplane);
+
+    let mut norm_hyperplane =
+        f32_xany_fallback_nofma_dot(&hyperplane, &hyperplane).sqrt();
+    if norm_hyperplane.abs() < f32::EPSILON {
+        norm_hyperplane = 1.0;
+    }
+
+    f32_xany_fallback_nofma_div_value(&mut hyperplane, norm_hyperplane);
+
     hyperplane
 }
 
@@ -47,6 +59,14 @@ pub unsafe fn f32_xany_fallback_fma_angular_hyperplane(
 ) -> Vec<f32> {
     let mut hyperplane = vec![0.0; x.len()];
     fallback_angular_hyperplane::<FastMath>(x, y, &mut hyperplane);
+
+    let mut norm_hyperplane = f32_xany_fallback_fma_dot(&hyperplane, &hyperplane).sqrt();
+    if norm_hyperplane.abs() < f32::EPSILON {
+        norm_hyperplane = 1.0;
+    }
+
+    f32_xany_fallback_fma_div_value(&mut hyperplane, norm_hyperplane);
+
     hyperplane
 }
 
@@ -76,7 +96,20 @@ pub(crate) unsafe fn fallback_angular_hyperplane<M: Math>(
         norm_y = 1.0;
     }
 
-    let mut offset_from = 0;
+    let mut offset_from = x.len() % 8;
+
+    if offset_from != 0 {
+        for i in 0..offset_from {
+            let x = *x.get_unchecked(i);
+            let y = *y.get_unchecked(i);
+
+            let normalized_x = M::div(x, norm_x);
+            let normalized_y = M::div(y, norm_y);
+
+            *hyperplane.get_unchecked_mut(i) = M::sub(normalized_x, normalized_y);
+        }
+    }
+
     while offset_from < x.len() {
         let x1 = *x.get_unchecked(offset_from);
         let x2 = *x.get_unchecked(offset_from + 1);
@@ -114,34 +147,6 @@ pub(crate) unsafe fn fallback_angular_hyperplane<M: Math>(
             M::sub(M::div(x8, norm_x), M::div(y8, norm_y));
 
         offset_from += 8;
-    }
-
-    let mut norm_hyperplane = fallback_dot::<M>(&hyperplane, &hyperplane).sqrt();
-    if norm_hyperplane.abs() < f32::EPSILON {
-        norm_hyperplane = 1.0;
-    }
-
-    let mut i = 0;
-    while i < hyperplane.len() {
-        let x1 = *hyperplane.get_unchecked(i);
-        let x2 = *hyperplane.get_unchecked(i + 1);
-        let x3 = *hyperplane.get_unchecked(i + 2);
-        let x4 = *hyperplane.get_unchecked(i + 3);
-        let x5 = *hyperplane.get_unchecked(i + 4);
-        let x6 = *hyperplane.get_unchecked(i + 5);
-        let x7 = *hyperplane.get_unchecked(i + 6);
-        let x8 = *hyperplane.get_unchecked(i + 7);
-
-        *hyperplane.get_unchecked_mut(i) = M::div(x1, norm_hyperplane);
-        *hyperplane.get_unchecked_mut(i + 1) = M::div(x2, norm_hyperplane);
-        *hyperplane.get_unchecked_mut(i + 2) = M::div(x3, norm_hyperplane);
-        *hyperplane.get_unchecked_mut(i + 3) = M::div(x4, norm_hyperplane);
-        *hyperplane.get_unchecked_mut(i + 4) = M::div(x5, norm_hyperplane);
-        *hyperplane.get_unchecked_mut(i + 5) = M::div(x6, norm_hyperplane);
-        *hyperplane.get_unchecked_mut(i + 6) = M::div(x7, norm_hyperplane);
-        *hyperplane.get_unchecked_mut(i + 7) = M::div(x8, norm_hyperplane);
-
-        i += 8;
     }
 }
 

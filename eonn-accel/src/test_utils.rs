@@ -4,7 +4,7 @@ use rand_chacha::ChaCha8Rng;
 use crate::danger::cosine;
 use crate::math::StdMath;
 
-const SEED: u64 = 2837564324875;
+const SEED: u64 = 34535345353;
 
 pub fn get_sample_vectors(size: usize) -> (Vec<f32>, Vec<f32>) {
     let mut rng = ChaCha8Rng::seed_from_u64(SEED);

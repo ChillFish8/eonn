@@ -101,12 +101,20 @@ where
             }
         }
 
-        debug_assert!(!data.iter().any(|v| !(v.is_finite() || v.is_nan())));
+        debug_assert!(!data.iter().any(|v| !v.is_finite() || v.is_nan()));
 
         Self {
             buffer: data,
             ops: <(D, A) as Default>::default(),
         }
+    }
+
+    #[cfg(test)]
+    // WARNING: Never expose this function, as it allows users to accidentally bypass
+    //          the runtime CPU feature detection and can possibly try using instructions
+    //          not available on the executing platform.
+    pub(crate) fn set_ops(&mut self, ops: A) {
+        self.ops = (D::default(), ops);
     }
 }
 

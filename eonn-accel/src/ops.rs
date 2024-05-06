@@ -2104,11 +2104,11 @@ impl DangerousOps for (X512, Auto) {
                 crate::danger::f32_xconst_avx512_nofma_div_value::<512>(x, val)
             },
             SelectedArch::Fallback => {
-                crate::danger::f32_xany_fallback_nofma_sub_value(x, val)
+                crate::danger::f32_xany_fallback_nofma_div_value(x, val)
             },
             #[cfg(feature = "nightly")]
             SelectedArch::FallbackFma => {
-                crate::danger::f32_xany_fallback_fma_sub_value(x, val)
+                crate::danger::f32_xany_fallback_fma_div_value(x, val)
             },
         }
     }

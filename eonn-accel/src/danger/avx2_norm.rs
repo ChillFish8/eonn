@@ -518,22 +518,21 @@ unsafe fn execute_f32_x64_fma_block_norm(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::{get_sample_vectors, is_close, simple_dot};
+    use crate::test_utils::{assert_is_close, get_sample_vectors, simple_dot};
 
     #[cfg(feature = "nightly")]
     #[test]
     fn test_x1024_fma_norm() {
         let (x, _) = get_sample_vectors(1024);
         let dist = unsafe { f32_x1024_avx2_fma_norm(&x) };
-        let expected = 337.62814;
-        assert_eq!(dist, expected);
+        assert_is_close(dist, simple_dot(&x, &x));
     }
 
     #[test]
     fn test_x1024_nofma_norm() {
         let (x, _) = get_sample_vectors(1024);
         let dist = unsafe { f32_x1024_avx2_nofma_norm(&x) };
-        assert_eq!(dist, 337.62814);
+        assert_is_close(dist, simple_dot(&x, &x));
     }
 
     #[cfg(feature = "nightly")]
@@ -541,14 +540,14 @@ mod tests {
     fn test_x768_fma_norm() {
         let (x, _) = get_sample_vectors(768);
         let dist = unsafe { f32_x768_avx2_fma_norm(&x) };
-        assert_eq!(dist, 254.10095);
+        assert_is_close(dist, simple_dot(&x, &x));
     }
 
     #[test]
     fn test_x768_nofma_norm() {
         let (x, _) = get_sample_vectors(768);
         let dist = unsafe { f32_x768_avx2_nofma_norm(&x) };
-        assert_eq!(dist, 254.10095);
+        assert_is_close(dist, simple_dot(&x, &x));
     }
 
     #[cfg(feature = "nightly")]
@@ -556,14 +555,14 @@ mod tests {
     fn test_x512_fma_norm() {
         let (x, _) = get_sample_vectors(512);
         let dist = unsafe { f32_x512_avx2_fma_norm(&x) };
-        assert_eq!(dist, 161.06982);
+        assert_is_close(dist, simple_dot(&x, &x));
     }
 
     #[test]
     fn test_x512_nofma_norm() {
         let (x, _) = get_sample_vectors(512);
         let dist = unsafe { f32_x512_avx2_nofma_norm(&x) };
-        assert_eq!(dist, 161.06982);
+        assert_is_close(dist, simple_dot(&x, &x));
     }
 
     #[cfg(feature = "nightly")]
@@ -571,13 +570,13 @@ mod tests {
     fn test_xany_fma_norm() {
         let (x, _) = get_sample_vectors(127);
         let dist = unsafe { f32_xany_avx2_fma_norm(&x) };
-        assert!(is_close(dist, simple_dot(&x, &x)));
+        assert_is_close(dist, simple_dot(&x, &x));
     }
 
     #[test]
     fn test_xany_nofma_norm() {
         let (x, _) = get_sample_vectors(127);
         let dist = unsafe { f32_xany_avx2_nofma_norm(&x) };
-        assert!(is_close(dist, simple_dot(&x, &x)));
+        assert_is_close(dist, simple_dot(&x, &x));
     }
 }

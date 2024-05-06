@@ -511,42 +511,42 @@ mod tests {
     fn test_x1024_fma_norm() {
         let (x, _) = get_sample_vectors(1024);
         let dist = unsafe { f32_x1024_avx512_fma_norm(&x) };
-        assert_eq!(dist, 337.62817);
+        assert_is_close(dist, simple_dot(&x, &x));
     }
 
     #[test]
     fn test_x1024_nofma_norm() {
         let (x, _) = get_sample_vectors(1024);
         let dist = unsafe { f32_x1024_avx512_nofma_norm(&x) };
-        assert_eq!(dist, 337.62817);
+        assert_is_close(dist, simple_dot(&x, &x));
     }
 
     #[test]
     fn test_x768_fma_norm() {
         let (x, _) = get_sample_vectors(768);
         let dist = unsafe { f32_x768_avx512_fma_norm(&x) };
-        assert_eq!(dist, 254.10095);
+        assert_is_close(dist, simple_dot(&x, &x));
     }
 
     #[test]
     fn test_x768_nofma_norm() {
         let (x, _) = get_sample_vectors(768);
         let dist = unsafe { f32_x768_avx512_nofma_norm(&x) };
-        assert_eq!(dist, 254.10095);
+        assert_is_close(dist, simple_dot(&x, &x));
     }
 
     #[test]
     fn test_x512_fma_norm() {
         let (x, _) = get_sample_vectors(512);
         let dist = unsafe { f32_x512_avx512_fma_norm(&x) };
-        assert_eq!(dist, 161.06982);
+        assert_is_close(dist, simple_dot(&x, &x));
     }
 
     #[test]
     fn test_x512_nofma_norm() {
         let (x, _) = get_sample_vectors(512);
         let dist = unsafe { f32_x512_avx512_nofma_norm(&x) };
-        assert_eq!(dist, 161.06982);
+        assert_is_close(dist, simple_dot(&x, &x));
     }
 
     #[test]
