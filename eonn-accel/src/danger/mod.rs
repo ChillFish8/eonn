@@ -29,9 +29,15 @@ mod f32_avx512_euclidean;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 mod f32_avx512_euclidean_hyperplane;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+mod f32_avx512_max;
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+mod f32_avx512_min;
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 mod f32_avx512_norm;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 mod f32_avx512_vector_x_value;
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+mod f32_avx512_vector_x_vector;
 mod f32_fallback_angular_hyperplane;
 mod f32_fallback_cosine;
 mod f32_fallback_dot_product;
@@ -73,9 +79,15 @@ pub use self::f32_avx512_euclidean::*;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 pub use self::f32_avx512_euclidean_hyperplane::*;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+pub use self::f32_avx512_max::*;
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+pub use self::f32_avx512_min::*;
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 pub use self::f32_avx512_norm::*;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 pub use self::f32_avx512_vector_x_value::*;
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+pub use self::f32_avx512_vector_x_vector::*;
 pub use self::f32_fallback_angular_hyperplane::*;
 pub use self::f32_fallback_cosine::*;
 pub use self::f32_fallback_dot_product::*;
