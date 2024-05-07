@@ -1,4 +1,4 @@
-use crate::math::{FastMath, Math, StdMath};
+use crate::math::*;
 
 #[inline]
 /// Divides each the input mutable vector `x` by the elements provided by `y`

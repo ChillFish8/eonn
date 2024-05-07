@@ -15,6 +15,8 @@ mod f32_avx2_min;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 mod f32_avx2_norm;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+mod f32_avx2_sum;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 mod f32_avx2_vector_x_value;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 mod f32_avx2_vector_x_vector;
@@ -35,6 +37,8 @@ mod f32_avx512_min;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 mod f32_avx512_norm;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+mod f32_avx512_sum;
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 mod f32_avx512_vector_x_value;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 mod f32_avx512_vector_x_vector;
@@ -45,6 +49,7 @@ mod f32_fallback_euclidean;
 mod f32_fallback_euclidean_hyperplane;
 mod f32_fallback_max;
 mod f32_fallback_min;
+mod f32_fallback_sum;
 mod f32_fallback_vector_x_value;
 mod f32_fallback_vector_x_vector;
 mod utils;
@@ -68,6 +73,8 @@ pub use self::f32_avx2_min::*;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub use self::f32_avx2_norm::*;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+pub use self::f32_avx2_sum::*;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub use self::f32_avx2_vector_x_value::*;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub use self::f32_avx2_vector_x_vector::*;
@@ -88,6 +95,8 @@ pub use self::f32_avx512_min::*;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 pub use self::f32_avx512_norm::*;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+pub use self::f32_avx512_sum::*;
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 pub use self::f32_avx512_vector_x_value::*;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 pub use self::f32_avx512_vector_x_vector::*;
@@ -98,5 +107,6 @@ pub use self::f32_fallback_euclidean::*;
 pub use self::f32_fallback_euclidean_hyperplane::*;
 pub use self::f32_fallback_max::*;
 pub use self::f32_fallback_min::*;
+pub use self::f32_fallback_sum::*;
 pub use self::f32_fallback_vector_x_value::*;
 pub use self::f32_fallback_vector_x_vector::*;

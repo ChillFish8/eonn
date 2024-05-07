@@ -137,6 +137,7 @@ pub unsafe fn f32_xany_fallback_nofma_min_vertical(matrix: &[&[f32]]) -> Vec<f32
     min_values
 }
 
+#[cfg(all(test, target_feature = "avx512f"))]
 #[cfg(test)]
 mod tests {
     use super::*;
