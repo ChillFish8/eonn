@@ -22,6 +22,10 @@ be optimized relatively well by the compiler for other architectures e.g. ARM or
 - `vector * value`
 - `vector + value`
 - `vector - value`
+- `vector / vector`
+- `vector * vector`
+- `vector + vector`
+- `vector - vector`
 - `vector.sum()`
 - `vector.max()`
 - `vector.min()`
