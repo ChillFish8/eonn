@@ -1,6 +1,6 @@
 use std::arch::x86_64::*;
 
-use crate::danger::f32_fallback_sum::f32_xany_fallback_nofma_sum;
+use crate::danger::f32_fallback_sum::f32_xany_fallback_nofma_sum_horizontal;
 use crate::danger::{offsets_avx2, rollup_x8, sum_avx2, CHUNK_0, CHUNK_1};
 
 #[target_feature(enable = "avx2")]
@@ -23,7 +23,7 @@ use crate::danger::{offsets_avx2, rollup_x8, sum_avx2, CHUNK_0, CHUNK_1};
 ///
 /// This method assumes AVX2 instructions are available, if this method is executed
 /// on non-AVX2 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
-pub unsafe fn f32_xconst_avx2_nofma_sum<const DIMS: usize>(x: &[f32]) -> f32 {
+pub unsafe fn f32_xconst_avx2_nofma_sum_horizontal<const DIMS: usize>(x: &[f32]) -> f32 {
     debug_assert_eq!(DIMS % 64, 0, "DIMS must be a multiple of 64");
     debug_assert_eq!(x.len(), DIMS);
 
@@ -76,13 +76,13 @@ pub unsafe fn f32_xconst_avx2_nofma_sum<const DIMS: usize>(x: &[f32]) -> f32 {
 ///
 /// This method assumes AVX2 instructions are available, if this method is executed
 /// on non-AVX2 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
-pub unsafe fn f32_xany_avx2_nofma_sum(x: &[f32]) -> f32 {
+pub unsafe fn f32_xany_avx2_nofma_sum_horizontal(x: &[f32]) -> f32 {
     let len = x.len();
     let mut offset_from = len % 64;
 
     let mut extra = 0.0;
     if offset_from != 0 {
-        extra = f32_xany_fallback_nofma_sum(&x[..offset_from]);
+        extra = f32_xany_fallback_nofma_sum_horizontal(&x[..offset_from]);
     }
 
     let x = x.as_ptr();
@@ -159,14 +159,14 @@ mod tests {
     #[test]
     fn test_xconst_nofma_sum() {
         let (x, _) = get_sample_vectors(768);
-        let sum = unsafe { f32_xconst_avx2_nofma_sum::<768>(&x) };
+        let sum = unsafe { f32_xconst_avx2_nofma_sum_horizontal::<768>(&x) };
         assert_is_close(sum, x.iter().sum::<f32>());
     }
 
     #[test]
     fn test_xany_nofma_sum() {
         let (x, _) = get_sample_vectors(131);
-        let sum = unsafe { f32_xany_avx2_nofma_sum(&x) };
+        let sum = unsafe { f32_xany_avx2_nofma_sum_horizontal(&x) };
         assert_is_close(sum, x.iter().sum::<f32>());
     }
 }

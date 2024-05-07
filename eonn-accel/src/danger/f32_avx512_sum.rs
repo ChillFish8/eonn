@@ -28,7 +28,9 @@ use crate::danger::{
 ///
 /// This method assumes AVX512 instructions are available, if this method is executed
 /// on non-AVX512 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
-pub unsafe fn f32_xconst_avx512_nofma_sum<const DIMS: usize>(x: &[f32]) -> f32 {
+pub unsafe fn f32_xconst_avx512_nofma_sum_horizontal<const DIMS: usize>(
+    x: &[f32],
+) -> f32 {
     debug_assert_eq!(DIMS % 128, 0, "DIMS must be a multiple of 128");
     debug_assert_eq!(x.len(), DIMS);
 
@@ -80,7 +82,7 @@ pub unsafe fn f32_xconst_avx512_nofma_sum<const DIMS: usize>(x: &[f32]) -> f32 {
 ///
 /// This method assumes AVX512 instructions are available, if this method is executed
 /// on non-AVX512 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
-pub unsafe fn f32_xany_avx512_nofma_sum(x: &[f32]) -> f32 {
+pub unsafe fn f32_xany_avx512_nofma_sum_horizontal(x: &[f32]) -> f32 {
     let len = x.len();
     let mut offset_from = len % 128;
 
@@ -170,14 +172,14 @@ mod tests {
     #[test]
     fn test_xconst_nofma_sum() {
         let (x, _) = get_sample_vectors(768);
-        let sum = unsafe { f32_xconst_avx512_nofma_sum::<768>(&x) };
+        let sum = unsafe { f32_xconst_avx512_nofma_sum_horizontal::<768>(&x) };
         assert_is_close(sum, x.iter().sum::<f32>());
     }
 
     #[test]
     fn test_xany_nofma_sum() {
         let (x, _) = get_sample_vectors(131);
-        let sum = unsafe { f32_xany_avx512_nofma_sum(&x) };
+        let sum = unsafe { f32_xany_avx512_nofma_sum_horizontal(&x) };
         assert_is_close(sum, x.iter().sum::<f32>());
     }
 }

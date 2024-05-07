@@ -16,7 +16,7 @@ use crate::math::*;
 ///
 /// This method in theory is safe, but like the rest of the dangerous API, makes
 /// no guarantee that it will always remain safe with no strings attached.
-pub unsafe fn f32_xany_fallback_nofma_sum(x: &[f32]) -> f32 {
+pub unsafe fn f32_xany_fallback_nofma_sum_horizontal(x: &[f32]) -> f32 {
     sum::<StdMath>(x)
 }
 
@@ -37,7 +37,7 @@ pub unsafe fn f32_xany_fallback_nofma_sum(x: &[f32]) -> f32 {
 ///
 /// All values within the array must be finite and not `NaN` otherwise this
 /// function can be UB.
-pub unsafe fn f32_xany_fallback_fma_sum(x: &[f32]) -> f32 {
+pub unsafe fn f32_xany_fallback_fma_sum_horizontal(x: &[f32]) -> f32 {
     sum::<FastMath>(x)
 }
 
@@ -102,14 +102,14 @@ mod tests {
     #[test]
     fn test_xany_nofma_sum() {
         let (x, _) = get_sample_vectors(131);
-        let sum = unsafe { f32_xany_fallback_nofma_sum(&x) };
+        let sum = unsafe { f32_xany_fallback_nofma_sum_horizontal(&x) };
         assert_is_close(sum, x.iter().sum::<f32>());
     }
 
     #[test]
     fn test_xany_fma_sum() {
         let (x, _) = get_sample_vectors(131);
-        let sum = unsafe { f32_xany_fallback_fma_sum(&x) };
+        let sum = unsafe { f32_xany_fallback_fma_sum_horizontal(&x) };
         assert_is_close(sum, x.iter().sum::<f32>());
     }
 }
