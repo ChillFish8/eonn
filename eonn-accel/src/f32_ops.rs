@@ -99,32 +99,99 @@ pub trait DangerousOps {
     /// All vectors must contain only finite values and be not-nan. The dimensions
     /// of `x` and `y` must also be equal and align with the implementor's required
     /// dimension sizes.
-    unsafe fn div_value(&self, x: &mut [f32], val: f32);
+    unsafe fn div_value(&self, x: &mut [f32], y: f32);
+    /// Performs a vertical addition of each element in `x` with each respective element in `y`.
+    ///
+    /// # Safety
+    /// Vectors `x` and `y` must be equal in length.
+    ///
+    /// All vectors must contain only finite values and be not-nan. The dimensions
+    /// of `x` and `y` must also be equal and align with the implementor's required
+    /// dimension sizes.
+    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]);
+    /// Performs a vertical subtraction of each element in `x` with each respective
+    /// element in `y`.
+    ///
+    /// # Safety
+    /// Vectors `x` and `y` must be equal in length.
+    ///
+    /// All vectors must contain only finite values and be not-nan. The dimensions
+    /// of `x` and `y` must also be equal and align with the implementor's required
+    /// dimension sizes.
+    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]);
+    /// Performs a vertical multiplication of each element in `x` by each respective
+    /// element in `y`.
+    ///
+    /// # Safety
+    /// Vectors `x` and `y` must be equal in length.
+    ///
+    /// All vectors must contain only finite values and be not-nan. The dimensions
+    /// of `x` and `y` must also be equal and align with the implementor's required
+    /// dimension sizes.
+    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]);
+    /// Performs a vertical division of each element in `x` by each respective element in `y`.
+    ///
+    /// # Safety
+    /// Vectors `x` and `y` must be equal in length.
+    ///
+    /// All vectors must contain only finite values and be not-nan. The dimensions
+    /// of `x` and `y` must also be equal and align with the implementor's required
+    /// dimension sizes.
+    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]);
+    /// Performs a horizontal sum of the given vector.
+    ///
+    /// # Safety
+    ///
+    /// All vectors must contain only finite values and be not-nan. The dimensions
+    /// of `x` and `y` must also be equal and align with the implementor's required
+    /// dimension sizes.
+    unsafe fn sum(&self, x: &[f32]) -> f32;
+    /// Performs a horizontal min of the given vector.
+    ///
+    /// # Safety
+    ///
+    /// All vectors must contain only finite values and be not-nan. The dimensions
+    /// of `x` and `y` must also be equal and align with the implementor's required
+    /// dimension sizes.
+    unsafe fn min(&self, x: &[f32]) -> f32;
+    /// Performs a horizontal max of the given vector.
+    ///
+    /// # Safety
+    ///
+    /// All vectors must contain only finite values and be not-nan. The dimensions
+    /// of `x` and `y` must also be equal and align with the implementor's required
+    /// dimension sizes.
+    unsafe fn max(&self, x: &[f32]) -> f32;
 }
 
 impl<D: Dim> DangerousOps for (D, Fallback) {
     #[inline]
     unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_fallback_nofma_dot(x, y)
     }
 
     #[inline]
     unsafe fn cosine(&self, x: &[f32], y: &[f32]) -> f32 {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_fallback_nofma_cosine(x, y)
     }
 
     #[inline]
     unsafe fn squared_euclidean(&self, x: &[f32], y: &[f32]) -> f32 {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_fallback_nofma_euclidean(x, y)
     }
 
     #[inline]
     unsafe fn angular_hyperplane(&self, x: &[f32], y: &[f32]) -> Vec<f32> {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_fallback_nofma_angular_hyperplane(x, y)
     }
 
     #[inline]
     unsafe fn euclidean_hyperplane(&self, x: &[f32], y: &[f32]) -> (Vec<f32>, f32) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
         crate::danger::f32_xany_fallback_nofma_euclidean_hyperplane(x, y)
     }
 
@@ -151,6 +218,45 @@ impl<D: Dim> DangerousOps for (D, Fallback) {
     #[inline]
     unsafe fn div_value(&self, x: &mut [f32], val: f32) {
         crate::danger::f32_xany_fallback_nofma_div_value(x, val)
+    }
+
+    #[inline]
+    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
+        crate::danger::f32_xany_fallback_nofma_add_vertical(x, y)
+    }
+
+    #[inline]
+    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
+        crate::danger::f32_xany_fallback_nofma_sub_vertical(x, y)
+    }
+
+    #[inline]
+    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
+        crate::danger::f32_xany_fallback_nofma_mul_vertical(x, y)
+    }
+
+    #[inline]
+    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
+        crate::danger::f32_xany_fallback_nofma_div_vertical(x, y)
+    }
+
+    #[inline]
+    unsafe fn sum(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xany_fallback_nofma_sum_horizontal(x)
+    }
+
+    #[inline]
+    unsafe fn min(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xany_fallback_nofma_min_horizontal(x)
+    }
+
+    #[inline]
+    unsafe fn max(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xany_fallback_nofma_max_horizontal(x)
     }
 }
 
@@ -205,6 +311,41 @@ impl DangerousOps for (X1024, Avx2) {
     unsafe fn div_value(&self, x: &mut [f32], val: f32) {
         crate::danger::f32_xconst_avx2_nofma_div_value::<1024>(x, val)
     }
+
+    #[inline]
+    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx2_nofma_add_vertical::<1024>(x, y)
+    }
+
+    #[inline]
+    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx2_nofma_sub_vertical::<1024>(x, y)
+    }
+
+    #[inline]
+    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx2_nofma_mul_vertical::<1024>(x, y)
+    }
+
+    #[inline]
+    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx2_nofma_div_vertical::<1024>(x, y)
+    }
+
+    #[inline]
+    unsafe fn sum(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx2_nofma_sum_horizontal::<1024>(x)
+    }
+
+    #[inline]
+    unsafe fn min(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx2_nofma_min_horizontal::<1024>(x)
+    }
+
+    #[inline]
+    unsafe fn max(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx2_nofma_max_horizontal::<1024>(x)
+    }
 }
 
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
@@ -258,6 +399,41 @@ impl DangerousOps for (X768, Avx2) {
     unsafe fn div_value(&self, x: &mut [f32], val: f32) {
         crate::danger::f32_xconst_avx2_nofma_div_value::<768>(x, val)
     }
+
+    #[inline]
+    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx2_nofma_add_vertical::<768>(x, y)
+    }
+
+    #[inline]
+    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx2_nofma_sub_vertical::<768>(x, y)
+    }
+
+    #[inline]
+    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx2_nofma_mul_vertical::<768>(x, y)
+    }
+
+    #[inline]
+    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx2_nofma_div_vertical::<768>(x, y)
+    }
+
+    #[inline]
+    unsafe fn sum(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx2_nofma_sum_horizontal::<768>(x)
+    }
+
+    #[inline]
+    unsafe fn min(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx2_nofma_min_horizontal::<768>(x)
+    }
+
+    #[inline]
+    unsafe fn max(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx2_nofma_max_horizontal::<768>(x)
+    }
 }
 
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
@@ -310,6 +486,41 @@ impl DangerousOps for (X512, Avx2) {
     #[inline]
     unsafe fn div_value(&self, x: &mut [f32], val: f32) {
         crate::danger::f32_xconst_avx2_nofma_div_value::<512>(x, val)
+    }
+
+    #[inline]
+    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx2_nofma_add_vertical::<512>(x, y)
+    }
+
+    #[inline]
+    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx2_nofma_sub_vertical::<512>(x, y)
+    }
+
+    #[inline]
+    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx2_nofma_mul_vertical::<512>(x, y)
+    }
+
+    #[inline]
+    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx2_nofma_div_vertical::<512>(x, y)
+    }
+
+    #[inline]
+    unsafe fn sum(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx2_nofma_sum_horizontal::<512>(x)
+    }
+
+    #[inline]
+    unsafe fn min(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx2_nofma_min_horizontal::<512>(x)
+    }
+
+    #[inline]
+    unsafe fn max(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx2_nofma_max_horizontal::<512>(x)
     }
 }
 
@@ -369,6 +580,45 @@ impl DangerousOps for (XAny, Avx2) {
     unsafe fn div_value(&self, x: &mut [f32], val: f32) {
         crate::danger::f32_xany_avx2_nofma_div_value(x, val)
     }
+
+    #[inline]
+    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
+        crate::danger::f32_xany_avx2_nofma_add_vertical(x, y)
+    }
+
+    #[inline]
+    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
+        crate::danger::f32_xany_avx2_nofma_sub_vertical(x, y)
+    }
+
+    #[inline]
+    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
+        crate::danger::f32_xany_avx2_nofma_mul_vertical(x, y)
+    }
+
+    #[inline]
+    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
+        crate::danger::f32_xany_avx2_nofma_div_vertical(x, y)
+    }
+
+    #[inline]
+    unsafe fn sum(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xany_avx2_nofma_sum_horizontal(x)
+    }
+
+    #[inline]
+    unsafe fn min(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xany_avx2_nofma_min_horizontal(x)
+    }
+
+    #[inline]
+    unsafe fn max(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xany_avx2_nofma_max_horizontal(x)
+    }
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
@@ -422,6 +672,41 @@ impl DangerousOps for (X1024, Avx512) {
     unsafe fn div_value(&self, x: &mut [f32], val: f32) {
         crate::danger::f32_xconst_avx512_nofma_div_value::<1024>(x, val)
     }
+
+    #[inline]
+    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx512_nofma_add_vertical::<1024>(x, y)
+    }
+
+    #[inline]
+    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx512_nofma_sub_vertical::<1024>(x, y)
+    }
+
+    #[inline]
+    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx512_nofma_mul_vertical::<1024>(x, y)
+    }
+
+    #[inline]
+    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx512_nofma_div_vertical::<1024>(x, y)
+    }
+
+    #[inline]
+    unsafe fn sum(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx512_nofma_sum_horizontal::<1024>(x)
+    }
+
+    #[inline]
+    unsafe fn min(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx512_nofma_min_horizontal::<1024>(x)
+    }
+
+    #[inline]
+    unsafe fn max(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx512_nofma_max_horizontal::<1024>(x)
+    }
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
@@ -458,22 +743,57 @@ impl DangerousOps for (X768, Avx512) {
 
     #[inline]
     unsafe fn add_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx512_nofma_add_value::<1024>(x, val)
+        crate::danger::f32_xconst_avx512_nofma_add_value::<768>(x, val)
     }
 
     #[inline]
     unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx512_nofma_sub_value::<1024>(x, val)
+        crate::danger::f32_xconst_avx512_nofma_sub_value::<768>(x, val)
     }
 
     #[inline]
     unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx512_nofma_mul_value::<1024>(x, val)
+        crate::danger::f32_xconst_avx512_nofma_mul_value::<768>(x, val)
     }
 
     #[inline]
     unsafe fn div_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx512_nofma_div_value::<1024>(x, val)
+        crate::danger::f32_xconst_avx512_nofma_div_value::<768>(x, val)
+    }
+
+    #[inline]
+    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx512_nofma_add_vertical::<768>(x, y)
+    }
+
+    #[inline]
+    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx512_nofma_sub_vertical::<768>(x, y)
+    }
+
+    #[inline]
+    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx512_nofma_mul_vertical::<768>(x, y)
+    }
+
+    #[inline]
+    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx512_nofma_div_vertical::<768>(x, y)
+    }
+
+    #[inline]
+    unsafe fn sum(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx512_nofma_sum_horizontal::<768>(x)
+    }
+
+    #[inline]
+    unsafe fn min(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx512_nofma_min_horizontal::<768>(x)
+    }
+
+    #[inline]
+    unsafe fn max(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx512_nofma_max_horizontal::<768>(x)
     }
 }
 
@@ -527,6 +847,41 @@ impl DangerousOps for (X512, Avx512) {
     #[inline]
     unsafe fn div_value(&self, x: &mut [f32], val: f32) {
         crate::danger::f32_xconst_avx512_nofma_div_value::<512>(x, val)
+    }
+
+    #[inline]
+    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx512_nofma_add_vertical::<512>(x, y)
+    }
+
+    #[inline]
+    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx512_nofma_sub_vertical::<512>(x, y)
+    }
+
+    #[inline]
+    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx512_nofma_mul_vertical::<512>(x, y)
+    }
+
+    #[inline]
+    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx512_nofma_div_vertical::<512>(x, y)
+    }
+
+    #[inline]
+    unsafe fn sum(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx512_nofma_sum_horizontal::<512>(x)
+    }
+
+    #[inline]
+    unsafe fn min(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx512_nofma_min_horizontal::<512>(x)
+    }
+
+    #[inline]
+    unsafe fn max(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx512_nofma_max_horizontal::<512>(x)
     }
 }
 
@@ -586,6 +941,45 @@ impl DangerousOps for (XAny, Avx512) {
     unsafe fn div_value(&self, x: &mut [f32], val: f32) {
         crate::danger::f32_xany_avx512_nofma_div_value(x, val)
     }
+
+    #[inline]
+    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
+        crate::danger::f32_xany_avx512_nofma_add_vertical(x, y)
+    }
+
+    #[inline]
+    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
+        crate::danger::f32_xany_avx512_nofma_sub_vertical(x, y)
+    }
+
+    #[inline]
+    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
+        crate::danger::f32_xany_avx512_nofma_mul_vertical(x, y)
+    }
+
+    #[inline]
+    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
+        crate::danger::f32_xany_avx512_nofma_div_vertical(x, y)
+    }
+
+    #[inline]
+    unsafe fn sum(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xany_avx512_nofma_sum_horizontal(x)
+    }
+
+    #[inline]
+    unsafe fn min(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xany_avx512_nofma_min_horizontal(x)
+    }
+
+    #[inline]
+    unsafe fn max(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xany_avx512_nofma_max_horizontal(x)
+    }
 }
 
 #[cfg(feature = "nightly")]
@@ -644,6 +1038,45 @@ impl<D: Dim> DangerousOps for (D, FallbackFma) {
     unsafe fn div_value(&self, x: &mut [f32], val: f32) {
         crate::danger::f32_xany_fallback_nofma_div_value(x, val)
     }
+
+    #[inline]
+    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
+        crate::danger::f32_xany_fallback_fma_add_vertical(x, y)
+    }
+
+    #[inline]
+    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
+        crate::danger::f32_xany_fallback_fma_sub_vertical(x, y)
+    }
+
+    #[inline]
+    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
+        crate::danger::f32_xany_fallback_fma_mul_vertical(x, y)
+    }
+
+    #[inline]
+    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
+        crate::danger::f32_xany_fallback_fma_div_vertical(x, y)
+    }
+
+    #[inline]
+    unsafe fn sum(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xany_fallback_fma_sum_horizontal(x)
+    }
+
+    #[inline]
+    unsafe fn min(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xany_fallback_nofma_min_horizontal(x)
+    }
+
+    #[inline]
+    unsafe fn max(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xany_fallback_nofma_max_horizontal(x)
+    }
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
@@ -696,6 +1129,41 @@ impl DangerousOps for (X1024, Avx2Fma) {
     #[inline]
     unsafe fn div_value(&self, x: &mut [f32], val: f32) {
         crate::danger::f32_xconst_avx2_nofma_div_value::<1024>(x, val)
+    }
+
+    #[inline]
+    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx2_nofma_add_vertical::<1024>(x, y)
+    }
+
+    #[inline]
+    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx2_nofma_sub_vertical::<1024>(x, y)
+    }
+
+    #[inline]
+    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx2_nofma_mul_vertical::<1024>(x, y)
+    }
+
+    #[inline]
+    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx2_nofma_div_vertical::<1024>(x, y)
+    }
+
+    #[inline]
+    unsafe fn sum(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx2_nofma_sum_horizontal::<1024>(x)
+    }
+
+    #[inline]
+    unsafe fn min(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx2_nofma_min_horizontal::<1024>(x)
+    }
+
+    #[inline]
+    unsafe fn max(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx2_nofma_min_horizontal::<1024>(x)
     }
 }
 
@@ -750,6 +1218,41 @@ impl DangerousOps for (X768, Avx2Fma) {
     unsafe fn div_value(&self, x: &mut [f32], val: f32) {
         crate::danger::f32_xconst_avx2_nofma_div_value::<768>(x, val)
     }
+
+    #[inline]
+    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx2_nofma_add_vertical::<768>(x, y)
+    }
+
+    #[inline]
+    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx2_nofma_sub_vertical::<768>(x, y)
+    }
+
+    #[inline]
+    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx2_nofma_mul_vertical::<768>(x, y)
+    }
+
+    #[inline]
+    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx2_nofma_div_vertical::<768>(x, y)
+    }
+
+    #[inline]
+    unsafe fn sum(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx2_nofma_sum_horizontal::<768>(x)
+    }
+
+    #[inline]
+    unsafe fn min(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx2_nofma_min_horizontal::<768>(x)
+    }
+
+    #[inline]
+    unsafe fn max(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx2_nofma_min_horizontal::<768>(x)
+    }
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
@@ -802,6 +1305,41 @@ impl DangerousOps for (X512, Avx2Fma) {
     #[inline]
     unsafe fn div_value(&self, x: &mut [f32], val: f32) {
         crate::danger::f32_xconst_avx2_nofma_div_value::<512>(x, val)
+    }
+
+    #[inline]
+    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx2_nofma_add_vertical::<512>(x, y)
+    }
+
+    #[inline]
+    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx2_nofma_sub_vertical::<512>(x, y)
+    }
+
+    #[inline]
+    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx2_nofma_mul_vertical::<512>(x, y)
+    }
+
+    #[inline]
+    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx2_nofma_div_vertical::<512>(x, y)
+    }
+
+    #[inline]
+    unsafe fn sum(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx2_nofma_sum_horizontal::<512>(x)
+    }
+
+    #[inline]
+    unsafe fn min(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx2_nofma_min_horizontal::<512>(x)
+    }
+
+    #[inline]
+    unsafe fn max(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx2_nofma_min_horizontal::<512>(x)
     }
 }
 
@@ -861,6 +1399,45 @@ impl DangerousOps for (XAny, Avx2Fma) {
     unsafe fn div_value(&self, x: &mut [f32], val: f32) {
         crate::danger::f32_xany_avx2_nofma_div_value(x, val)
     }
+
+    #[inline]
+    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
+        crate::danger::f32_xany_avx2_nofma_add_vertical(x, y)
+    }
+
+    #[inline]
+    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
+        crate::danger::f32_xany_avx2_nofma_sub_vertical(x, y)
+    }
+
+    #[inline]
+    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
+        crate::danger::f32_xany_avx2_nofma_mul_vertical(x, y)
+    }
+
+    #[inline]
+    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
+        crate::danger::f32_xany_avx2_nofma_div_vertical(x, y)
+    }
+
+    #[inline]
+    unsafe fn sum(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xany_avx2_nofma_sum_horizontal(x)
+    }
+
+    #[inline]
+    unsafe fn min(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xany_avx2_nofma_min_horizontal(x)
+    }
+
+    #[inline]
+    unsafe fn max(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xany_avx2_nofma_min_horizontal(x)
+    }
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
@@ -913,6 +1490,41 @@ impl DangerousOps for (X1024, Avx512Fma) {
     #[inline]
     unsafe fn div_value(&self, x: &mut [f32], val: f32) {
         crate::danger::f32_xconst_avx512_nofma_div_value::<1024>(x, val)
+    }
+
+    #[inline]
+    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx512_nofma_add_vertical::<1024>(x, y)
+    }
+
+    #[inline]
+    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx512_nofma_sub_vertical::<51024>(x, y)
+    }
+
+    #[inline]
+    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx512_nofma_mul_vertical::<1024>(x, y)
+    }
+
+    #[inline]
+    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx512_nofma_div_vertical::<1024>(x, y)
+    }
+
+    #[inline]
+    unsafe fn sum(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx512_nofma_sum_horizontal::<1024>(x)
+    }
+
+    #[inline]
+    unsafe fn min(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx512_nofma_min_horizontal::<1024>(x)
+    }
+
+    #[inline]
+    unsafe fn max(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx512_nofma_min_horizontal::<1024>(x)
     }
 }
 
@@ -967,6 +1579,41 @@ impl DangerousOps for (X768, Avx512Fma) {
     unsafe fn div_value(&self, x: &mut [f32], val: f32) {
         crate::danger::f32_xconst_avx512_nofma_div_value::<768>(x, val)
     }
+
+    #[inline]
+    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx512_nofma_add_vertical::<768>(x, y)
+    }
+
+    #[inline]
+    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx512_nofma_sub_vertical::<768>(x, y)
+    }
+
+    #[inline]
+    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx512_nofma_mul_vertical::<768>(x, y)
+    }
+
+    #[inline]
+    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx512_nofma_div_vertical::<768>(x, y)
+    }
+
+    #[inline]
+    unsafe fn sum(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx512_nofma_sum_horizontal::<768>(x)
+    }
+
+    #[inline]
+    unsafe fn min(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx512_nofma_min_horizontal::<768>(x)
+    }
+
+    #[inline]
+    unsafe fn max(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx512_nofma_min_horizontal::<768>(x)
+    }
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
@@ -1019,6 +1666,41 @@ impl DangerousOps for (X512, Avx512Fma) {
     #[inline]
     unsafe fn div_value(&self, x: &mut [f32], val: f32) {
         crate::danger::f32_xconst_avx512_nofma_div_value::<512>(x, val)
+    }
+
+    #[inline]
+    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx512_nofma_add_vertical::<512>(x, y)
+    }
+
+    #[inline]
+    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx512_nofma_sub_vertical::<512>(x, y)
+    }
+
+    #[inline]
+    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx512_nofma_mul_vertical::<512>(x, y)
+    }
+
+    #[inline]
+    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
+        crate::danger::f32_xconst_avx512_nofma_div_vertical::<512>(x, y)
+    }
+
+    #[inline]
+    unsafe fn sum(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx512_nofma_sum_horizontal::<512>(x)
+    }
+
+    #[inline]
+    unsafe fn min(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx512_nofma_min_horizontal::<512>(x)
+    }
+
+    #[inline]
+    unsafe fn max(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xconst_avx512_nofma_min_horizontal::<512>(x)
     }
 }
 
@@ -1077,6 +1759,45 @@ impl DangerousOps for (XAny, Avx512Fma) {
     #[inline]
     unsafe fn div_value(&self, x: &mut [f32], val: f32) {
         crate::danger::f32_xany_avx512_nofma_div_value(x, val)
+    }
+
+    #[inline]
+    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
+        crate::danger::f32_xany_avx512_nofma_add_vertical(x, y)
+    }
+
+    #[inline]
+    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
+        crate::danger::f32_xany_avx512_nofma_sub_vertical(x, y)
+    }
+
+    #[inline]
+    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
+        crate::danger::f32_xany_avx512_nofma_mul_vertical(x, y)
+    }
+
+    #[inline]
+    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
+        crate::danger::f32_xany_avx512_nofma_div_vertical(x, y)
+    }
+
+    #[inline]
+    unsafe fn sum(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xany_avx512_nofma_sum_horizontal(x)
+    }
+
+    #[inline]
+    unsafe fn min(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xany_avx512_nofma_min_horizontal(x)
+    }
+
+    #[inline]
+    unsafe fn max(&self, x: &[f32]) -> f32 {
+        crate::danger::f32_xany_avx512_nofma_min_horizontal(x)
     }
 }
 
@@ -1424,6 +2145,272 @@ impl DangerousOps for (X1024, Auto) {
             },
         }
     }
+
+    #[inline]
+    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_add_vertical::<1024>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_add_vertical::<1024>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_add_vertical::<1024>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_add_vertical::<1024>(x, y)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_add_vertical(x, y)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_add_vertical(x, y)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_sub_vertical::<1024>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_sub_vertical::<1024>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_sub_vertical::<1024>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_sub_vertical::<1024>(x, y)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_sub_vertical(x, y)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_sub_vertical(x, y)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_mul_vertical::<1024>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_mul_vertical::<1024>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_mul_vertical::<1024>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_mul_vertical::<1024>(x, y)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_mul_vertical(x, y)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_mul_vertical(x, y)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_div_vertical::<1024>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_div_vertical::<1024>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_div_vertical::<1024>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_div_vertical::<1024>(x, y)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_div_vertical(x, y)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_div_vertical(x, y)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn sum(&self, x: &[f32]) -> f32 {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_sum_horizontal::<1024>(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_sum_horizontal::<1024>(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_sum_horizontal::<1024>(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_sum_horizontal::<1024>(x)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_sum_horizontal(x)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_sum_horizontal(x)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn min(&self, x: &[f32]) -> f32 {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_min_horizontal::<1024>(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_min_horizontal::<1024>(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_min_horizontal::<1024>(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_min_horizontal::<1024>(x)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_min_horizontal(x)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_nofma_min_horizontal(x)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn max(&self, x: &[f32]) -> f32 {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_max_horizontal::<1024>(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_max_horizontal::<1024>(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_max_horizontal::<1024>(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_max_horizontal::<1024>(x)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_max_horizontal(x)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_nofma_max_horizontal(x)
+            },
+        }
+    }
 }
 
 impl DangerousOps for (X768, Auto) {
@@ -1765,6 +2752,272 @@ impl DangerousOps for (X768, Auto) {
             #[cfg(feature = "nightly")]
             SelectedArch::FallbackFma => {
                 crate::danger::f32_xany_fallback_fma_div_value(x, val)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_add_vertical::<768>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_add_vertical::<768>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_add_vertical::<768>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_add_vertical::<768>(x, y)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_add_vertical(x, y)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_add_vertical(x, y)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_sub_vertical::<768>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_sub_vertical::<768>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_sub_vertical::<768>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_sub_vertical::<768>(x, y)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_sub_vertical(x, y)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_sub_vertical(x, y)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_mul_vertical::<768>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_mul_vertical::<768>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_mul_vertical::<768>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_mul_vertical::<768>(x, y)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_mul_vertical(x, y)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_mul_vertical(x, y)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_div_vertical::<768>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_div_vertical::<768>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_div_vertical::<768>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_div_vertical::<768>(x, y)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_div_vertical(x, y)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_div_vertical(x, y)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn sum(&self, x: &[f32]) -> f32 {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_sum_horizontal::<768>(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_sum_horizontal::<768>(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_sum_horizontal::<768>(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_sum_horizontal::<768>(x)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_sum_horizontal(x)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_sum_horizontal(x)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn min(&self, x: &[f32]) -> f32 {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_min_horizontal::<768>(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_min_horizontal::<768>(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_min_horizontal::<768>(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_min_horizontal::<768>(x)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_min_horizontal(x)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_nofma_min_horizontal(x)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn max(&self, x: &[f32]) -> f32 {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_max_horizontal::<768>(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_max_horizontal::<768>(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_max_horizontal::<768>(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_max_horizontal::<768>(x)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_max_horizontal(x)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_nofma_max_horizontal(x)
             },
         }
     }
@@ -2112,6 +3365,272 @@ impl DangerousOps for (X512, Auto) {
             },
         }
     }
+
+    #[inline]
+    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_add_vertical::<512>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_add_vertical::<512>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_add_vertical::<512>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_add_vertical::<512>(x, y)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_add_vertical(x, y)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_add_vertical(x, y)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_sub_vertical::<512>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_sub_vertical::<512>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_sub_vertical::<512>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_sub_vertical::<512>(x, y)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_sub_vertical(x, y)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_sub_vertical(x, y)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_mul_vertical::<512>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_mul_vertical::<512>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_mul_vertical::<512>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_mul_vertical::<512>(x, y)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_mul_vertical(x, y)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_mul_vertical(x, y)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_div_vertical::<512>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_div_vertical::<512>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_div_vertical::<512>(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_div_vertical::<512>(x, y)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_div_vertical(x, y)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_div_vertical(x, y)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn sum(&self, x: &[f32]) -> f32 {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_sum_horizontal::<512>(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_sum_horizontal::<512>(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_sum_horizontal::<512>(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_sum_horizontal::<512>(x)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_sum_horizontal(x)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_sum_horizontal(x)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn min(&self, x: &[f32]) -> f32 {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_min_horizontal::<512>(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_min_horizontal::<512>(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_min_horizontal::<512>(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_min_horizontal::<512>(x)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_min_horizontal(x)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_nofma_min_horizontal(x)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn max(&self, x: &[f32]) -> f32 {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => {
+                crate::danger::f32_xconst_avx2_nofma_max_horizontal::<512>(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xconst_avx2_nofma_max_horizontal::<512>(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xconst_avx512_nofma_max_horizontal::<512>(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xconst_avx512_nofma_max_horizontal::<512>(x)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_max_horizontal(x)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_nofma_max_horizontal(x)
+            },
+        }
+    }
 }
 
 impl DangerousOps for (XAny, Auto) {
@@ -2450,6 +3969,262 @@ impl DangerousOps for (XAny, Auto) {
             #[cfg(feature = "nightly")]
             SelectedArch::FallbackFma => {
                 crate::danger::f32_xany_fallback_fma_div_value(x, val)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_add_vertical(x, y),
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xany_avx2_nofma_add_vertical(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xany_avx512_nofma_add_vertical(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xany_avx512_nofma_add_vertical(x, y)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_add_vertical(x, y)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_add_vertical(x, y)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_sub_vertical(x, y),
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xany_avx2_nofma_sub_vertical(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xany_avx512_nofma_sub_vertical(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xany_avx512_nofma_sub_vertical(x, y)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_sub_vertical(x, y)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_sub_vertical(x, y)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_mul_vertical(x, y),
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xany_avx2_nofma_mul_vertical(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xany_avx512_nofma_mul_vertical(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xany_avx512_nofma_mul_vertical(x, y)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_mul_vertical(x, y)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_mul_vertical(x, y)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
+        assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_div_vertical(x, y),
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xany_avx2_nofma_div_vertical(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xany_avx512_nofma_div_vertical(x, y)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xany_avx512_nofma_div_vertical(x, y)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_div_vertical(x, y)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_div_vertical(x, y)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn sum(&self, x: &[f32]) -> f32 {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_sum_horizontal(x),
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xany_avx2_nofma_sum_horizontal(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xany_avx512_nofma_sum_horizontal(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xany_avx512_nofma_sum_horizontal(x)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_sum_horizontal(x)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_fma_sum_horizontal(x)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn min(&self, x: &[f32]) -> f32 {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_min_horizontal(x),
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xany_avx2_nofma_min_horizontal(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xany_avx512_nofma_min_horizontal(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xany_avx512_nofma_min_horizontal(x)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_min_horizontal(x)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_nofma_min_horizontal(x)
+            },
+        }
+    }
+
+    #[inline]
+    unsafe fn max(&self, x: &[f32]) -> f32 {
+        match self.1 .0 {
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+            SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_max_horizontal(x),
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx2Fma => {
+                crate::danger::f32_xany_avx2_nofma_max_horizontal(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512 => {
+                crate::danger::f32_xany_avx512_nofma_max_horizontal(x)
+            },
+            #[cfg(all(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                feature = "nightly"
+            ))]
+            SelectedArch::Avx512Fma => {
+                crate::danger::f32_xany_avx512_nofma_max_horizontal(x)
+            },
+            SelectedArch::Fallback => {
+                crate::danger::f32_xany_fallback_nofma_max_horizontal(x)
+            },
+            #[cfg(feature = "nightly")]
+            SelectedArch::FallbackFma => {
+                crate::danger::f32_xany_fallback_nofma_max_horizontal(x)
             },
         }
     }
