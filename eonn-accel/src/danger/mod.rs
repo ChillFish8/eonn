@@ -43,7 +43,10 @@ mod f32_fallback_cosine;
 mod f32_fallback_dot_product;
 mod f32_fallback_euclidean;
 mod f32_fallback_euclidean_hyperplane;
+mod f32_fallback_max;
+mod f32_fallback_min;
 mod f32_fallback_vector_x_value;
+mod f32_fallback_vector_x_vector;
 mod utils;
 
 pub(crate) use utils::*;
@@ -93,4 +96,7 @@ pub use self::f32_fallback_cosine::*;
 pub use self::f32_fallback_dot_product::*;
 pub use self::f32_fallback_euclidean::*;
 pub use self::f32_fallback_euclidean_hyperplane::*;
+pub use self::f32_fallback_max::*;
+pub use self::f32_fallback_min::*;
 pub use self::f32_fallback_vector_x_value::*;
+pub use self::f32_fallback_vector_x_vector::*;
