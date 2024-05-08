@@ -65,7 +65,7 @@ macro_rules! define_vector_op_test_suite {
                     let y = Vector::<$dim, $arch, $tp>::try_from_vec(y)
                         .expect("Create vector");
                     let res = x.dot(&y);
-                    assert_is_close(res, simple_dot(&x, &y));
+                    assert_is_close(res, simple_dot(x.as_ref(), y.as_ref()));
                 }
 
                 #[test]
@@ -77,7 +77,7 @@ macro_rules! define_vector_op_test_suite {
                         .expect("Create vector");
                     let res = x.dist_dot(&y);
                     // Technically there is the if/else logic, but this test covers the rest.
-                    assert_is_close(res, 1.0 - simple_dot(&x, &y));
+                    assert_is_close(res, 1.0 - simple_dot(x.as_ref(), y.as_ref()));
                 }
 
                 #[test]
@@ -88,7 +88,7 @@ macro_rules! define_vector_op_test_suite {
                     let y = Vector::<$dim, $arch, $tp>::try_from_vec(y)
                         .expect("Create vector");
                     let res = x.dist_cosine(&y);
-                    assert_is_close(res, simple_cosine(&x, &y));
+                    assert_is_close(res, simple_cosine(x.as_ref(), y.as_ref()));
                 }
 
                 #[test]
@@ -99,7 +99,7 @@ macro_rules! define_vector_op_test_suite {
                     let y = Vector::<$dim, $arch, $tp>::try_from_vec(y)
                         .expect("Create vector");
                     let res = x.dist_squared_euclidean(&y);
-                    assert_is_close(res, simple_euclidean(&x, &y));
+                    assert_is_close(res, simple_euclidean(x.as_ref(), y.as_ref()));
                 }
 
                 #[test]
@@ -108,7 +108,7 @@ macro_rules! define_vector_op_test_suite {
                     let x = Vector::<$dim, $arch, $tp>::try_from_vec(x)
                         .expect("Create vector");
                     let res = x.squared_norm();
-                    assert_is_close(res, simple_dot(&x, &x));
+                    assert_is_close(res, simple_dot(x.as_ref(), x.as_ref()));
                 }
 
                 #[test]
@@ -123,7 +123,7 @@ macro_rules! define_vector_op_test_suite {
                         *v /= norm;
                     }
 
-                    assert_is_close_vector(&sample, &expected);
+                    assert_is_close_vector(sample.as_ref(), expected.as_ref());
                 }
 
                 #[test]
@@ -135,9 +135,9 @@ macro_rules! define_vector_op_test_suite {
                         .expect("Create vector");
 
                     let hyperplane = x.angular_hyperplane(&y);
-                    let expected_hyperplane = simple_angular_hyperplane(&x, &y);
+                    let expected_hyperplane = simple_angular_hyperplane(x.as_ref(), y.as_ref());
 
-                    assert_is_close_vector(&hyperplane, &expected_hyperplane);
+                    assert_is_close_vector(hyperplane.as_ref(), expected_hyperplane.as_ref());
                 }
 
                 #[test]
@@ -149,10 +149,10 @@ macro_rules! define_vector_op_test_suite {
                         .expect("Create vector");
 
                     let (hyperplane, offset) = x.euclidean_hyperplane(&y);
-                    let (expected_hyperplane, expected_offset) = simple_euclidean_hyperplane(&x, &y);
+                    let (expected_hyperplane, expected_offset) = simple_euclidean_hyperplane(x.as_ref(), y.as_ref());
 
                     assert_is_close(offset, expected_offset);
-                    assert_is_close_vector(&hyperplane, &expected_hyperplane);
+                    assert_is_close_vector(hyperplane.as_ref(), expected_hyperplane.as_ref());
                 }
 
                 #[test]
@@ -166,7 +166,7 @@ macro_rules! define_vector_op_test_suite {
                         *v += 2.0;
                     }
 
-                    assert_is_close_vector(&sample, &expected);
+                    assert_is_close_vector(sample.as_ref(), expected.as_ref());
                 }
 
                 #[test]
@@ -180,7 +180,7 @@ macro_rules! define_vector_op_test_suite {
                         *v -= 2.0;
                     }
 
-                    assert_is_close_vector(&sample, &expected);
+                    assert_is_close_vector(sample.as_ref(), expected.as_ref());
                 }
 
                 #[test]
@@ -194,7 +194,7 @@ macro_rules! define_vector_op_test_suite {
                         *v /= 2.0;
                     }
 
-                    assert_is_close_vector(&sample, &expected);
+                    assert_is_close_vector(sample.as_ref(), expected.as_ref());
                 }
 
                 #[test]
@@ -208,7 +208,55 @@ macro_rules! define_vector_op_test_suite {
                         *v *= 2.0;
                     }
 
-                    assert_is_close_vector(&sample, &expected);
+                    assert_is_close_vector(sample.as_ref(), expected.as_ref());
+                }
+
+                #[test]
+                fn [<test_vector_ $name _min>]() {
+                    let (x, _) = get_sample_vectors($len);
+                    let x = Vector::<$dim, $arch, $tp>::try_from_vec(x)
+                        .expect("Create vector");
+                    
+                    let expected_min = x.as_ref()
+                        .iter()
+                        .fold(f32::INFINITY, |acc, v| acc.min(*v));
+                    assert_eq!(x.min(), expected_min);
+                }
+
+                #[test]
+                fn [<test_vector_ $name _max>]() {
+                    let (x, _) = get_sample_vectors($len);
+                    let x = Vector::<$dim, $arch, $tp>::try_from_vec(x)
+                        .expect("Create vector");
+                    
+                    let expected_max = x.as_ref()
+                        .iter()
+                        .fold(f32::NEG_INFINITY, |acc, v| acc.max(*v));
+                    assert_eq!(x.max(), expected_max);
+                }
+                
+                #[test]
+                fn [<test_vector_ $name _sum>]() {
+                    let (_, x) = get_sample_vectors($len);
+                    let x = Vector::<$dim, $arch, $tp>::try_from_vec(x)
+                        .expect("Create vector");
+                    
+                    let expected_sum = x.as_ref()
+                        .iter()
+                        .fold(0.0, |acc, v| acc + *v);
+                    assert_is_close(x.sum(), expected_sum);
+                }
+                
+                #[test]
+                fn [<test_vector_ $name _mean>]() {
+                    let (x, _) = get_sample_vectors($len);
+                    let x = Vector::<$dim, $arch, $tp>::try_from_vec(x)
+                        .expect("Create vector");
+                    
+                    let expected_mean = x.as_ref()
+                        .iter()
+                        .fold(0.0, |acc, v| acc + *v) / x.len() as f32;
+                    assert_is_close(x.mean(), expected_mean);
                 }
         }
     };
@@ -461,7 +509,7 @@ macro_rules! define_vector_op_auto_arch_test_suite {
                         .expect("Create vector");
                     y.set_ops(Auto(SelectedArch::$variant));
                     let res = x.dot(&y);
-                    assert_is_close(res, simple_dot(&x, &y));
+                    assert_is_close(res, simple_dot(x.as_ref(), y.as_ref()));
                 }
 
                 #[test]
@@ -475,7 +523,7 @@ macro_rules! define_vector_op_auto_arch_test_suite {
                     y.set_ops(Auto(SelectedArch::$variant));
                     let res = x.dist_dot(&y);
                     // Technically there is the if/else logic, but this test covers the rest.
-                    assert_is_close(res, 1.0 - simple_dot(&x, &y));
+                    assert_is_close(res, 1.0 - simple_dot(x.as_ref(), y.as_ref()));
                 }
 
                 #[test]
@@ -488,7 +536,7 @@ macro_rules! define_vector_op_auto_arch_test_suite {
                         .expect("Create vector");
                     y.set_ops(Auto(SelectedArch::$variant));
                     let res = x.dist_cosine(&y);
-                    assert_is_close(res, simple_cosine(&x, &y));
+                    assert_is_close(res, simple_cosine(x.as_ref(), y.as_ref()));
                 }
 
                 #[test]
@@ -501,7 +549,7 @@ macro_rules! define_vector_op_auto_arch_test_suite {
                         .expect("Create vector");
                     y.set_ops(Auto(SelectedArch::$variant));
                     let res = x.dist_squared_euclidean(&y);
-                    assert_is_close(res, simple_euclidean(&x, &y));
+                    assert_is_close(res, simple_euclidean(x.as_ref(), y.as_ref()));
                 }
 
                 #[test]
@@ -511,7 +559,7 @@ macro_rules! define_vector_op_auto_arch_test_suite {
                         .expect("Create vector");
                     x.set_ops(Auto(SelectedArch::$variant));
                     let res = x.squared_norm();
-                    assert_is_close(res, simple_dot(&x, &x));
+                    assert_is_close(res, simple_dot(x.as_ref(), x.as_ref()));
                 }
 
                 #[test]
@@ -527,7 +575,7 @@ macro_rules! define_vector_op_auto_arch_test_suite {
                         *v /= norm;
                     }
 
-                    assert_is_close_vector(&sample, &expected);
+                    assert_is_close_vector(sample.as_ref(), expected.as_ref());
                 }
 
                 #[test]
@@ -541,9 +589,9 @@ macro_rules! define_vector_op_auto_arch_test_suite {
                     y.set_ops(Auto(SelectedArch::$variant));
 
                     let hyperplane = x.angular_hyperplane(&y);
-                    let expected_hyperplane = simple_angular_hyperplane(&x, &y);
+                    let expected_hyperplane = simple_angular_hyperplane(x.as_ref(), y.as_ref());
 
-                    assert_is_close_vector(&hyperplane, &expected_hyperplane);
+                    assert_is_close_vector(hyperplane.as_ref(), expected_hyperplane.as_ref());
                 }
 
                 #[test]
@@ -557,10 +605,10 @@ macro_rules! define_vector_op_auto_arch_test_suite {
                     y.set_ops(Auto(SelectedArch::$variant));
 
                     let (hyperplane, offset) = x.euclidean_hyperplane(&y);
-                    let (expected_hyperplane, expected_offset) = simple_euclidean_hyperplane(&x, &y);
+                    let (expected_hyperplane, expected_offset) = simple_euclidean_hyperplane(x.as_ref(), y.as_ref());
 
                     assert_is_close(offset, expected_offset);
-                    assert_is_close_vector(&hyperplane, &expected_hyperplane);
+                    assert_is_close_vector(hyperplane.as_ref(), expected_hyperplane.as_ref());
                 }
 
                 #[test]
@@ -575,7 +623,7 @@ macro_rules! define_vector_op_auto_arch_test_suite {
                         *v += 2.0;
                     }
 
-                    assert_is_close_vector(&sample, &expected);
+                    assert_is_close_vector(sample.as_ref(), expected.as_ref());
                 }
 
                 #[test]
@@ -590,7 +638,7 @@ macro_rules! define_vector_op_auto_arch_test_suite {
                         *v -= 2.0;
                     }
 
-                    assert_is_close_vector(&sample, &expected);
+                    assert_is_close_vector(sample.as_ref(), expected.as_ref());
                 }
 
                 #[test]
@@ -605,7 +653,7 @@ macro_rules! define_vector_op_auto_arch_test_suite {
                         *v /= 2.0;
                     }
 
-                    assert_is_close_vector(&sample, &expected);
+                    assert_is_close_vector(sample.as_ref(), expected.as_ref());
                 }
 
                 #[test]
@@ -620,7 +668,7 @@ macro_rules! define_vector_op_auto_arch_test_suite {
                         *v *= 2.0;
                     }
 
-                    assert_is_close_vector(&sample, &expected);
+                    assert_is_close_vector(sample.as_ref(), expected.as_ref());
                 }
         }
     };
