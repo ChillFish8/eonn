@@ -41,6 +41,49 @@ pub unsafe fn f32_xany_fallback_fma_sum_horizontal(x: &[f32]) -> f32 {
     sum::<FastMath>(x)
 }
 
+#[inline]
+/// Vertical sum of the given matrix returning the individual sums.
+///
+/// ```py
+/// D: int
+/// total: [f32; D]
+/// matrix: [[f32; D]; N]
+///
+/// for i in 0..N:
+///     for j in 0..D:
+///         total[j] += matrix[i, j]   
+/// ```
+///
+/// # Safety
+///
+/// All vectors within the matrix **MUST** be the same length.
+pub unsafe fn f32_xany_fallback_nofma_sum_vertical(matrix: &[&[f32]]) -> Vec<f32> {
+    sum_vertical::<StdMath>(matrix)
+}
+
+#[cfg(feature = "nightly")]
+#[inline]
+/// Vertical sum of the given matrix returning the individual sums.
+///
+/// ```py
+/// D: int
+/// total: [f32; D]
+/// matrix: [[f32; D]; N]
+///
+/// for i in 0..N:
+///     for j in 0..D:
+///         total[j] += matrix[i, j]   
+/// ```
+///
+/// # Safety
+///
+/// All vectors within the matrix **MUST** be the same length.
+///
+/// All values in the matrix must also be finite and not `NaN`.
+pub unsafe fn f32_xany_fallback_fma_sum_vertical(matrix: &[&[f32]]) -> Vec<f32> {
+    sum_vertical::<FastMath>(matrix)
+}
+
 #[inline(always)]
 unsafe fn sum<M: Math>(arr: &[f32]) -> f32 {
     let mut acc1 = 0.0;
@@ -94,6 +137,74 @@ unsafe fn sum<M: Math>(arr: &[f32]) -> f32 {
     M::add(acc1, acc5)
 }
 
+#[inline(always)]
+unsafe fn sum_vertical<M: Math>(matrix: &[&[f32]]) -> Vec<f32> {
+    let dims = matrix[0].len();
+    let mut offset_from = dims % 8;
+
+    let mut results = vec![0.0; dims];
+
+    if offset_from != 0 {
+        for i in 0..offset_from {
+            for m in 0..matrix.len() {
+                let arr = *matrix.get_unchecked(m);
+                debug_assert_eq!(arr.len(), dims);
+
+                let x = *arr.get_unchecked(i);
+                let acc = *results.get_unchecked_mut(i);
+                *results.get_unchecked_mut(i) = M::add(acc, x);
+            }
+        }
+    }
+
+    while offset_from < dims {
+        let mut acc1 = 0.0;
+        let mut acc2 = 0.0;
+        let mut acc3 = 0.0;
+        let mut acc4 = 0.0;
+        let mut acc5 = 0.0;
+        let mut acc6 = 0.0;
+        let mut acc7 = 0.0;
+        let mut acc8 = 0.0;
+
+        for m in 0..matrix.len() {
+            let arr = *matrix.get_unchecked(m);
+            debug_assert_eq!(arr.len(), dims);
+
+            let x1 = *arr.get_unchecked(offset_from);
+            let x2 = *arr.get_unchecked(offset_from + 1);
+            let x3 = *arr.get_unchecked(offset_from + 2);
+            let x4 = *arr.get_unchecked(offset_from + 3);
+            let x5 = *arr.get_unchecked(offset_from + 4);
+            let x6 = *arr.get_unchecked(offset_from + 5);
+            let x7 = *arr.get_unchecked(offset_from + 6);
+            let x8 = *arr.get_unchecked(offset_from + 7);
+
+            acc1 = M::add(acc1, x1);
+            acc2 = M::add(acc2, x2);
+            acc3 = M::add(acc3, x3);
+            acc4 = M::add(acc4, x4);
+            acc5 = M::add(acc5, x5);
+            acc6 = M::add(acc6, x6);
+            acc7 = M::add(acc7, x7);
+            acc8 = M::add(acc8, x8);
+        }
+
+        *results.get_unchecked_mut(offset_from) = acc1;
+        *results.get_unchecked_mut(offset_from + 1) = acc2;
+        *results.get_unchecked_mut(offset_from + 2) = acc3;
+        *results.get_unchecked_mut(offset_from + 3) = acc4;
+        *results.get_unchecked_mut(offset_from + 4) = acc5;
+        *results.get_unchecked_mut(offset_from + 5) = acc6;
+        *results.get_unchecked_mut(offset_from + 6) = acc7;
+        *results.get_unchecked_mut(offset_from + 7) = acc8;
+
+        offset_from += 8;
+    }
+
+    results
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -111,5 +222,52 @@ mod tests {
         let (x, _) = get_sample_vectors(131);
         let sum = unsafe { f32_xany_fallback_fma_sum_horizontal(&x) };
         assert_is_close(sum, x.iter().sum::<f32>());
+    }
+
+    #[test]
+    fn test_xany_nofma_sum_vertical() {
+        let mut matrix = Vec::new();
+        for _ in 0..25 {
+            let (x, _) = get_sample_vectors(537);
+            matrix.push(x);
+        }
+
+        let matrix_view = matrix.iter().map(|v| v.as_ref()).collect::<Vec<&[f32]>>();
+
+        let mut expected_vertical_sum = vec![0.0; 537];
+        for i in 0..537 {
+            let mut sum = 0.0;
+            for arr in matrix.iter() {
+                sum += arr[i];
+            }
+            expected_vertical_sum[i] = sum;
+        }
+
+        let sum = unsafe { f32_xany_fallback_nofma_sum_vertical(&matrix_view) };
+        assert_eq!(sum, expected_vertical_sum);
+    }
+
+    #[cfg(feature = "nightly")]
+    #[test]
+    fn test_xany_fma_sum_vertical() {
+        let mut matrix = Vec::new();
+        for _ in 0..25 {
+            let (x, _) = get_sample_vectors(537);
+            matrix.push(x);
+        }
+
+        let matrix_view = matrix.iter().map(|v| v.as_ref()).collect::<Vec<&[f32]>>();
+
+        let mut expected_vertical_sum = vec![0.0; 537];
+        for i in 0..537 {
+            let mut sum = 0.0;
+            for arr in matrix.iter() {
+                sum += arr[i];
+            }
+            expected_vertical_sum[i] = sum;
+        }
+
+        let sum = unsafe { f32_xany_fallback_fma_sum_vertical(&matrix_view) };
+        assert_eq!(sum, expected_vertical_sum);
     }
 }
