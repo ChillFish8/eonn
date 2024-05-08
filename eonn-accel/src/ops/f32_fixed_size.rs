@@ -1001,7 +1001,7 @@ impl DangerousOps for (X1024, Avx2Fma) {
 
     #[inline]
     unsafe fn max(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx2_nofma_min_horizontal::<1024>(x)
+        crate::danger::f32_xconst_avx2_nofma_max_horizontal::<1024>(x)
     }
 }
 
@@ -1089,7 +1089,7 @@ impl DangerousOps for (X768, Avx2Fma) {
 
     #[inline]
     unsafe fn max(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx2_nofma_min_horizontal::<768>(x)
+        crate::danger::f32_xconst_avx2_nofma_max_horizontal::<768>(x)
     }
 }
 
@@ -1177,7 +1177,7 @@ impl DangerousOps for (X512, Avx2Fma) {
 
     #[inline]
     unsafe fn max(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx2_nofma_min_horizontal::<512>(x)
+        crate::danger::f32_xconst_avx2_nofma_max_horizontal::<512>(x)
     }
 }
 
@@ -1274,7 +1274,7 @@ impl DangerousOps for (XAny, Avx2Fma) {
 
     #[inline]
     unsafe fn max(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xany_avx2_nofma_min_horizontal(x)
+        crate::danger::f32_xany_avx2_nofma_max_horizontal(x)
     }
 }
 
@@ -1362,7 +1362,7 @@ impl DangerousOps for (X1024, Avx512Fma) {
 
     #[inline]
     unsafe fn max(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx512_nofma_min_horizontal::<1024>(x)
+        crate::danger::f32_xconst_avx512_nofma_max_horizontal::<1024>(x)
     }
 }
 
@@ -1450,7 +1450,7 @@ impl DangerousOps for (X768, Avx512Fma) {
 
     #[inline]
     unsafe fn max(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx512_nofma_min_horizontal::<768>(x)
+        crate::danger::f32_xconst_avx512_nofma_max_horizontal::<768>(x)
     }
 }
 
@@ -1538,7 +1538,7 @@ impl DangerousOps for (X512, Avx512Fma) {
 
     #[inline]
     unsafe fn max(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx512_nofma_min_horizontal::<512>(x)
+        crate::danger::f32_xconst_avx512_nofma_max_horizontal::<512>(x)
     }
 }
 
@@ -1635,6 +1635,6 @@ impl DangerousOps for (XAny, Avx512Fma) {
 
     #[inline]
     unsafe fn max(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xany_avx512_nofma_min_horizontal(x)
+        crate::danger::f32_xany_avx512_nofma_max_horizontal(x)
     }
 }

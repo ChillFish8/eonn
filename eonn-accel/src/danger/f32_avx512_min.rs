@@ -30,14 +30,14 @@ pub unsafe fn f32_xconst_avx512_nofma_min_horizontal<const DIMS: usize>(
 
     _mm_prefetch::<_MM_HINT_T1>(arr.cast());
 
-    let mut acc1 = _mm512_set1_ps(f32::NEG_INFINITY);
-    let mut acc2 = _mm512_set1_ps(f32::NEG_INFINITY);
-    let mut acc3 = _mm512_set1_ps(f32::NEG_INFINITY);
-    let mut acc4 = _mm512_set1_ps(f32::NEG_INFINITY);
-    let mut acc5 = _mm512_set1_ps(f32::NEG_INFINITY);
-    let mut acc6 = _mm512_set1_ps(f32::NEG_INFINITY);
-    let mut acc7 = _mm512_set1_ps(f32::NEG_INFINITY);
-    let mut acc8 = _mm512_set1_ps(f32::NEG_INFINITY);
+    let mut acc1 = _mm512_set1_ps(f32::INFINITY);
+    let mut acc2 = _mm512_set1_ps(f32::INFINITY);
+    let mut acc3 = _mm512_set1_ps(f32::INFINITY);
+    let mut acc4 = _mm512_set1_ps(f32::INFINITY);
+    let mut acc5 = _mm512_set1_ps(f32::INFINITY);
+    let mut acc6 = _mm512_set1_ps(f32::INFINITY);
+    let mut acc7 = _mm512_set1_ps(f32::INFINITY);
+    let mut acc8 = _mm512_set1_ps(f32::INFINITY);
 
     let mut i = 0;
     while i < DIMS {
@@ -84,14 +84,14 @@ pub unsafe fn f32_xconst_avx512_nofma_min_vertical<const DIMS: usize>(
     //       way to write this.
     let mut i = 0;
     while i < DIMS {
-        let mut acc1 = _mm512_set1_ps(f32::NEG_INFINITY);
-        let mut acc2 = _mm512_set1_ps(f32::NEG_INFINITY);
-        let mut acc3 = _mm512_set1_ps(f32::NEG_INFINITY);
-        let mut acc4 = _mm512_set1_ps(f32::NEG_INFINITY);
-        let mut acc5 = _mm512_set1_ps(f32::NEG_INFINITY);
-        let mut acc6 = _mm512_set1_ps(f32::NEG_INFINITY);
-        let mut acc7 = _mm512_set1_ps(f32::NEG_INFINITY);
-        let mut acc8 = _mm512_set1_ps(f32::NEG_INFINITY);
+        let mut acc1 = _mm512_set1_ps(f32::INFINITY);
+        let mut acc2 = _mm512_set1_ps(f32::INFINITY);
+        let mut acc3 = _mm512_set1_ps(f32::INFINITY);
+        let mut acc4 = _mm512_set1_ps(f32::INFINITY);
+        let mut acc5 = _mm512_set1_ps(f32::INFINITY);
+        let mut acc6 = _mm512_set1_ps(f32::INFINITY);
+        let mut acc7 = _mm512_set1_ps(f32::INFINITY);
+        let mut acc8 = _mm512_set1_ps(f32::INFINITY);
 
         // Vertical min of the 128 elements.
         for m in 0..matrix.len() {
@@ -134,23 +134,30 @@ pub unsafe fn f32_xany_avx512_nofma_min_horizontal(arr: &[f32]) -> f32 {
     let dims = arr.len();
     let arr = arr.as_ptr();
 
-    let mut acc1 = _mm512_set1_ps(f32::NEG_INFINITY);
-    let mut acc2 = _mm512_set1_ps(f32::NEG_INFINITY);
-    let mut acc3 = _mm512_set1_ps(f32::NEG_INFINITY);
-    let mut acc4 = _mm512_set1_ps(f32::NEG_INFINITY);
-    let mut acc5 = _mm512_set1_ps(f32::NEG_INFINITY);
-    let mut acc6 = _mm512_set1_ps(f32::NEG_INFINITY);
-    let mut acc7 = _mm512_set1_ps(f32::NEG_INFINITY);
-    let mut acc8 = _mm512_set1_ps(f32::NEG_INFINITY);
+    let mut acc1 = _mm512_set1_ps(f32::INFINITY);
+    let mut acc2 = _mm512_set1_ps(f32::INFINITY);
+    let mut acc3 = _mm512_set1_ps(f32::INFINITY);
+    let mut acc4 = _mm512_set1_ps(f32::INFINITY);
+    let mut acc5 = _mm512_set1_ps(f32::INFINITY);
+    let mut acc6 = _mm512_set1_ps(f32::INFINITY);
+    let mut acc7 = _mm512_set1_ps(f32::INFINITY);
+    let mut acc8 = _mm512_set1_ps(f32::INFINITY);
 
     let mut offset_from = dims % 128;
     if offset_from != 0 {
         let mut i = 0;
         while i < offset_from {
             let n = offset_from - i;
+            let arr = arr.add(i);
 
-            let x = load_one_variable_size_avx512(arr.add(i), n);
-            acc1 = _mm512_min_ps(acc1, x);
+            if n < 16 {
+                let mask = _bzhi_u32(0xFFFFFFFF, n as u32) as _;
+                let x = _mm512_maskz_loadu_ps(mask, arr);
+                acc1 = _mm512_mask_min_ps(acc1, mask, acc1, x);
+            } else {
+                let x = _mm512_loadu_ps(arr);
+                acc1 = _mm512_min_ps(acc1, x);
+            }
 
             i += 16;
         }
@@ -198,7 +205,7 @@ pub unsafe fn f32_xany_avx512_nofma_min_vertical(matrix: &[&[f32]]) -> Vec<f32> 
         while i < offset_from {
             let n = offset_from - i;
 
-            let mut acc = _mm512_set1_ps(f32::NEG_INFINITY);
+            let mut acc = _mm512_set1_ps(f32::INFINITY);
 
             for m in 0..matrix.len() {
                 let arr = *matrix.get_unchecked(m);
@@ -220,14 +227,14 @@ pub unsafe fn f32_xany_avx512_nofma_min_vertical(matrix: &[&[f32]]) -> Vec<f32> 
     // TODO: I am unsure how hard this is on the cache or if there is a smarter
     //       way to write this.
     while offset_from < dims {
-        let mut acc1 = _mm512_set1_ps(f32::NEG_INFINITY);
-        let mut acc2 = _mm512_set1_ps(f32::NEG_INFINITY);
-        let mut acc3 = _mm512_set1_ps(f32::NEG_INFINITY);
-        let mut acc4 = _mm512_set1_ps(f32::NEG_INFINITY);
-        let mut acc5 = _mm512_set1_ps(f32::NEG_INFINITY);
-        let mut acc6 = _mm512_set1_ps(f32::NEG_INFINITY);
-        let mut acc7 = _mm512_set1_ps(f32::NEG_INFINITY);
-        let mut acc8 = _mm512_set1_ps(f32::NEG_INFINITY);
+        let mut acc1 = _mm512_set1_ps(f32::INFINITY);
+        let mut acc2 = _mm512_set1_ps(f32::INFINITY);
+        let mut acc3 = _mm512_set1_ps(f32::INFINITY);
+        let mut acc4 = _mm512_set1_ps(f32::INFINITY);
+        let mut acc5 = _mm512_set1_ps(f32::INFINITY);
+        let mut acc6 = _mm512_set1_ps(f32::INFINITY);
+        let mut acc7 = _mm512_set1_ps(f32::INFINITY);
+        let mut acc8 = _mm512_set1_ps(f32::INFINITY);
 
         // Vertical min of the 128 elements.
         for m in 0..matrix.len() {
@@ -332,7 +339,7 @@ mod tests {
     fn test_xconst_nofma_min_horizontal() {
         let (x, _) = get_sample_vectors(512);
         let min = unsafe { f32_xconst_avx512_nofma_min_horizontal::<512>(&x) };
-        assert_eq!(min, x.iter().fold(f32::NEG_INFINITY, |acc, v| acc.min(*v)));
+        assert_eq!(min, x.iter().fold(f32::INFINITY, |acc, v| acc.min(*v)));
     }
 
     #[test]
@@ -345,9 +352,9 @@ mod tests {
 
         let matrix_view = matrix.iter().map(|v| v.as_ref()).collect::<Vec<&[f32]>>();
 
-        let mut expected_vertical_min = vec![f32::NEG_INFINITY; 512];
+        let mut expected_vertical_min = vec![f32::INFINITY; 512];
         for i in 0..512 {
-            let mut min = f32::NEG_INFINITY;
+            let mut min = f32::INFINITY;
             for arr in matrix.iter() {
                 min = min.min(arr[i]);
             }
@@ -362,7 +369,7 @@ mod tests {
     fn test_xany_nofma_min_horizontal() {
         let (x, _) = get_sample_vectors(537);
         let min = unsafe { f32_xany_avx512_nofma_min_horizontal(&x) };
-        assert_eq!(min, x.iter().fold(f32::NEG_INFINITY, |acc, v| acc.min(*v)));
+        assert_eq!(min, x.iter().fold(f32::INFINITY, |acc, v| acc.min(*v)));
     }
 
     #[test]
@@ -375,9 +382,9 @@ mod tests {
 
         let matrix_view = matrix.iter().map(|v| v.as_ref()).collect::<Vec<&[f32]>>();
 
-        let mut expected_vertical_min = vec![f32::NEG_INFINITY; 537];
+        let mut expected_vertical_min = vec![f32::INFINITY; 537];
         for i in 0..537 {
-            let mut min = f32::NEG_INFINITY;
+            let mut min = f32::INFINITY;
             for arr in matrix.iter() {
                 min = min.min(arr[i]);
             }

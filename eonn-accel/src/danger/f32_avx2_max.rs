@@ -361,7 +361,7 @@ mod tests {
 
     #[test]
     fn test_xany_nofma_max_horizontal() {
-        let (x, _) = get_sample_vectors(537);
+        let (x, _) = get_sample_vectors(793);
         let max = unsafe { f32_xany_avx2_nofma_max_horizontal(&x) };
         assert_eq!(max, x.iter().fold(f32::NEG_INFINITY, |acc, v| acc.max(*v)));
     }

@@ -149,8 +149,14 @@ pub unsafe fn f32_xany_avx512_nofma_max_horizontal(arr: &[f32]) -> f32 {
         while i < offset_from {
             let n = offset_from - i;
 
-            let x = load_one_variable_size_avx512(arr.add(i), n);
-            acc1 = _mm512_max_ps(acc1, x);
+            if n < 16 {
+                let mask = _bzhi_u32(0xFFFFFFFF, n as u32) as _;
+                let x = _mm512_maskz_loadu_ps(mask, arr);
+                acc1 = _mm512_mask_max_ps(acc1, mask, acc1, x);
+            } else {
+                let x = _mm512_loadu_ps(arr);
+                acc1 = _mm512_max_ps(acc1, x);
+            }
 
             i += 16;
         }
