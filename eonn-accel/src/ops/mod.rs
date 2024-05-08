@@ -25,7 +25,6 @@ pub trait SpacialOps: Sized {
     fn euclidean_hyperplane(&self, other: &Self) -> (Self, f32);
 }
 
-#[allow(clippy::len_without_is_empty)]
 /// Safe metric type operations.
 pub trait MetricOps: Sized {
     /// Returns the minimum value in the vector.

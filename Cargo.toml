@@ -12,7 +12,7 @@ bitvec = "1.0.1"
 smallvec = "1.13.2"
 fnv = "1.0.7"
 
-eonn-accel = { version = "0.1.0", path = "eonn-accel" }
+eonn-accel = { version = "0.1.0", path = "eonn-accel", features = ["nightly"] }
 
 rayon = { version = "1.10.0", optional = true }
 

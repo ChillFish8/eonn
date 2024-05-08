@@ -57,6 +57,7 @@ pub unsafe fn f32_xany_fallback_nofma_min_horizontal(arr: &[f32]) -> f32 {
     acc1.min(acc5)
 }
 
+#[allow(unused)]
 #[inline]
 /// Computes the horizontal minimum of the given vector that is `[[f32; DIMS]; N]`.
 ///

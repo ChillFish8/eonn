@@ -41,6 +41,7 @@ pub unsafe fn f32_xany_fallback_fma_sum_horizontal(x: &[f32]) -> f32 {
     sum::<FastMath>(x)
 }
 
+#[allow(unused)]
 #[inline]
 /// Vertical sum of the given matrix returning the individual sums.
 ///
@@ -62,6 +63,7 @@ pub unsafe fn f32_xany_fallback_nofma_sum_vertical(matrix: &[&[f32]]) -> Vec<f32
 }
 
 #[cfg(feature = "nightly")]
+#[allow(unused)]
 #[inline]
 /// Vertical sum of the given matrix returning the individual sums.
 ///

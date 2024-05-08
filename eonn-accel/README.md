@@ -29,8 +29,11 @@ be optimized relatively well by the compiler for other architectures e.g. ARM or
 - `vector.sum()`
 - `vector.max()`
 - `vector.min()`
-- `[vector].vertical_min()`
-- `[vector].vertical_max()`
+- `vector.mean()`
+- `[vector].vertical_min()`   ~ Unsafe API only currently (Sorry)
+- `[vector].vertical_max()`   ~ Unsafe API only currently (Sorry)
+- `[vector].vertical_sum()`   ~ Unsafe API only currently (Sorry)
+- `[vector].vertical_mean()`  ~ Unsafe API only currently (Sorry)
 
 ### Dangerous routine naming convention
 

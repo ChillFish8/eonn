@@ -130,6 +130,7 @@ pub unsafe fn f32_xany_avx512_nofma_sum_horizontal(x: &[f32]) -> f32 {
     sum_avx512_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
 }
 
+#[allow(unused)]
 #[target_feature(enable = "avx512f")]
 #[inline]
 /// Vertical sum of the given matrix returning the individual sums.
@@ -201,6 +202,7 @@ pub unsafe fn f32_xconst_avx512_nofma_sum_vertical<const DIMS: usize>(
     results
 }
 
+#[allow(unused)]
 #[target_feature(enable = "avx512f")]
 #[inline]
 /// Vertical sum of the given matrix returning the individual sums.

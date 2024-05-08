@@ -5,6 +5,31 @@ use crate::arch::Arch;
 use crate::ops::{DangerousOps, MetricOps, SpacialOps};
 use crate::{Dim, VectorType};
 
+#[derive(Debug)]
+/// An error that occurs while attempting to safely create a new `Vector` type
+/// with a given set of dimensions.
+pub enum VectorCreateError {
+    /// The provided vector was not the correct dimensions.
+    BadDimensions { expected: usize, got: usize },
+    /// The provided vector contains some non-finite values or Nan.
+    NonFinite,
+}
+
+impl Display for VectorCreateError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::BadDimensions { expected, got } => {
+                write!(f, "Bad Dimensions: expected {expected} but got {got}")
+            },
+            Self::NonFinite => {
+                write!(f, "Non-Finite Value: values in vector must be finite")
+            },
+        }
+    }
+}
+
+impl std::error::Error for VectorCreateError {}
+
 /// A fixed-size SIMD accelerated vector of a given type and dimensions.
 ///
 /// This type allows for various targeting of CPU features and dimensions
@@ -397,28 +422,3 @@ where
         unsafe { self.ops.div_vertical(&mut self.buffer, &rhs.buffer) }
     }
 }
-
-#[derive(Debug)]
-/// An error that occurs while attempting to safely create a new `Vector` type
-/// with a given set of dimensions.
-pub enum VectorCreateError {
-    /// The provided vector was not the correct dimensions.
-    BadDimensions { expected: usize, got: usize },
-    /// The provided vector contains some non-finite values or Nan.
-    NonFinite,
-}
-
-impl Display for VectorCreateError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::BadDimensions { expected, got } => {
-                write!(f, "Bad Dimensions: expected {expected} but got {got}")
-            },
-            Self::NonFinite => {
-                write!(f, "Non-Finite Value: values in vector must be finite")
-            },
-        }
-    }
-}
-
-impl std::error::Error for VectorCreateError {}

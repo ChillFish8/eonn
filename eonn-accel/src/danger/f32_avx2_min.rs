@@ -83,6 +83,7 @@ pub unsafe fn f32_xconst_avx2_nofma_min_horizontal<const DIMS: usize>(
 }
 
 #[target_feature(enable = "avx2")]
+#[allow(unused)]
 #[inline]
 /// Computes the vertical minimum of the given vector that is `[[f32; DIMS]; N]`.
 ///
@@ -234,6 +235,7 @@ pub unsafe fn f32_xany_avx2_nofma_min_horizontal(arr: &[f32]) -> f32 {
 }
 
 #[target_feature(enable = "avx2")]
+#[allow(unused)]
 #[inline]
 /// Computes the vertical minimum of the given vector that is `[[f32; N]; N2]`.
 ///

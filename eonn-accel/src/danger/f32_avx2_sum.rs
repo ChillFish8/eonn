@@ -134,6 +134,7 @@ pub unsafe fn f32_xany_avx2_nofma_sum_horizontal(x: &[f32]) -> f32 {
     extra + sum_avx2(acc)
 }
 
+#[allow(unused)]
 #[target_feature(enable = "avx2")]
 #[inline]
 /// Vertical sum of the given matrix returning the individual sums.
@@ -205,6 +206,7 @@ pub unsafe fn f32_xconst_avx2_nofma_sum_vertical<const DIMS: usize>(
     result
 }
 
+#[allow(unused)]
 #[target_feature(enable = "avx2")]
 #[inline]
 /// Vertical sum of the given matrix returning the individual sums.

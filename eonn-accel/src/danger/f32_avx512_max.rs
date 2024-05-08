@@ -9,6 +9,7 @@ use crate::danger::{
     CHUNK_1,
 };
 
+#[allow(unused)]
 #[target_feature(enable = "avx512f")]
 #[inline]
 /// Computes the horizontal maximum of the given vector that is `[f32; DIMS]`.
@@ -59,6 +60,7 @@ pub unsafe fn f32_xconst_avx512_nofma_max_horizontal<const DIMS: usize>(
     rollup_max_acc(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
 }
 
+#[allow(unused)]
 #[target_feature(enable = "avx512f")]
 #[inline]
 /// Computes the vertical maximum of the given vector that is `[[f32; DIMS]; N]`.
@@ -181,6 +183,7 @@ pub unsafe fn f32_xany_avx512_nofma_max_horizontal(arr: &[f32]) -> f32 {
     rollup_max_acc(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
 }
 
+#[allow(unused)]
 #[target_feature(enable = "avx512f")]
 #[inline]
 /// Computes the vertical maximum of the given vector that is `[[f32; N]; N2]`.
