@@ -216,7 +216,7 @@ macro_rules! define_vector_op_test_suite {
                     let (x, _) = get_sample_vectors($len);
                     let x = Vector::<$dim, $arch, $tp>::try_from_vec(x)
                         .expect("Create vector");
-                    
+
                     let expected_min = x.as_ref()
                         .iter()
                         .fold(f32::INFINITY, |acc, v| acc.min(*v));
@@ -228,31 +228,31 @@ macro_rules! define_vector_op_test_suite {
                     let (x, _) = get_sample_vectors($len);
                     let x = Vector::<$dim, $arch, $tp>::try_from_vec(x)
                         .expect("Create vector");
-                    
+
                     let expected_max = x.as_ref()
                         .iter()
                         .fold(f32::NEG_INFINITY, |acc, v| acc.max(*v));
                     assert_eq!(x.max(), expected_max);
                 }
-                
+
                 #[test]
                 fn [<test_vector_ $name _sum>]() {
                     let (_, x) = get_sample_vectors($len);
                     let x = Vector::<$dim, $arch, $tp>::try_from_vec(x)
                         .expect("Create vector");
-                    
+
                     let expected_sum = x.as_ref()
                         .iter()
                         .fold(0.0, |acc, v| acc + *v);
                     assert_is_close(x.sum(), expected_sum);
                 }
-                
+
                 #[test]
                 fn [<test_vector_ $name _mean>]() {
                     let (x, _) = get_sample_vectors($len);
                     let x = Vector::<$dim, $arch, $tp>::try_from_vec(x)
                         .expect("Create vector");
-                    
+
                     let expected_mean = x.as_ref()
                         .iter()
                         .fold(0.0, |acc, v| acc + *v) / x.len() as f32;
