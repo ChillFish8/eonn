@@ -2,7 +2,7 @@ use std::fmt::{Debug, Display, Formatter};
 use std::ops::{Add, AddAssign, Deref, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
 use crate::arch::Arch;
-use crate::f32_ops::{DangerousOps, SpacialOps};
+use crate::ops::{DangerousOps, SpacialOps};
 use crate::{Dim, VectorType};
 
 /// A fixed-size SIMD accelerated vector of a given type and dimensions.
