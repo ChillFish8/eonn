@@ -2,7 +2,7 @@ use std::fmt::{Debug, Display, Formatter};
 use std::ops::{Add, AddAssign, Deref, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
 use crate::arch::Arch;
-use crate::ops::{DangerousOps, SpacialOps};
+use crate::ops::{DangerousOps, MetricOps, SpacialOps};
 use crate::{Dim, VectorType};
 
 /// A fixed-size SIMD accelerated vector of a given type and dimensions.
@@ -115,6 +115,27 @@ where
     //          not available on the executing platform.
     pub(crate) fn set_ops(&mut self, ops: A) {
         self.ops = (D::default(), ops);
+    }
+}
+
+impl<D: Dim, A: Arch> MetricOps for Vector<D, A, f32>
+where
+    (D, A): DangerousOps,
+{
+    fn min(&self) -> f32 {
+        unsafe { self.ops.min(&self.buffer) }
+    }
+
+    fn max(&self) -> f32 {
+        unsafe { self.ops.max(&self.buffer) }
+    }
+
+    fn sum(&self) -> f32 {
+        unsafe { self.ops.sum(&self.buffer) }
+    }
+
+    fn mean(&self) -> f32 {
+        self.sum() / self.buffer.len() as f32
     }
 }
 
@@ -274,6 +295,106 @@ where
         // passed in here.
         assert!(rhs.is_finite() && !rhs.is_nan());
         unsafe { self.ops.div_value(&mut self.buffer, rhs) };
+    }
+}
+
+impl<D: Dim, A: Arch, A2: Arch> Add<Vector<D, A2, f32>> for Vector<D, A, f32>
+where
+    (D, A): DangerousOps,
+    (D, A2): DangerousOps,
+{
+    type Output = Self;
+
+    #[inline]
+    fn add(mut self, rhs: Vector<D, A2, f32>) -> Self::Output {
+        self += rhs;
+        self
+    }
+}
+
+impl<D: Dim, A: Arch, A2: Arch> AddAssign<Vector<D, A2, f32>> for Vector<D, A, f32>
+where
+    (D, A): DangerousOps,
+    (D, A2): DangerousOps,
+{
+    #[inline]
+    fn add_assign(&mut self, rhs: Vector<D, A2, f32>) {
+        unsafe { self.ops.add_vertical(&mut self.buffer, &rhs.buffer) }
+    }
+}
+
+impl<D: Dim, A: Arch, A2: Arch> Sub<Vector<D, A2, f32>> for Vector<D, A, f32>
+where
+    (D, A): DangerousOps,
+    (D, A2): DangerousOps,
+{
+    type Output = Self;
+
+    #[inline]
+    fn sub(mut self, rhs: Vector<D, A2, f32>) -> Self::Output {
+        self -= rhs;
+        self
+    }
+}
+
+impl<D: Dim, A: Arch, A2: Arch> SubAssign<Vector<D, A2, f32>> for Vector<D, A, f32>
+where
+    (D, A): DangerousOps,
+    (D, A2): DangerousOps,
+{
+    #[inline]
+    fn sub_assign(&mut self, rhs: Vector<D, A2, f32>) {
+        unsafe { self.ops.sub_vertical(&mut self.buffer, &rhs.buffer) }
+    }
+}
+
+impl<D: Dim, A: Arch, A2: Arch> Mul<Vector<D, A2, f32>> for Vector<D, A, f32>
+where
+    (D, A): DangerousOps,
+    (D, A2): DangerousOps,
+{
+    type Output = Self;
+
+    #[inline]
+    fn mul(mut self, rhs: Vector<D, A2, f32>) -> Self::Output {
+        self *= rhs;
+        self
+    }
+}
+
+impl<D: Dim, A: Arch, A2: Arch> MulAssign<Vector<D, A2, f32>> for Vector<D, A, f32>
+where
+    (D, A): DangerousOps,
+    (D, A2): DangerousOps,
+{
+    #[inline]
+    fn mul_assign(&mut self, rhs: Vector<D, A2, f32>) {
+        unsafe { self.ops.mul_vertical(&mut self.buffer, &rhs.buffer) }
+    }
+}
+
+impl<D: Dim, A: Arch, A2: Arch> Div<Vector<D, A2, f32>> for Vector<D, A, f32>
+where
+    (D, A): DangerousOps,
+    (D, A2): DangerousOps,
+{
+    type Output = Self;
+
+    #[inline]
+    fn div(mut self, rhs: Vector<D, A2, f32>) -> Self::Output {
+        self /= rhs;
+        self
+    }
+}
+
+impl<D: Dim, A: Arch, A2: Arch> DivAssign<Vector<D, A2, f32>> for Vector<D, A, f32>
+where
+    (D, A): DangerousOps,
+    (D, A2): DangerousOps,
+{
+    #[inline]
+    fn div_assign(&mut self, rhs: Vector<D, A2, f32>) {
+        unsafe { self.ops.div_vertical(&mut self.buffer, &rhs.buffer) }
     }
 }
 

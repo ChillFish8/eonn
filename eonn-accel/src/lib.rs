@@ -27,6 +27,6 @@ mod vector;
 
 pub use self::arch::*;
 pub use self::dims::{Dim, X1024, X512, X768};
-pub use self::ops::{DangerousOps, SpacialOps};
+pub use self::ops::{DangerousOps, MetricOps, SpacialOps};
 pub use self::types::VectorType;
 pub use self::vector::{Vector, VectorCreateError};

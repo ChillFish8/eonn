@@ -25,6 +25,19 @@ pub trait SpacialOps: Sized {
     fn euclidean_hyperplane(&self, other: &Self) -> (Self, f32);
 }
 
+#[allow(clippy::len_without_is_empty)]
+/// Safe metric type operations.
+pub trait MetricOps: Sized {
+    /// Returns the minimum value in the vector.
+    fn min(&self) -> f32;
+    /// Returns the maximum value in the vector.
+    fn max(&self) -> f32;
+    /// Returns the sum of all values in the vector.
+    fn sum(&self) -> f32;
+    /// Returns the mean value of the vector.
+    fn mean(&self) -> f32;
+}
+
 /// A set of compute ops various archs and dims implement.
 ///
 /// # Safety
