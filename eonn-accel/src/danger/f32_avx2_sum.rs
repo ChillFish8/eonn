@@ -1,7 +1,14 @@
 use std::arch::x86_64::*;
+use std::{mem, ptr};
 
-use crate::danger::f32_fallback_sum::f32_xany_fallback_nofma_sum_horizontal;
-use crate::danger::{offsets_avx2, rollup_x8, sum_avx2, CHUNK_0, CHUNK_1};
+use crate::danger::{
+    copy_avx2_register_to,
+    offsets_avx2,
+    rollup_x8,
+    sum_avx2,
+    CHUNK_0,
+    CHUNK_1,
+};
 
 #[target_feature(enable = "avx2")]
 #[inline]
@@ -18,7 +25,7 @@ use crate::danger::{offsets_avx2, rollup_x8, sum_avx2, CHUNK_0, CHUNK_1};
 ///
 /// # Safety
 ///
-/// Vectors **MUST** be a multiple of `64`, otherwise this routine
+/// `DIMS` **MUST** be a multiple of `64`, otherwise this routine
 /// will become immediately UB due to out of bounds pointer accesses.
 ///
 /// This method assumes AVX2 instructions are available, if this method is executed
@@ -80,12 +87,8 @@ pub unsafe fn f32_xany_avx2_nofma_sum_horizontal(x: &[f32]) -> f32 {
     let len = x.len();
     let mut offset_from = len % 64;
 
+    let x_ptr = x.as_ptr();
     let mut extra = 0.0;
-    if offset_from != 0 {
-        extra = f32_xany_fallback_nofma_sum_horizontal(&x[..offset_from]);
-    }
-
-    let x = x.as_ptr();
 
     let mut acc1 = _mm256_setzero_ps();
     let mut acc2 = _mm256_setzero_ps();
@@ -96,9 +99,24 @@ pub unsafe fn f32_xany_avx2_nofma_sum_horizontal(x: &[f32]) -> f32 {
     let mut acc7 = _mm256_setzero_ps();
     let mut acc8 = _mm256_setzero_ps();
 
+    if offset_from != 0 {
+        let mut i = offset_from % 8;
+        for n in 0..i {
+            let x = *x.get_unchecked(n);
+            extra += x;
+        }
+
+        while i < offset_from {
+            let x = _mm256_loadu_ps(x_ptr.add(i));
+            acc1 = _mm256_add_ps(acc1, x);
+
+            i += 8;
+        }
+    }
+
     while offset_from < len {
         sum_x64_block(
-            x.add(offset_from),
+            x_ptr.add(offset_from),
             &mut acc1,
             &mut acc2,
             &mut acc3,
@@ -114,6 +132,176 @@ pub unsafe fn f32_xany_avx2_nofma_sum_horizontal(x: &[f32]) -> f32 {
 
     let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
     extra + sum_avx2(acc)
+}
+
+#[target_feature(enable = "avx2")]
+#[inline]
+/// Vertical sum of the given matrix returning the individual sums.
+///
+/// ```py
+/// DIMS: int
+/// total: [f32; DIMS]
+/// matrix: [[f32; DIMS]; N]
+///
+/// for i in 0..N:
+///     for j in 0..DIMS:
+///         total[j] += matrix[i, j]   
+/// ```
+///
+/// # Safety
+///
+/// `DIMS` **MUST** be a multiple of `64`, otherwise this routine
+/// will become immediately UB due to out of bounds pointer accesses.
+///
+/// All vectors within the matrix must also `DIMS` in length.
+///
+/// This method assumes AVX2 instructions are available, if this method is executed
+/// on non-AVX2 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
+pub unsafe fn f32_xconst_avx2_nofma_sum_vertical<const DIMS: usize>(
+    matrix: &[&[f32]],
+) -> Vec<f32> {
+    debug_assert_eq!(DIMS % 64, 0, "DIMS must be a multiple of 64");
+
+    let mut result = vec![0.0; DIMS];
+    let results_ptr = result.as_mut_ptr();
+
+    let mut i = 0;
+    while i < DIMS {
+        let mut acc1 = _mm256_setzero_ps();
+        let mut acc2 = _mm256_setzero_ps();
+        let mut acc3 = _mm256_setzero_ps();
+        let mut acc4 = _mm256_setzero_ps();
+        let mut acc5 = _mm256_setzero_ps();
+        let mut acc6 = _mm256_setzero_ps();
+        let mut acc7 = _mm256_setzero_ps();
+        let mut acc8 = _mm256_setzero_ps();
+
+        for n in 0..matrix.len() {
+            let arr = *matrix.get_unchecked(n);
+            debug_assert_eq!(arr.len(), DIMS);
+            let arr = arr.as_ptr();
+
+            sum_x64_block(
+                arr.add(i),
+                &mut acc1,
+                &mut acc2,
+                &mut acc3,
+                &mut acc4,
+                &mut acc5,
+                &mut acc6,
+                &mut acc7,
+                &mut acc8,
+            );
+        }
+
+        let merged = [acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8];
+
+        let result = mem::transmute::<[__m256; 8], [f32; 64]>(merged);
+        ptr::copy_nonoverlapping(result.as_ptr(), results_ptr.add(i), result.len());
+
+        i += 64;
+    }
+
+    result
+}
+
+#[target_feature(enable = "avx2")]
+#[inline]
+/// Vertical sum of the given matrix returning the individual sums.
+///
+/// ```py
+/// D: int
+/// total: [f32; D]
+/// matrix: [[f32; D]; N]
+///
+/// for i in 0..N:
+///     for j in 0..D:
+///         total[j] += matrix[i, j]   
+/// ```
+///
+/// # Safety
+///
+/// All vectors within the matrix **MUST** be the same length.
+///
+/// This method assumes AVX2 instructions are available, if this method is executed
+/// on non-AVX2 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
+pub unsafe fn f32_xany_avx2_nofma_sum_vertical(matrix: &[&[f32]]) -> Vec<f32> {
+    let dims = matrix[0].len();
+    let mut offset_from = dims % 64;
+
+    let mut results = vec![0.0; dims];
+    let results_ptr = results.as_mut_ptr();
+
+    if offset_from != 0 {
+        let mut i = offset_from % 8;
+        for n in 0..i {
+            for m in 0..matrix.len() {
+                let arr = *matrix.get_unchecked(m);
+                debug_assert_eq!(arr.len(), dims);
+
+                *results.get_unchecked_mut(n) += *arr.get_unchecked(n);
+            }
+        }
+
+        while i < offset_from {
+            let mut acc = _mm256_setzero_ps();
+
+            for m in 0..matrix.len() {
+                let arr = *matrix.get_unchecked(m);
+                debug_assert_eq!(arr.len(), dims);
+                let arr = arr.as_ptr();
+
+                let x = _mm256_loadu_ps(arr.add(i));
+                acc = _mm256_add_ps(acc, x);
+            }
+
+            copy_avx2_register_to(results_ptr.add(i), acc);
+
+            i += 8;
+        }
+    }
+
+    while offset_from < dims {
+        let mut acc1 = _mm256_setzero_ps();
+        let mut acc2 = _mm256_setzero_ps();
+        let mut acc3 = _mm256_setzero_ps();
+        let mut acc4 = _mm256_setzero_ps();
+        let mut acc5 = _mm256_setzero_ps();
+        let mut acc6 = _mm256_setzero_ps();
+        let mut acc7 = _mm256_setzero_ps();
+        let mut acc8 = _mm256_setzero_ps();
+
+        for m in 0..matrix.len() {
+            let arr = *matrix.get_unchecked(m);
+            debug_assert_eq!(arr.len(), dims);
+            let arr = arr.as_ptr();
+
+            sum_x64_block(
+                arr.add(offset_from),
+                &mut acc1,
+                &mut acc2,
+                &mut acc3,
+                &mut acc4,
+                &mut acc5,
+                &mut acc6,
+                &mut acc7,
+                &mut acc8,
+            );
+        }
+
+        let merged = [acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8];
+
+        let result = mem::transmute::<[__m256; 8], [f32; 64]>(merged);
+        ptr::copy_nonoverlapping(
+            result.as_ptr(),
+            results_ptr.add(offset_from),
+            result.len(),
+        );
+
+        offset_from += 64;
+    }
+
+    results
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -168,5 +356,51 @@ mod tests {
         let (x, _) = get_sample_vectors(131);
         let sum = unsafe { f32_xany_avx2_nofma_sum_horizontal(&x) };
         assert_is_close(sum, x.iter().sum::<f32>());
+    }
+
+    #[test]
+    fn test_xconst_nofma_sum_vertical() {
+        let mut matrix = Vec::new();
+        for _ in 0..25 {
+            let (x, _) = get_sample_vectors(512);
+            matrix.push(x);
+        }
+
+        let matrix_view = matrix.iter().map(|v| v.as_ref()).collect::<Vec<&[f32]>>();
+
+        let mut expected_vertical_sum = vec![0.0; 512];
+        for i in 0..512 {
+            let mut sum = 0.0;
+            for arr in matrix.iter() {
+                sum += arr[i];
+            }
+            expected_vertical_sum[i] = sum;
+        }
+
+        let sum = unsafe { f32_xconst_avx2_nofma_sum_vertical::<512>(&matrix_view) };
+        assert_eq!(sum, expected_vertical_sum);
+    }
+
+    #[test]
+    fn test_xany_nofma_sum_vertical() {
+        let mut matrix = Vec::new();
+        for _ in 0..25 {
+            let (x, _) = get_sample_vectors(537);
+            matrix.push(x);
+        }
+
+        let matrix_view = matrix.iter().map(|v| v.as_ref()).collect::<Vec<&[f32]>>();
+
+        let mut expected_vertical_sum = vec![0.0; 537];
+        for i in 0..537 {
+            let mut sum = 0.0;
+            for arr in matrix.iter() {
+                sum += arr[i];
+            }
+            expected_vertical_sum[i] = sum;
+        }
+
+        let sum = unsafe { f32_xany_avx2_nofma_sum_vertical(&matrix_view) };
+        assert_eq!(sum, expected_vertical_sum);
     }
 }
