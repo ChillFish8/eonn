@@ -1,9 +1,8 @@
 use std::arch::x86_64::*;
 
-#[cfg(feature = "nightly")]
-use crate::danger::f32_xany_fallback_fma_dot;
 use crate::danger::utils::{CHUNK_0, CHUNK_1};
-use crate::danger::{f32_xany_fallback_nofma_dot, offsets_avx2, rollup_x8, sum_avx2};
+use crate::danger::{offsets_avx2, rollup_x8, sum_avx2};
+use crate::math::*;
 
 #[target_feature(enable = "avx2")]
 #[inline]
@@ -75,14 +74,9 @@ pub unsafe fn f32_xany_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
     let mut offset_from = len % 64;
     let mut total = 0.0;
 
-    if offset_from != 0 {
-        let x_subsection = &x[..offset_from];
-        let y_subsection = &y[..offset_from];
-        total = f32_xany_fallback_nofma_dot(x_subsection, y_subsection);
-    }
+    let x_ptr = x.as_ptr();
+    let y_ptr = y.as_ptr();
 
-    let x = x.as_ptr();
-    let y = y.as_ptr();
     let mut acc1 = _mm256_setzero_ps();
     let mut acc2 = _mm256_setzero_ps();
     let mut acc3 = _mm256_setzero_ps();
@@ -91,11 +85,29 @@ pub unsafe fn f32_xany_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
     let mut acc6 = _mm256_setzero_ps();
     let mut acc7 = _mm256_setzero_ps();
     let mut acc8 = _mm256_setzero_ps();
+    
+    if offset_from != 0 {
+        let mut i = offset_from % 8;
+        for n in 0..i {
+            let x = *x.get_unchecked(n);
+            total += x * x;
+        }
 
+        while i < offset_from {
+            let x = _mm256_loadu_ps(x_ptr.add(i));
+            let y = _mm256_loadu_ps(y_ptr.add(i));
+            
+            let res = _mm256_mul_ps(x, y);
+            acc1 = _mm256_add_ps(acc1, res);
+
+            i += 8;
+        }
+    }
+    
     while offset_from < len {
         execute_f32_x64_nofma_block_dot_product(
-            x.add(offset_from),
-            y.add(offset_from),
+            x_ptr.add(offset_from),
+            y_ptr.add(offset_from),
             &mut acc1,
             &mut acc2,
             &mut acc3,
@@ -185,14 +197,9 @@ pub unsafe fn f32_xany_avx2_fma_dot(x: &[f32], y: &[f32]) -> f32 {
     let mut offset_from = len % 64;
     let mut total = 0.0;
 
-    if offset_from != 0 {
-        let x_subsection = &x[..offset_from];
-        let y_subsection = &y[..offset_from];
-        total = f32_xany_fallback_fma_dot(x_subsection, y_subsection);
-    }
+    let x_ptr = x.as_ptr();
+    let y_ptr = y.as_ptr();
 
-    let x = x.as_ptr();
-    let y = y.as_ptr();
     let mut acc1 = _mm256_setzero_ps();
     let mut acc2 = _mm256_setzero_ps();
     let mut acc3 = _mm256_setzero_ps();
@@ -201,11 +208,28 @@ pub unsafe fn f32_xany_avx2_fma_dot(x: &[f32], y: &[f32]) -> f32 {
     let mut acc6 = _mm256_setzero_ps();
     let mut acc7 = _mm256_setzero_ps();
     let mut acc8 = _mm256_setzero_ps();
+    
+    if offset_from != 0 {
+        let mut i = offset_from % 8;
+        for n in 0..i {
+            let x = *x.get_unchecked(n);
+            total = FastMath::add(total, FastMath::mul(x, x));
+        }
+
+        while i < offset_from {
+            let x = _mm256_loadu_ps(x_ptr.add(i));
+            let y = _mm256_loadu_ps(y_ptr.add(i));
+
+            acc1 = _mm256_fmadd_ps(x, y, acc1);
+
+            i += 8;
+        }
+    }
 
     while offset_from < len {
         execute_f32_x64_fma_block_dot_product(
-            x.add(offset_from),
-            y.add(offset_from),
+            x_ptr.add(offset_from),
+            y_ptr.add(offset_from),
             &mut acc1,
             &mut acc2,
             &mut acc3,
