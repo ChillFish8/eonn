@@ -145,7 +145,7 @@ impl Default for SelectedArch {
 pub trait Arch: Default {}
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 impl Arch for Avx2 {}
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 impl Arch for Avx2Fma {}
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 impl Arch for Avx512 {}

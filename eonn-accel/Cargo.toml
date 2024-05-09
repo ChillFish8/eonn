@@ -13,8 +13,9 @@ rand = "0.8.5"
 rand_chacha = "0.3.1"
 simsimd = "4.3.0"
 paste = "1.0.14"
+rkyv = "0.7.44"
 
-criterion = { version = "0.5.1", features = ["html_reports"] }
+criterion = { version = "0.5.1", features = ["html_reports", "csv_output"] }
 
 [target.'cfg(unix)'.dev-dependencies]
 ndarray = { version = "0.15.6", features = ["blas"] }
@@ -35,22 +36,17 @@ dangerous-access = []
 # This feature generally needs to be enabled in order to get the best optimizations.
 nightly = []
 
+# Used only in benchmarks
+aligned-benchmarks = []
+
 [[bench]]
-name = "bench_dot_product"
+name = "bench_3rd_parties"
 harness = false
 
 [[bench]]
-name = "bench_cosine"
+name = "bench_distance_measures"
 harness = false
 
 [[bench]]
-name = "bench_euclidean"
-harness = false
-
-[[bench]]
-name = "bench_hyperplane_angular"
-harness = false
-
-[[bench]]
-name = "bench_hyperplane_euclidean"
+name = "bench_metrics"
 harness = false
