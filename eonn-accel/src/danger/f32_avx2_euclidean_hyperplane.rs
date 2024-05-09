@@ -11,151 +11,74 @@ use crate::danger::{
 };
 use crate::math::*;
 
-macro_rules! compute_euclidean_hyperplane {
-    (
-        $executor:ident,
-        $x:ident,
-        $y:ident,
-        dims = $dims:expr,
-        offsets => $($offset:expr $(,)?)*
-    ) => {{
-        debug_assert_eq!($x.len(), $dims);
-        debug_assert_eq!($y.len(), $dims);
+#[target_feature(enable = "avx2")]
+#[inline]
+/// Computes the Euclidean hyperplane of two `[f32; DIMS]` vectors.
+///
+/// # Safety
+///
+/// DIMS **MUST** be a multiple of `64` and both vectors must be `DIMS` in length,
+/// otherwise this routine will become immediately UB due to out of bounds pointer accesses.
+///
+/// The lengths of `x` and `y` **must** match and contain only finite values.
+pub unsafe fn f32_xconst_avx2_nofma_euclidean_hyperplane<const DIMS: usize>(
+    x: &[f32],
+    y: &[f32],
+) -> (Vec<f32>, f32) {
+    debug_assert_eq!(DIMS % 64, 0);
+    debug_assert_eq!(x.len(), y.len());
+    debug_assert_eq!(x.len(), DIMS);
 
-        let x = $x.as_ptr();
-        let y = $y.as_ptr();
+    let mut hyperplane = vec![0.0; DIMS];
 
-        let mut hyperplane = vec![0.0; $dims];
+    let x = x.as_ptr();
+    let y = y.as_ptr();
 
-        let mut offset_acc1 = _mm256_setzero_ps();
-        let mut offset_acc2 = _mm256_setzero_ps();
-        let mut offset_acc3 = _mm256_setzero_ps();
-        let mut offset_acc4 = _mm256_setzero_ps();
-        let mut offset_acc5 = _mm256_setzero_ps();
-        let mut offset_acc6 = _mm256_setzero_ps();
-        let mut offset_acc7 = _mm256_setzero_ps();
-        let mut offset_acc8 = _mm256_setzero_ps();
+    let mut offset_acc1 = _mm256_setzero_ps();
+    let mut offset_acc2 = _mm256_setzero_ps();
+    let mut offset_acc3 = _mm256_setzero_ps();
+    let mut offset_acc4 = _mm256_setzero_ps();
+    let mut offset_acc5 = _mm256_setzero_ps();
+    let mut offset_acc6 = _mm256_setzero_ps();
+    let mut offset_acc7 = _mm256_setzero_ps();
+    let mut offset_acc8 = _mm256_setzero_ps();
 
-        $(
-            let results = $executor(
-                x.add($offset),
-                y.add($offset),
-                &mut offset_acc1,
-                &mut offset_acc2,
-                &mut offset_acc3,
-                &mut offset_acc4,
-                &mut offset_acc5,
-                &mut offset_acc6,
-                &mut offset_acc7,
-                &mut offset_acc8,
-            );
-            ptr::copy_nonoverlapping(
-                results.as_ptr(),
-                hyperplane.as_mut_ptr().add($offset),
-                results.len(),
-            );
-        )*
-
-        let hyperplane_offset = sub_reduce_x8(
-            offset_acc1,
-            offset_acc2,
-            offset_acc3,
-            offset_acc4,
-            offset_acc5,
-            offset_acc6,
-            offset_acc7,
-            offset_acc8,
+    let mut i = 0;
+    while i < DIMS {
+        let results = execute_f32_x64_block_nofma_hyperplane(
+            x.add(i),
+            y.add(i),
+            &mut offset_acc1,
+            &mut offset_acc2,
+            &mut offset_acc3,
+            &mut offset_acc4,
+            &mut offset_acc5,
+            &mut offset_acc6,
+            &mut offset_acc7,
+            &mut offset_acc8,
         );
 
-        (hyperplane, hyperplane_offset)
-    }};
-}
+        ptr::copy_nonoverlapping(
+            results.as_ptr(),
+            hyperplane.as_mut_ptr().add(i),
+            results.len(),
+        );
 
-#[target_feature(enable = "avx2")]
-#[inline]
-/// Computes the Euclidean hyperplane of two `[f32; 1024]` vectors
-/// and the offset from origin.
-///
-/// # Safety
-///
-/// Vectors **MUST** be `1024` elements in length, otherwise this routine
-/// will become immediately UB due to out of bounds pointer accesses.
-///
-/// NOTE:
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_x1024_avx2_nofma_euclidean_hyperplane(
-    x: &[f32],
-    y: &[f32],
-) -> (Vec<f32>, f32) {
-    compute_euclidean_hyperplane!(
-        execute_f32_x64_block_nofma_hyperplane,
-        x,
-        y,
-        dims = 1024,
-        offsets =>
-            0, 64, 128, 192,
-            256, 320, 384, 448,
-            512, 576, 640, 704,
-            768, 832, 896, 960,
-    )
-}
+        i += 64;
+    }
 
-#[target_feature(enable = "avx2")]
-#[inline]
-/// Computes the Euclidean hyperplane of two `[f32; 768]` vectors
-/// and the offset from origin.
-///
-/// # Safety
-///
-/// Vectors **MUST** be `768` elements in length, otherwise this routine
-/// will become immediately UB due to out of bounds pointer accesses.
-///
-/// NOTE:
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_x768_avx2_nofma_euclidean_hyperplane(
-    x: &[f32],
-    y: &[f32],
-) -> (Vec<f32>, f32) {
-    compute_euclidean_hyperplane!(
-        execute_f32_x64_block_nofma_hyperplane,
-        x,
-        y,
-        dims = 768,
-        offsets =>
-            0, 64, 128, 192,
-            256, 320, 384, 448,
-            512, 576, 640, 704,
-    )
-}
+    let hyperplane_offset = sub_reduce_x8(
+        offset_acc1,
+        offset_acc2,
+        offset_acc3,
+        offset_acc4,
+        offset_acc5,
+        offset_acc6,
+        offset_acc7,
+        offset_acc8,
+    );
 
-#[target_feature(enable = "avx2")]
-#[inline]
-/// Computes the Euclidean hyperplane of two `[f32; 512]` vectors
-/// and the offset from origin.
-///
-/// # Safety
-///
-/// Vectors **MUST** be `512` elements in length, otherwise this routine
-/// will become immediately UB due to out of bounds pointer accesses.
-///
-/// NOTE:
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_x512_avx2_nofma_euclidean_hyperplane(
-    x: &[f32],
-    y: &[f32],
-) -> (Vec<f32>, f32) {
-    compute_euclidean_hyperplane!(
-        execute_f32_x64_block_nofma_hyperplane,
-        x,
-        y,
-        dims = 512,
-        offsets =>
-            0, 64, 128, 192,
-            256, 320, 384, 448,
-    )
+    (hyperplane, hyperplane_offset)
 }
 
 #[target_feature(enable = "avx2")]
@@ -239,91 +162,72 @@ pub unsafe fn f32_xany_avx2_nofma_euclidean_hyperplane(
 #[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
-/// Computes the Euclidean hyperplane of two `[f32; 1024]` vectors
-/// and the offset from origin.
+/// Computes the Euclidean hyperplane of two `[f32; DIMS]` vectors.
 ///
 /// # Safety
 ///
-/// Vectors **MUST** be `1024` elements in length, otherwise this routine
-/// will become immediately UB due to out of bounds pointer accesses.
+/// DIMS **MUST** be a multiple of `64` and both vectors must be `DIMS` in length,
+/// otherwise this routine will become immediately UB due to out of bounds pointer accesses.
 ///
-/// NOTE:
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_x1024_avx2_fma_euclidean_hyperplane(
+/// The lengths of `x` and `y` **must** match and contain only finite values.
+pub unsafe fn f32_xconst_avx2_fma_euclidean_hyperplane<const DIMS: usize>(
     x: &[f32],
     y: &[f32],
 ) -> (Vec<f32>, f32) {
-    compute_euclidean_hyperplane!(
-        execute_f32_x64_block_fma_hyperplane,
-        x,
-        y,
-        dims = 1024,
-        offsets =>
-            0, 64, 128, 192,
-            256, 320, 384, 448,
-            512, 576, 640, 704,
-            768, 832, 896, 960,
-    )
-}
+    debug_assert_eq!(DIMS % 64, 0);
+    debug_assert_eq!(x.len(), y.len());
+    debug_assert_eq!(x.len(), DIMS);
 
-#[cfg(feature = "nightly")]
-#[target_feature(enable = "avx2", enable = "fma")]
-#[inline]
-/// Computes the Euclidean hyperplane of two `[f32; 768]` vectors
-/// and the offset from origin.
-///
-/// # Safety
-///
-/// Vectors **MUST** be `768` elements in length, otherwise this routine
-/// will become immediately UB due to out of bounds pointer accesses.
-///
-/// NOTE:
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_x768_avx2_fma_euclidean_hyperplane(
-    x: &[f32],
-    y: &[f32],
-) -> (Vec<f32>, f32) {
-    compute_euclidean_hyperplane!(
-        execute_f32_x64_block_fma_hyperplane,
-        x,
-        y,
-        dims = 768,
-        offsets =>
-            0, 64, 128, 192,
-            256, 320, 384, 448,
-            512, 576, 640, 704,
-    )
-}
+    let mut hyperplane = vec![0.0; DIMS];
 
-#[cfg(feature = "nightly")]
-#[target_feature(enable = "avx2", enable = "fma")]
-#[inline]
-/// Computes the Euclidean hyperplane of two `[f32; 512]` vectors
-/// and the offset from origin.
-///
-/// # Safety
-///
-/// Vectors **MUST** be `512` elements in length, otherwise this routine
-/// will become immediately UB due to out of bounds pointer accesses.
-///
-/// NOTE:
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_x512_avx2_fma_euclidean_hyperplane(
-    x: &[f32],
-    y: &[f32],
-) -> (Vec<f32>, f32) {
-    compute_euclidean_hyperplane!(
-        execute_f32_x64_block_fma_hyperplane,
-        x,
-        y,
-        dims = 512,
-        offsets =>
-            0, 64, 128, 192,
-            256, 320, 384, 448,
-    )
+    let x = x.as_ptr();
+    let y = y.as_ptr();
+
+    let mut offset_acc1 = _mm256_setzero_ps();
+    let mut offset_acc2 = _mm256_setzero_ps();
+    let mut offset_acc3 = _mm256_setzero_ps();
+    let mut offset_acc4 = _mm256_setzero_ps();
+    let mut offset_acc5 = _mm256_setzero_ps();
+    let mut offset_acc6 = _mm256_setzero_ps();
+    let mut offset_acc7 = _mm256_setzero_ps();
+    let mut offset_acc8 = _mm256_setzero_ps();
+
+    let mut i = 0;
+    while i < DIMS {
+        let results = execute_f32_x64_block_fma_hyperplane(
+            x.add(i),
+            y.add(i),
+            &mut offset_acc1,
+            &mut offset_acc2,
+            &mut offset_acc3,
+            &mut offset_acc4,
+            &mut offset_acc5,
+            &mut offset_acc6,
+            &mut offset_acc7,
+            &mut offset_acc8,
+        );
+
+        ptr::copy_nonoverlapping(
+            results.as_ptr(),
+            hyperplane.as_mut_ptr().add(i),
+            results.len(),
+        );
+
+        i += 64;
+    }
+
+    let hyperplane_offset = sub_reduce_x8(
+        offset_acc1,
+        offset_acc2,
+        offset_acc3,
+        offset_acc4,
+        offset_acc5,
+        offset_acc6,
+        offset_acc7,
+        offset_acc8,
+    );
+
+    (hyperplane, hyperplane_offset)
 }
 
 #[cfg(feature = "nightly")]
@@ -612,62 +516,20 @@ mod tests {
 
     #[cfg(feature = "nightly")]
     #[test]
-    fn test_x1024_fma_euclidean_hyperplane() {
+    fn test_xconst_fma_euclidean_hyperplane() {
         let (x, y) = get_sample_vectors(1024);
         let (hyperplane, offset) =
-            unsafe { f32_x1024_avx2_fma_euclidean_hyperplane(&x, &y) };
+            unsafe { f32_xconst_avx2_fma_euclidean_hyperplane::<1024>(&x, &y) };
         let (expected, expected_offset) = simple_euclidean_hyperplane(&x, &y);
         assert_is_close(offset, expected_offset);
         assert_is_close_vector(&hyperplane, &expected);
     }
 
     #[test]
-    fn test_x1024_nofma_euclidean_hyperplane() {
+    fn test_xconst_nofma_euclidean_hyperplane() {
         let (x, y) = get_sample_vectors(1024);
         let (hyperplane, offset) =
-            unsafe { f32_x1024_avx2_nofma_euclidean_hyperplane(&x, &y) };
-        let (expected, expected_offset) = simple_euclidean_hyperplane(&x, &y);
-        assert_is_close(offset, expected_offset);
-        assert_is_close_vector(&hyperplane, &expected);
-    }
-
-    #[cfg(feature = "nightly")]
-    #[test]
-    fn test_x768_fma_euclidean_hyperplane() {
-        let (x, y) = get_sample_vectors(768);
-        let (hyperplane, offset) =
-            unsafe { f32_x768_avx2_fma_euclidean_hyperplane(&x, &y) };
-        let (expected, expected_offset) = simple_euclidean_hyperplane(&x, &y);
-        assert_is_close(offset, expected_offset);
-        assert_is_close_vector(&hyperplane, &expected);
-    }
-
-    #[test]
-    fn test_x768_nofma_euclidean_hyperplane() {
-        let (x, y) = get_sample_vectors(768);
-        let (hyperplane, offset) =
-            unsafe { f32_x768_avx2_nofma_euclidean_hyperplane(&x, &y) };
-        let (expected, expected_offset) = simple_euclidean_hyperplane(&x, &y);
-        assert_is_close(offset, expected_offset);
-        assert_is_close_vector(&hyperplane, &expected);
-    }
-
-    #[cfg(feature = "nightly")]
-    #[test]
-    fn test_x512_fma_euclidean_hyperplane() {
-        let (x, y) = get_sample_vectors(512);
-        let (hyperplane, offset) =
-            unsafe { f32_x512_avx2_fma_euclidean_hyperplane(&x, &y) };
-        let (expected, expected_offset) = simple_euclidean_hyperplane(&x, &y);
-        assert_is_close(offset, expected_offset);
-        assert_is_close_vector(&hyperplane, &expected);
-    }
-
-    #[test]
-    fn test_x512_nofma_euclidean_hyperplane() {
-        let (x, y) = get_sample_vectors(512);
-        let (hyperplane, offset) =
-            unsafe { f32_x512_avx2_nofma_euclidean_hyperplane(&x, &y) };
+            unsafe { f32_xconst_avx2_nofma_euclidean_hyperplane::<1024>(&x, &y) };
         let (expected, expected_offset) = simple_euclidean_hyperplane(&x, &y);
         assert_is_close(offset, expected_offset);
         assert_is_close_vector(&hyperplane, &expected);

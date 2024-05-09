@@ -5,54 +5,19 @@ use crate::danger::f32_xany_fallback_fma_dot;
 use crate::danger::utils::{CHUNK_0, CHUNK_1};
 use crate::danger::{f32_xany_fallback_nofma_dot, offsets_avx2, rollup_x8, sum_avx2};
 
-macro_rules! unrolled_loop {
-    (
-        $executor:ident,
-        $x:ident,
-        $acc1:expr,
-        $acc2:expr,
-        $acc3:expr,
-        $acc4:expr,
-        $acc5:expr,
-        $acc6:expr,
-        $acc7:expr,
-        $acc8:expr,
-        offsets => $($offset:expr $(,)?)*
-    ) => {{
-        $(
-            $executor(
-                $x.add($offset),
-                $acc1,
-                $acc2,
-                $acc3,
-                $acc4,
-                $acc5,
-                $acc6,
-                $acc7,
-                $acc8,
-            );
-        )*
-    }};
-}
-
 #[target_feature(enable = "avx2")]
 #[inline]
-/// Computes the squared norm of one `[f32; 1024]` vector.
+/// Computes the squared norm of one `[f32; DIMS]` vector.
 ///
 /// # Safety
 ///
-/// Vectors **MUST** be `1024` elements in length, otherwise this routine
-/// will become immediately UB due to out of bounds pointer accesses.
+/// DIMS **MUST** be a multiple of `64` and vector must be `DIMS` in length,
+/// otherwise this routine will become immediately UB due to out of bounds pointer accesses.
 ///
-/// NOTE:
 /// Values within the vector should also be finite, although it is not
 /// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_x1024_avx2_nofma_norm(x: &[f32]) -> f32 {
-    debug_assert_eq!(x.len(), 1024);
-
+pub unsafe fn f32_xconst_avx2_nofma_norm<const DIMS: usize>(x: &[f32]) -> f32 {
     let x = x.as_ptr();
-
-    _mm_prefetch::<_MM_HINT_T1>(x.cast());
 
     let mut acc1 = _mm256_setzero_ps();
     let mut acc2 = _mm256_setzero_ps();
@@ -63,120 +28,22 @@ pub unsafe fn f32_x1024_avx2_nofma_norm(x: &[f32]) -> f32 {
     let mut acc7 = _mm256_setzero_ps();
     let mut acc8 = _mm256_setzero_ps();
 
-    unrolled_loop!(
-        execute_f32_x64_nofma_block_norm,
-        x,
-        &mut acc1,
-        &mut acc2,
-        &mut acc3,
-        &mut acc4,
-        &mut acc5,
-        &mut acc6,
-        &mut acc7,
-        &mut acc8,
-        offsets =>
-            0, 64, 128, 192,
-            256, 320, 384, 448,
-            512, 576, 640, 704,
-            768, 832, 896, 960,
-    );
+    let mut i = 0;
+    while i < DIMS {
+        execute_f32_x64_nofma_block_norm(
+            x.add(i),
+            &mut acc1,
+            &mut acc2,
+            &mut acc3,
+            &mut acc4,
+            &mut acc5,
+            &mut acc6,
+            &mut acc7,
+            &mut acc8,
+        );
 
-    let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
-    sum_avx2(acc)
-}
-
-#[target_feature(enable = "avx2")]
-#[inline]
-/// Computes the squared norm of one `[f32; 768]` vector.
-///
-/// # Safety
-///
-/// Vectors **MUST** be `768` elements in length, otherwise this routine
-/// will become immediately UB due to out of bounds pointer accesses.
-///
-/// NOTE:
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_x768_avx2_nofma_norm(x: &[f32]) -> f32 {
-    debug_assert_eq!(x.len(), 768);
-
-    let x = x.as_ptr();
-
-    _mm_prefetch::<_MM_HINT_T1>(x.cast());
-
-    let mut acc1 = _mm256_setzero_ps();
-    let mut acc2 = _mm256_setzero_ps();
-    let mut acc3 = _mm256_setzero_ps();
-    let mut acc4 = _mm256_setzero_ps();
-    let mut acc5 = _mm256_setzero_ps();
-    let mut acc6 = _mm256_setzero_ps();
-    let mut acc7 = _mm256_setzero_ps();
-    let mut acc8 = _mm256_setzero_ps();
-
-    unrolled_loop!(
-        execute_f32_x64_nofma_block_norm,
-        x,
-        &mut acc1,
-        &mut acc2,
-        &mut acc3,
-        &mut acc4,
-        &mut acc5,
-        &mut acc6,
-        &mut acc7,
-        &mut acc8,
-        offsets =>
-            0, 64, 128, 192,
-            256, 320, 384, 448,
-            512, 576, 640, 704
-    );
-
-    let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
-    sum_avx2(acc)
-}
-
-#[target_feature(enable = "avx2")]
-#[inline]
-/// Computes the squared norm of one `[f32; 512]` vector.
-///
-/// # Safety
-///
-/// Vectors **MUST** be `512` elements in length, otherwise this routine
-/// will become immediately UB due to out of bounds pointer accesses.
-///
-/// NOTE:
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_x512_avx2_nofma_norm(x: &[f32]) -> f32 {
-    debug_assert_eq!(x.len(), 512);
-
-    let x = x.as_ptr();
-
-    _mm_prefetch::<_MM_HINT_T1>(x.cast());
-
-    let mut acc1 = _mm256_setzero_ps();
-    let mut acc2 = _mm256_setzero_ps();
-    let mut acc3 = _mm256_setzero_ps();
-    let mut acc4 = _mm256_setzero_ps();
-    let mut acc5 = _mm256_setzero_ps();
-    let mut acc6 = _mm256_setzero_ps();
-    let mut acc7 = _mm256_setzero_ps();
-    let mut acc8 = _mm256_setzero_ps();
-
-    unrolled_loop!(
-        execute_f32_x64_nofma_block_norm,
-        x,
-        &mut acc1,
-        &mut acc2,
-        &mut acc3,
-        &mut acc4,
-        &mut acc5,
-        &mut acc6,
-        &mut acc7,
-        &mut acc8,
-        offsets =>
-            0, 64, 128, 192,
-            256, 320, 384, 448
-    );
+        i += 64;
+    }
 
     let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
     sum_avx2(acc)
@@ -236,22 +103,17 @@ pub unsafe fn f32_xany_avx2_nofma_norm(x: &[f32]) -> f32 {
 #[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
-/// Computes the squared norm of one `[f32; 1024]` vector.
+/// Computes the squared norm of one `[f32; DIMS]` vector.
 ///
 /// # Safety
 ///
-/// Vectors **MUST** be `1024` elements in length, otherwise this routine
-/// will become immediately UB due to out of bounds pointer accesses.
+/// DIMS **MUST** be a multiple of `64` and vector must be `DIMS` in length,
+/// otherwise this routine will become immediately UB due to out of bounds pointer accesses.
 ///
-/// NOTE:
 /// Values within the vector should also be finite, although it is not
 /// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_x1024_avx2_fma_norm(x: &[f32]) -> f32 {
-    debug_assert_eq!(x.len(), 1024);
-
+pub unsafe fn f32_xconst_avx2_fma_norm<const DIMS: usize>(x: &[f32]) -> f32 {
     let x = x.as_ptr();
-
-    _mm_prefetch::<_MM_HINT_T1>(x.cast());
 
     let mut acc1 = _mm256_setzero_ps();
     let mut acc2 = _mm256_setzero_ps();
@@ -262,122 +124,22 @@ pub unsafe fn f32_x1024_avx2_fma_norm(x: &[f32]) -> f32 {
     let mut acc7 = _mm256_setzero_ps();
     let mut acc8 = _mm256_setzero_ps();
 
-    unrolled_loop!(
-        execute_f32_x64_fma_block_norm,
-        x,
-        &mut acc1,
-        &mut acc2,
-        &mut acc3,
-        &mut acc4,
-        &mut acc5,
-        &mut acc6,
-        &mut acc7,
-        &mut acc8,
-        offsets =>
-            0, 64, 128, 192,
-            256, 320, 384, 448,
-            512, 576, 640, 704,
-            768, 832, 896, 960,
-    );
+    let mut i = 0;
+    while i < DIMS {
+        execute_f32_x64_fma_block_norm(
+            x.add(i),
+            &mut acc1,
+            &mut acc2,
+            &mut acc3,
+            &mut acc4,
+            &mut acc5,
+            &mut acc6,
+            &mut acc7,
+            &mut acc8,
+        );
 
-    let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
-    sum_avx2(acc)
-}
-
-#[cfg(feature = "nightly")]
-#[target_feature(enable = "avx2", enable = "fma")]
-#[inline]
-/// Computes the squared norm of one `[f32; 768]` vector.
-///
-/// # Safety
-///
-/// Vectors **MUST** be `768` elements in length, otherwise this routine
-/// will become immediately UB due to out of bounds pointer accesses.
-///
-/// NOTE:
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_x768_avx2_fma_norm(x: &[f32]) -> f32 {
-    debug_assert_eq!(x.len(), 768);
-
-    let x = x.as_ptr();
-
-    _mm_prefetch::<_MM_HINT_T1>(x.cast());
-
-    let mut acc1 = _mm256_setzero_ps();
-    let mut acc2 = _mm256_setzero_ps();
-    let mut acc3 = _mm256_setzero_ps();
-    let mut acc4 = _mm256_setzero_ps();
-    let mut acc5 = _mm256_setzero_ps();
-    let mut acc6 = _mm256_setzero_ps();
-    let mut acc7 = _mm256_setzero_ps();
-    let mut acc8 = _mm256_setzero_ps();
-
-    unrolled_loop!(
-        execute_f32_x64_fma_block_norm,
-        x,
-        &mut acc1,
-        &mut acc2,
-        &mut acc3,
-        &mut acc4,
-        &mut acc5,
-        &mut acc6,
-        &mut acc7,
-        &mut acc8,
-        offsets =>
-            0, 64, 128, 192,
-            256, 320, 384, 448,
-            512, 576, 640, 704
-    );
-
-    let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
-    sum_avx2(acc)
-}
-
-#[cfg(feature = "nightly")]
-#[target_feature(enable = "avx2", enable = "fma")]
-#[inline]
-/// Computes the squared norm of one `[f32; 512]` vector.
-///
-/// # Safety
-///
-/// Vectors **MUST** be `512` elements in length, otherwise this routine
-/// will become immediately UB due to out of bounds pointer accesses.
-///
-/// NOTE:
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_x512_avx2_fma_norm(x: &[f32]) -> f32 {
-    debug_assert_eq!(x.len(), 512);
-
-    let x = x.as_ptr();
-
-    _mm_prefetch::<_MM_HINT_T1>(x.cast());
-
-    let mut acc1 = _mm256_setzero_ps();
-    let mut acc2 = _mm256_setzero_ps();
-    let mut acc3 = _mm256_setzero_ps();
-    let mut acc4 = _mm256_setzero_ps();
-    let mut acc5 = _mm256_setzero_ps();
-    let mut acc6 = _mm256_setzero_ps();
-    let mut acc7 = _mm256_setzero_ps();
-    let mut acc8 = _mm256_setzero_ps();
-
-    unrolled_loop!(
-        execute_f32_x64_fma_block_norm,
-        x,
-        &mut acc1,
-        &mut acc2,
-        &mut acc3,
-        &mut acc4,
-        &mut acc5,
-        &mut acc6,
-        &mut acc7,
-        &mut acc8,
-        offsets =>
-            0, 64, 128, 192,
-            256, 320, 384, 448
-    );
+        i += 64;
+    }
 
     let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
     sum_avx2(acc)
@@ -522,51 +284,6 @@ mod tests {
 
     #[cfg(feature = "nightly")]
     #[test]
-    fn test_x1024_fma_norm() {
-        let (x, _) = get_sample_vectors(1024);
-        let dist = unsafe { f32_x1024_avx2_fma_norm(&x) };
-        assert_is_close(dist, simple_dot(&x, &x));
-    }
-
-    #[test]
-    fn test_x1024_nofma_norm() {
-        let (x, _) = get_sample_vectors(1024);
-        let dist = unsafe { f32_x1024_avx2_nofma_norm(&x) };
-        assert_is_close(dist, simple_dot(&x, &x));
-    }
-
-    #[cfg(feature = "nightly")]
-    #[test]
-    fn test_x768_fma_norm() {
-        let (x, _) = get_sample_vectors(768);
-        let dist = unsafe { f32_x768_avx2_fma_norm(&x) };
-        assert_is_close(dist, simple_dot(&x, &x));
-    }
-
-    #[test]
-    fn test_x768_nofma_norm() {
-        let (x, _) = get_sample_vectors(768);
-        let dist = unsafe { f32_x768_avx2_nofma_norm(&x) };
-        assert_is_close(dist, simple_dot(&x, &x));
-    }
-
-    #[cfg(feature = "nightly")]
-    #[test]
-    fn test_x512_fma_norm() {
-        let (x, _) = get_sample_vectors(512);
-        let dist = unsafe { f32_x512_avx2_fma_norm(&x) };
-        assert_is_close(dist, simple_dot(&x, &x));
-    }
-
-    #[test]
-    fn test_x512_nofma_norm() {
-        let (x, _) = get_sample_vectors(512);
-        let dist = unsafe { f32_x512_avx2_nofma_norm(&x) };
-        assert_is_close(dist, simple_dot(&x, &x));
-    }
-
-    #[cfg(feature = "nightly")]
-    #[test]
     fn test_xany_fma_norm() {
         let (x, _) = get_sample_vectors(127);
         let dist = unsafe { f32_xany_avx2_fma_norm(&x) };
@@ -577,6 +294,21 @@ mod tests {
     fn test_xany_nofma_norm() {
         let (x, _) = get_sample_vectors(127);
         let dist = unsafe { f32_xany_avx2_nofma_norm(&x) };
+        assert_is_close(dist, simple_dot(&x, &x));
+    }
+
+    #[cfg(feature = "nightly")]
+    #[test]
+    fn test_xconst_fma_norm() {
+        let (x, _) = get_sample_vectors(1024);
+        let dist = unsafe { f32_xconst_avx2_fma_norm::<1024>(&x) };
+        assert_is_close(dist, simple_dot(&x, &x));
+    }
+
+    #[test]
+    fn test_xconst_nofma_norm() {
+        let (x, _) = get_sample_vectors(1024);
+        let dist = unsafe { f32_xconst_avx2_nofma_norm::<1024>(&x) };
         assert_is_close(dist, simple_dot(&x, &x));
     }
 }

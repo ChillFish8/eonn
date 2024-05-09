@@ -1,5 +1,5 @@
 use std::arch::x86_64::*;
-use std::{cmp, mem, ptr};
+use std::{mem, ptr};
 
 use crate::math::Math;
 
@@ -178,7 +178,7 @@ pub(crate) unsafe fn copy_masked_avx512_register_to(
     len: usize,
 ) {
     let result = mem::transmute::<__m512, [f32; 16]>(reg);
-    ptr::copy_nonoverlapping(result.as_ptr(), arr, cmp::min(16, len));
+    ptr::copy_nonoverlapping(result.as_ptr(), arr, std::cmp::min(16, len));
 }
 
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
