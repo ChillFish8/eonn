@@ -8,53 +8,25 @@ use crate::danger::{
     CHUNK_1,
 };
 
-macro_rules! unrolled_loop {
-    (
-        $executor:ident,
-        $x:ident,
-        $y:ident,
-        $acc1:expr,
-        $acc2:expr,
-        $acc3:expr,
-        $acc4:expr,
-        $acc5:expr,
-        $acc6:expr,
-        $acc7:expr,
-        $acc8:expr,
-        offsets => $($offset:expr $(,)?)*
-    ) => {{
-        $(
-            $executor(
-                $x.add($offset),
-                $y.add($offset),
-                $acc1,
-                $acc2,
-                $acc3,
-                $acc4,
-                $acc5,
-                $acc6,
-                $acc7,
-                $acc8,
-            );
-        )*
-    }};
-}
-
 #[target_feature(enable = "avx512f")]
 #[inline]
-/// Computes the dot product of two `[f32; 1024]` vectors.
+/// Computes the dot product of two `[f32; DIMS]` vectors.
 ///
 /// # Safety
 ///
-/// Vectors **MUST** be `1024` elements in length, otherwise this routine
-/// will become immediately UB due to out of bounds pointer accesses.
+/// DIMS **MUST** be a multiple of `128` and vectors must be `DIMS` in length,
+/// otherwise this routine will become immediately UB due to out of bounds pointer accesses.
 ///
 /// NOTE:
 /// Values within the vector should also be finite, although it is not
 /// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_x1024_avx512_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
-    debug_assert_eq!(x.len(), 1024);
-    debug_assert_eq!(y.len(), 1024);
+pub unsafe fn f32_xconst_avx512_nofma_dot<const DIMS: usize>(
+    x: &[f32],
+    y: &[f32],
+) -> f32 {
+    debug_assert_eq!(DIMS % 128, 0);
+    debug_assert_eq!(x.len(), y.len());
+    debug_assert_eq!(x.len(), DIMS);
 
     let x = x.as_ptr();
     let y = y.as_ptr();
@@ -68,112 +40,23 @@ pub unsafe fn f32_x1024_avx512_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
     let mut acc7 = _mm512_setzero_ps();
     let mut acc8 = _mm512_setzero_ps();
 
-    unrolled_loop!(
-        execute_f32_x128_nofma_block_dot_product,
-        x,
-        y,
-        &mut acc1,
-        &mut acc2,
-        &mut acc3,
-        &mut acc4,
-        &mut acc5,
-        &mut acc6,
-        &mut acc7,
-        &mut acc8,
-        offsets => 0, 128, 256, 384, 512, 640, 768, 896,
-    );
+    let mut i = 0;
+    while i < DIMS {
+        execute_f32_x128_nofma_block_dot_product(
+            x.add(i),
+            y.add(i),
+            &mut acc1,
+            &mut acc2,
+            &mut acc3,
+            &mut acc4,
+            &mut acc5,
+            &mut acc6,
+            &mut acc7,
+            &mut acc8,
+        );
 
-    sum_avx512_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
-}
-
-#[target_feature(enable = "avx512f")]
-#[inline]
-/// Computes the dot product of two `[f32; 768]` vectors.
-///
-/// # Safety
-///
-/// Vectors **MUST** be `768` elements in length, otherwise this routine
-/// will become immediately UB due to out of bounds pointer accesses.
-///
-/// NOTE:
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_x768_avx512_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
-    debug_assert_eq!(x.len(), 768);
-    debug_assert_eq!(y.len(), 768);
-
-    let x = x.as_ptr();
-    let y = y.as_ptr();
-
-    let mut acc1 = _mm512_setzero_ps();
-    let mut acc2 = _mm512_setzero_ps();
-    let mut acc3 = _mm512_setzero_ps();
-    let mut acc4 = _mm512_setzero_ps();
-    let mut acc5 = _mm512_setzero_ps();
-    let mut acc6 = _mm512_setzero_ps();
-    let mut acc7 = _mm512_setzero_ps();
-    let mut acc8 = _mm512_setzero_ps();
-
-    unrolled_loop!(
-        execute_f32_x128_nofma_block_dot_product,
-        x,
-        y,
-        &mut acc1,
-        &mut acc2,
-        &mut acc3,
-        &mut acc4,
-        &mut acc5,
-        &mut acc6,
-        &mut acc7,
-        &mut acc8,
-        offsets => 0, 128, 256, 384, 512, 640
-    );
-
-    sum_avx512_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
-}
-
-#[target_feature(enable = "avx512f")]
-#[inline]
-/// Computes the dot product of two `[f32; 512]` vectors.
-///
-/// # Safety
-///
-/// Vectors **MUST** be `512` elements in length, otherwise this routine
-/// will become immediately UB due to out of bounds pointer accesses.
-///
-/// NOTE:
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_x512_avx512_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
-    debug_assert_eq!(x.len(), 512);
-    debug_assert_eq!(y.len(), 512);
-
-    let x = x.as_ptr();
-    let y = y.as_ptr();
-
-    let mut acc1 = _mm512_setzero_ps();
-    let mut acc2 = _mm512_setzero_ps();
-    let mut acc3 = _mm512_setzero_ps();
-    let mut acc4 = _mm512_setzero_ps();
-    let mut acc5 = _mm512_setzero_ps();
-    let mut acc6 = _mm512_setzero_ps();
-    let mut acc7 = _mm512_setzero_ps();
-    let mut acc8 = _mm512_setzero_ps();
-
-    unrolled_loop!(
-        execute_f32_x128_nofma_block_dot_product,
-        x,
-        y,
-        &mut acc1,
-        &mut acc2,
-        &mut acc3,
-        &mut acc4,
-        &mut acc5,
-        &mut acc6,
-        &mut acc7,
-        &mut acc8,
-        offsets => 0, 128, 256, 384
-    );
+        i += 128;
+    }
 
     sum_avx512_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
 }
@@ -243,19 +126,20 @@ pub unsafe fn f32_xany_avx512_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
 
 #[target_feature(enable = "avx512f")]
 #[inline]
-/// Computes the dot product of two `[f32; 1024]` vectors.
+/// Computes the dot product of two `[f32; DIMS]` vectors.
 ///
 /// # Safety
 ///
-/// Vectors **MUST** be `1024` elements in length, otherwise this routine
-/// will become immediately UB due to out of bounds pointer accesses.
+/// DIMS **MUST** be a multiple of `128` and vectors must be `DIMS` in length,
+/// otherwise this routine will become immediately UB due to out of bounds pointer accesses.
 ///
 /// NOTE:
 /// Values within the vector should also be finite, although it is not
 /// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_x1024_avx512_fma_dot(x: &[f32], y: &[f32]) -> f32 {
-    debug_assert_eq!(x.len(), 1024);
-    debug_assert_eq!(y.len(), 1024);
+pub unsafe fn f32_xconst_avx512_fma_dot<const DIMS: usize>(x: &[f32], y: &[f32]) -> f32 {
+    debug_assert_eq!(DIMS % 128, 0);
+    debug_assert_eq!(x.len(), y.len());
+    debug_assert_eq!(x.len(), DIMS);
 
     let x = x.as_ptr();
     let y = y.as_ptr();
@@ -269,112 +153,23 @@ pub unsafe fn f32_x1024_avx512_fma_dot(x: &[f32], y: &[f32]) -> f32 {
     let mut acc7 = _mm512_setzero_ps();
     let mut acc8 = _mm512_setzero_ps();
 
-    unrolled_loop!(
-        execute_f32_x128_fma_block_dot_product,
-        x,
-        y,
-        &mut acc1,
-        &mut acc2,
-        &mut acc3,
-        &mut acc4,
-        &mut acc5,
-        &mut acc6,
-        &mut acc7,
-        &mut acc8,
-        offsets => 0, 128, 256, 384, 512, 640, 768, 896,
-    );
+    let mut i = 0;
+    while i < DIMS {
+        execute_f32_x128_fma_block_dot_product(
+            x.add(i),
+            y.add(i),
+            &mut acc1,
+            &mut acc2,
+            &mut acc3,
+            &mut acc4,
+            &mut acc5,
+            &mut acc6,
+            &mut acc7,
+            &mut acc8,
+        );
 
-    sum_avx512_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
-}
-
-#[target_feature(enable = "avx512f")]
-#[inline]
-/// Computes the dot product of two `[f32; 768]` vectors.
-///
-/// # Safety
-///
-/// Vectors **MUST** be `768` elements in length, otherwise this routine
-/// will become immediately UB due to out of bounds pointer accesses.
-///
-/// NOTE:
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_x768_avx512_fma_dot(x: &[f32], y: &[f32]) -> f32 {
-    debug_assert_eq!(x.len(), 768);
-    debug_assert_eq!(y.len(), 768);
-
-    let x = x.as_ptr();
-    let y = y.as_ptr();
-
-    let mut acc1 = _mm512_setzero_ps();
-    let mut acc2 = _mm512_setzero_ps();
-    let mut acc3 = _mm512_setzero_ps();
-    let mut acc4 = _mm512_setzero_ps();
-    let mut acc5 = _mm512_setzero_ps();
-    let mut acc6 = _mm512_setzero_ps();
-    let mut acc7 = _mm512_setzero_ps();
-    let mut acc8 = _mm512_setzero_ps();
-
-    unrolled_loop!(
-        execute_f32_x128_fma_block_dot_product,
-        x,
-        y,
-        &mut acc1,
-        &mut acc2,
-        &mut acc3,
-        &mut acc4,
-        &mut acc5,
-        &mut acc6,
-        &mut acc7,
-        &mut acc8,
-        offsets => 0, 128, 256, 384, 512, 640
-    );
-
-    sum_avx512_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
-}
-
-#[target_feature(enable = "avx512f")]
-#[inline]
-/// Computes the dot product of two `[f32; 512]` vectors.
-///
-/// # Safety
-///
-/// Vectors **MUST** be `512` elements in length, otherwise this routine
-/// will become immediately UB due to out of bounds pointer accesses.
-///
-/// NOTE:
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_x512_avx512_fma_dot(x: &[f32], y: &[f32]) -> f32 {
-    debug_assert_eq!(x.len(), 512);
-    debug_assert_eq!(y.len(), 512);
-
-    let x = x.as_ptr();
-    let y = y.as_ptr();
-
-    let mut acc1 = _mm512_setzero_ps();
-    let mut acc2 = _mm512_setzero_ps();
-    let mut acc3 = _mm512_setzero_ps();
-    let mut acc4 = _mm512_setzero_ps();
-    let mut acc5 = _mm512_setzero_ps();
-    let mut acc6 = _mm512_setzero_ps();
-    let mut acc7 = _mm512_setzero_ps();
-    let mut acc8 = _mm512_setzero_ps();
-
-    unrolled_loop!(
-        execute_f32_x128_fma_block_dot_product,
-        x,
-        y,
-        &mut acc1,
-        &mut acc2,
-        &mut acc3,
-        &mut acc4,
-        &mut acc5,
-        &mut acc6,
-        &mut acc7,
-        &mut acc8,
-        offsets => 0, 128, 256, 384
-    );
+        i += 128;
+    }
 
     sum_avx512_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
 }
@@ -552,44 +347,16 @@ mod tests {
     use crate::test_utils::{get_sample_vectors, is_close, simple_dot};
 
     #[test]
-    fn test_x1024_fma_dot() {
+    fn test_xconst_fma_dot() {
         let (x, y) = get_sample_vectors(1024);
-        let dist = unsafe { f32_x1024_avx512_fma_dot(&x, &y) };
+        let dist = unsafe { f32_xconst_avx512_fma_dot::<1024>(&x, &y) };
         assert!(is_close(dist, simple_dot(&x, &y)));
     }
 
     #[test]
-    fn test_x1024_nofma_dot() {
+    fn test_xconst_nofma_dot() {
         let (x, y) = get_sample_vectors(1024);
-        let dist = unsafe { f32_x1024_avx512_nofma_dot(&x, &y) };
-        assert!(is_close(dist, simple_dot(&x, &y)));
-    }
-
-    #[test]
-    fn test_x768_fma_dot() {
-        let (x, y) = get_sample_vectors(768);
-        let dist = unsafe { f32_x768_avx512_fma_dot(&x, &y) };
-        assert!(is_close(dist, simple_dot(&x, &y)));
-    }
-
-    #[test]
-    fn test_x768_nofma_dot() {
-        let (x, y) = get_sample_vectors(768);
-        let dist = unsafe { f32_x768_avx512_nofma_dot(&x, &y) };
-        assert!(is_close(dist, simple_dot(&x, &y)));
-    }
-
-    #[test]
-    fn test_x512_fma_dot() {
-        let (x, y) = get_sample_vectors(512);
-        let dist = unsafe { f32_x512_avx512_fma_dot(&x, &y) };
-        assert!(is_close(dist, simple_dot(&x, &y)));
-    }
-
-    #[test]
-    fn test_x512_nofma_dot() {
-        let (x, y) = get_sample_vectors(512);
-        let dist = unsafe { f32_x512_avx512_nofma_dot(&x, &y) };
+        let dist = unsafe { f32_xconst_avx512_nofma_dot::<1024>(&x, &y) };
         assert!(is_close(dist, simple_dot(&x, &y)));
     }
 

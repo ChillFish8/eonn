@@ -16,38 +16,8 @@ fn benchmark_3rd_party_impls(c: &mut Criterion) {
         let y = ndarray::Array1::from_shape_vec((1024,), y).unwrap();
         b.iter(|| repeat!(1000, ndarray_cosine, &x, &y));
     });
-    c.bench_function("cosine ndarray x768 auto", |b| {
-        let (x, y) = utils::get_sample_vectors(768);
-        let x = ndarray::Array1::from_shape_vec((768,), x).unwrap();
-        let y = ndarray::Array1::from_shape_vec((768,), y).unwrap();
-        b.iter(|| repeat!(1000, ndarray_cosine, &x, &y));
-    });
-    c.bench_function("cosine ndarray x512 auto", |b| {
-        let (x, y) = utils::get_sample_vectors(512);
-        let x = ndarray::Array1::from_shape_vec((512,), x).unwrap();
-        let y = ndarray::Array1::from_shape_vec((512,), y).unwrap();
-        b.iter(|| repeat!(1000, ndarray_cosine, &x, &y));
-    });
-    c.bench_function("cosine simsimd xany auto", |b| {
-        let (x, y) = utils::get_sample_vectors(1301);
-        let x = ndarray::Array1::from_shape_vec((1301,), x).unwrap();
-        let y = ndarray::Array1::from_shape_vec((1301,), y).unwrap();
-        b.iter(|| repeat!(1000, ndarray_cosine, &x, &y));
-    });
     c.bench_function("cosine simsimd x1024 auto", |b| {
         let (x, y) = utils::get_sample_vectors(1024);
-        b.iter(|| repeat!(1000, simsimd_cosine, &x, &y));
-    });
-    c.bench_function("cosine simsimd x768 auto", |b| {
-        let (x, y) = utils::get_sample_vectors(768);
-        b.iter(|| repeat!(1000, simsimd_cosine, &x, &y));
-    });
-    c.bench_function("cosine simsimd x512 auto", |b| {
-        let (x, y) = utils::get_sample_vectors(512);
-        b.iter(|| repeat!(1000, simsimd_cosine, &x, &y));
-    });
-    c.bench_function("cosine simsimd xany auto", |b| {
-        let (x, y) = utils::get_sample_vectors(1301);
         b.iter(|| repeat!(1000, simsimd_cosine, &x, &y));
     });
 
@@ -57,38 +27,8 @@ fn benchmark_3rd_party_impls(c: &mut Criterion) {
         let y = ndarray::Array1::from_shape_vec((1024,), y).unwrap();
         b.iter(|| repeat!(1000, ndarray_dot, &x, &y));
     });
-    c.bench_function("dot ndarray x768 auto", |b| {
-        let (x, y) = utils::get_sample_vectors(768);
-        let x = ndarray::Array1::from_shape_vec((768,), x).unwrap();
-        let y = ndarray::Array1::from_shape_vec((768,), y).unwrap();
-        b.iter(|| repeat!(1000, ndarray_dot, &x, &y));
-    });
-    c.bench_function("dot ndarray x512 auto", |b| {
-        let (x, y) = utils::get_sample_vectors(512);
-        let x = ndarray::Array1::from_shape_vec((512,), x).unwrap();
-        let y = ndarray::Array1::from_shape_vec((512,), y).unwrap();
-        b.iter(|| repeat!(1000, ndarray_dot, &x, &y));
-    });
-    c.bench_function("dot ndarray xany auto", |b| {
-        let (x, y) = utils::get_sample_vectors(1301);
-        let x = ndarray::Array1::from_shape_vec((1301,), x).unwrap();
-        let y = ndarray::Array1::from_shape_vec((1301,), y).unwrap();
-        b.iter(|| repeat!(1000, ndarray_dot, &x, &y));
-    });
     c.bench_function("dot simsimd x1024 auto", |b| {
         let (x, y) = utils::get_sample_vectors(1024);
-        b.iter(|| repeat!(1000, simsimd_dot, &x, &y));
-    });
-    c.bench_function("dot simsimd x768 auto", |b| {
-        let (x, y) = utils::get_sample_vectors(768);
-        b.iter(|| repeat!(1000, simsimd_dot, &x, &y));
-    });
-    c.bench_function("dot simsimd x512 auto", |b| {
-        let (x, y) = utils::get_sample_vectors(512);
-        b.iter(|| repeat!(1000, simsimd_dot, &x, &y));
-    });
-    c.bench_function("dot simsimd xany auto", |b| {
-        let (x, y) = utils::get_sample_vectors(1301);
         b.iter(|| repeat!(1000, simsimd_dot, &x, &y));
     });
 
@@ -98,38 +38,8 @@ fn benchmark_3rd_party_impls(c: &mut Criterion) {
         let y = ndarray::Array1::from_shape_vec((1024,), y).unwrap();
         b.iter(|| repeat!(1000, ndarray_euclidean, &x, &y));
     });
-    c.bench_function("euclidean ndarray x768 auto", |b| {
-        let (x, y) = utils::get_sample_vectors(768);
-        let x = ndarray::Array1::from_shape_vec((768,), x).unwrap();
-        let y = ndarray::Array1::from_shape_vec((768,), y).unwrap();
-        b.iter(|| repeat!(1000, ndarray_euclidean, &x, &y));
-    });
-    c.bench_function("euclidean ndarray x512 auto", |b| {
-        let (x, y) = utils::get_sample_vectors(512);
-        let x = ndarray::Array1::from_shape_vec((512,), x).unwrap();
-        let y = ndarray::Array1::from_shape_vec((512,), y).unwrap();
-        b.iter(|| repeat!(1000, ndarray_euclidean, &x, &y));
-    });
-    c.bench_function("euclidean ndarray xany auto", |b| {
-        let (x, y) = utils::get_sample_vectors(1301);
-        let x = ndarray::Array1::from_shape_vec((1301,), x).unwrap();
-        let y = ndarray::Array1::from_shape_vec((1301,), y).unwrap();
-        b.iter(|| repeat!(1000, ndarray_euclidean, &x, &y));
-    });
     c.bench_function("euclidean simsimd x1024 auto", |b| {
         let (x, y) = utils::get_sample_vectors(1024);
-        b.iter(|| repeat!(1000, simsimd_euclidean, &x, &y));
-    });
-    c.bench_function("euclidean simsimd x768 auto", |b| {
-        let (x, y) = utils::get_sample_vectors(768);
-        b.iter(|| repeat!(1000, simsimd_euclidean, &x, &y));
-    });
-    c.bench_function("euclidean simsimd x512 auto", |b| {
-        let (x, y) = utils::get_sample_vectors(512);
-        b.iter(|| repeat!(1000, simsimd_euclidean, &x, &y));
-    });
-    c.bench_function("euclidean simsimd xany auto", |b| {
-        let (x, y) = utils::get_sample_vectors(1301);
         b.iter(|| repeat!(1000, simsimd_euclidean, &x, &y));
     });
 }

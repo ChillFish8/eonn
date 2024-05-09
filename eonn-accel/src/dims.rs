@@ -1,3 +1,12 @@
+macro_rules! add_const_dim_attr {
+    ($dim:ident = $size:expr) => {
+        impl $dim {
+            /// The size of the dimension.
+            pub const DIMS: usize = $size;
+        }
+    };
+}
+
 #[derive(Debug, Copy, Clone, Default)]
 /// Vector dimensions of 1024
 pub struct X1024;
@@ -10,6 +19,10 @@ pub struct X512;
 #[derive(Debug, Copy, Clone, Default)]
 /// Vector dimensions of any size.
 pub struct XAny;
+
+add_const_dim_attr!(X1024 = 1024);
+add_const_dim_attr!(X768 = 768);
+add_const_dim_attr!(X512 = 512);
 
 /// Dimension specification information.
 pub trait Dim: Default {

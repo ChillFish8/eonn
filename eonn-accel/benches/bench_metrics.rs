@@ -10,8 +10,6 @@ macro_rules! benchmark_metric {
     (
         $name:expr,
         x1024 = $fx1024:expr,
-        x768 = $fx768:expr,
-        x512 = $fx512:expr,
         xany = $fxany:expr,
     ) => {
         paste::paste! {
@@ -19,14 +17,6 @@ macro_rules! benchmark_metric {
                 c.bench_function(&format!("{} x1024", $name), |b| {
                     let (x, _) = utils::get_sample_vectors(1024);
                     b.iter(|| repeat!(1000, $fx1024, &x));
-                });
-                c.bench_function(&format!("{} x768", $name), |b| {
-                    let (x, _) = utils::get_sample_vectors(768);
-                    b.iter(|| repeat!(1000, $fx768, &x));
-                });
-                c.bench_function(&format!("{} x512", $name), |b| {
-                    let (x, _) = utils::get_sample_vectors(512);
-                    b.iter(|| repeat!(1000, $fx512, &x));
                 });
                 c.bench_function(&format!("{} xany-1301", $name), |b| {
                     let (x, _) = utils::get_sample_vectors(1301);
@@ -44,66 +34,48 @@ macro_rules! benchmark_metric {
 benchmark_metric!(
     "f32_avx2_nofma_min",
     x1024 = f32_xconst_avx2_nofma_min_horizontal::<1024>,
-    x768 = f32_xconst_avx2_nofma_min_horizontal::<768>,
-    x512 = f32_xconst_avx2_nofma_min_horizontal::<512>,
     xany = f32_xany_avx2_nofma_min_horizontal,
 );
 benchmark_metric!(
     "f32_avx2_nofma_max",
     x1024 = f32_xconst_avx2_nofma_max_horizontal::<1024>,
-    x768 = f32_xconst_avx2_nofma_max_horizontal::<768>,
-    x512 = f32_xconst_avx2_nofma_max_horizontal::<512>,
     xany = f32_xany_avx2_nofma_max_horizontal,
 );
 benchmark_metric!(
     "f32_avx2_nofma_sum",
     x1024 = f32_xconst_avx2_nofma_sum_horizontal::<1024>,
-    x768 = f32_xconst_avx2_nofma_sum_horizontal::<768>,
-    x512 = f32_xconst_avx2_nofma_sum_horizontal::<512>,
     xany = f32_xany_avx2_nofma_sum_horizontal,
 );
 
 benchmark_metric!(
     "f32_avx512_nofma_min",
     x1024 = f32_xconst_avx512_nofma_min_horizontal::<1024>,
-    x768 = f32_xconst_avx512_nofma_min_horizontal::<768>,
-    x512 = f32_xconst_avx512_nofma_min_horizontal::<512>,
     xany = f32_xany_avx512_nofma_min_horizontal,
 );
 benchmark_metric!(
     "f32_avx512_nofma_max",
     x1024 = f32_xconst_avx512_nofma_max_horizontal::<1024>,
-    x768 = f32_xconst_avx512_nofma_max_horizontal::<768>,
-    x512 = f32_xconst_avx512_nofma_max_horizontal::<512>,
     xany = f32_xany_avx512_nofma_max_horizontal,
 );
 benchmark_metric!(
     "f32_avx512_nofma_sum",
     x1024 = f32_xconst_avx512_nofma_sum_horizontal::<1024>,
-    x768 = f32_xconst_avx512_nofma_sum_horizontal::<768>,
-    x512 = f32_xconst_avx512_nofma_sum_horizontal::<512>,
     xany = f32_xany_avx512_nofma_sum_horizontal,
 );
 
 benchmark_metric!(
     "f32_fallback_nofma_min",
     x1024 = f32_xany_fallback_nofma_min_horizontal,
-    x768 = f32_xany_fallback_nofma_min_horizontal,
-    x512 = f32_xany_fallback_nofma_min_horizontal,
     xany = f32_xany_fallback_nofma_min_horizontal,
 );
 benchmark_metric!(
     "f32_fallback_nofma_max",
     x1024 = f32_xany_fallback_nofma_max_horizontal,
-    x768 = f32_xany_fallback_nofma_max_horizontal,
-    x512 = f32_xany_fallback_nofma_max_horizontal,
     xany = f32_xany_fallback_nofma_max_horizontal,
 );
 benchmark_metric!(
     "f32_fallback_nofma_sum",
     x1024 = f32_xany_fallback_nofma_sum_horizontal,
-    x768 = f32_xany_fallback_nofma_sum_horizontal,
-    x512 = f32_xany_fallback_nofma_sum_horizontal,
     xany = f32_xany_fallback_nofma_sum_horizontal,
 );
 

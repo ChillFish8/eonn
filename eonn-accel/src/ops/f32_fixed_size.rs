@@ -99,268 +99,400 @@ impl<D: Dim> DangerousOps for (D, Fallback) {
 }
 
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-impl DangerousOps for (X1024, Avx2) {
-    #[inline]
-    unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x1024_avx2_nofma_dot(x, y)
-    }
+macro_rules! impl_dangerous_avx2_nofma_fixed_ops {
+    ($dim:ident) => {
+        impl DangerousOps for ($dim, Avx2) {
+            #[inline]
+            unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
+                crate::danger::f32_xconst_avx2_nofma_dot::<{$dim::DIMS}>(x, y)
+            }
 
-    #[inline]
-    unsafe fn cosine(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x1024_avx2_nofma_cosine(x, y)
-    }
+            #[inline]
+            unsafe fn cosine(&self, x: &[f32], y: &[f32]) -> f32 {
+                crate::danger::f32_xconst_avx2_nofma_cosine::<{$dim::DIMS}>(x, y)
+            }
 
-    #[inline]
-    unsafe fn squared_euclidean(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x1024_avx2_nofma_euclidean(x, y)
-    }
+            #[inline]
+            unsafe fn squared_euclidean(&self, x: &[f32], y: &[f32]) -> f32 {
+                crate::danger::f32_xconst_avx2_nofma_euclidean::<{$dim::DIMS}>(x, y)
+            }
 
-    #[inline]
-    unsafe fn angular_hyperplane(&self, x: &[f32], y: &[f32]) -> Vec<f32> {
-        crate::danger::f32_x1024_avx2_nofma_angular_hyperplane(x, y)
-    }
+            #[inline]
+            unsafe fn angular_hyperplane(&self, x: &[f32], y: &[f32]) -> Vec<f32> {
+                crate::danger::f32_xconst_avx2_nofma_angular_hyperplane::<{$dim::DIMS}>(x, y)
+            }
 
-    #[inline]
-    unsafe fn euclidean_hyperplane(&self, x: &[f32], y: &[f32]) -> (Vec<f32>, f32) {
-        crate::danger::f32_x1024_avx2_nofma_euclidean_hyperplane(x, y)
-    }
+            #[inline]
+            unsafe fn euclidean_hyperplane(&self, x: &[f32], y: &[f32]) -> (Vec<f32>, f32) {
+                crate::danger::f32_xconst_avx2_nofma_euclidean_hyperplane::<{$dim::DIMS}>(x, y)
+            }
 
-    #[inline]
-    unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_x1024_avx2_nofma_norm(x)
-    }
+            #[inline]
+            unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
+                crate::danger::f32_xconst_avx2_nofma_norm::<{$dim::DIMS}>(x)
+            }
 
-    #[inline]
-    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx2_nofma_add_value::<1024>(x, val)
-    }
+            #[inline]
+            unsafe fn add_value(&self, x: &mut [f32], val: f32) {
+                crate::danger::f32_xconst_avx2_nofma_add_value::<{$dim::DIMS}>(x, val)
+            }
 
-    #[inline]
-    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx2_nofma_sub_value::<1024>(x, val)
-    }
+            #[inline]
+            unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
+                crate::danger::f32_xconst_avx2_nofma_sub_value::<{$dim::DIMS}>(x, val)
+            }
 
-    #[inline]
-    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx2_nofma_mul_value::<1024>(x, val)
-    }
+            #[inline]
+            unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
+                crate::danger::f32_xconst_avx2_nofma_mul_value::<{$dim::DIMS}>(x, val)
+            }
 
-    #[inline]
-    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx2_nofma_div_value::<1024>(x, val)
-    }
+            #[inline]
+            unsafe fn div_value(&self, x: &mut [f32], val: f32) {
+                crate::danger::f32_xconst_avx2_nofma_div_value::<{$dim::DIMS}>(x, val)
+            }
 
-    #[inline]
-    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx2_nofma_add_vertical::<1024>(x, y)
-    }
+            #[inline]
+            unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
+                crate::danger::f32_xconst_avx2_nofma_add_vertical::<{$dim::DIMS}>(x, y)
+            }
 
-    #[inline]
-    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx2_nofma_sub_vertical::<1024>(x, y)
-    }
+            #[inline]
+            unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
+                crate::danger::f32_xconst_avx2_nofma_sub_vertical::<{$dim::DIMS}>(x, y)
+            }
 
-    #[inline]
-    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx2_nofma_mul_vertical::<1024>(x, y)
-    }
+            #[inline]
+            unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
+                crate::danger::f32_xconst_avx2_nofma_mul_vertical::<{$dim::DIMS}>(x, y)
+            }
 
-    #[inline]
-    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx2_nofma_div_vertical::<1024>(x, y)
-    }
+            #[inline]
+            unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
+                crate::danger::f32_xconst_avx2_nofma_div_vertical::<{$dim::DIMS}>(x, y)
+            }
 
-    #[inline]
-    unsafe fn sum(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx2_nofma_sum_horizontal::<1024>(x)
-    }
+            #[inline]
+            unsafe fn sum(&self, x: &[f32]) -> f32 {
+                crate::danger::f32_xconst_avx2_nofma_sum_horizontal::<{$dim::DIMS}>(x)
+            }
 
-    #[inline]
-    unsafe fn min(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx2_nofma_min_horizontal::<1024>(x)
-    }
+            #[inline]
+            unsafe fn min(&self, x: &[f32]) -> f32 {
+                crate::danger::f32_xconst_avx2_nofma_min_horizontal::<{$dim::DIMS}>(x)
+            }
 
-    #[inline]
-    unsafe fn max(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx2_nofma_max_horizontal::<1024>(x)
-    }
+            #[inline]
+            unsafe fn max(&self, x: &[f32]) -> f32 {
+                crate::danger::f32_xconst_avx2_nofma_max_horizontal::<{$dim::DIMS}>(x)
+            }
+        }
+    };
+}
+
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+macro_rules! impl_dangerous_avx2_fma_fixed_ops {
+    ($dim:ident) => {
+        impl DangerousOps for ($dim, Avx2Fma) {
+            #[inline]
+            unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
+                crate::danger::f32_xconst_avx2_fma_dot::<{$dim::DIMS}>(x, y)
+            }
+
+            #[inline]
+            unsafe fn cosine(&self, x: &[f32], y: &[f32]) -> f32 {
+                crate::danger::f32_xconst_avx2_fma_cosine::<{$dim::DIMS}>(x, y)
+            }
+
+            #[inline]
+            unsafe fn squared_euclidean(&self, x: &[f32], y: &[f32]) -> f32 {
+                crate::danger::f32_xconst_avx2_fma_euclidean::<{$dim::DIMS}>(x, y)
+            }
+
+            #[inline]
+            unsafe fn angular_hyperplane(&self, x: &[f32], y: &[f32]) -> Vec<f32> {
+                crate::danger::f32_xconst_avx2_fma_angular_hyperplane::<{$dim::DIMS}>(x, y)
+            }
+
+            #[inline]
+            unsafe fn euclidean_hyperplane(&self, x: &[f32], y: &[f32]) -> (Vec<f32>, f32) {
+                crate::danger::f32_xconst_avx2_fma_euclidean_hyperplane::<{$dim::DIMS}>(x, y)
+            }
+
+            #[inline]
+            unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
+                crate::danger::f32_xconst_avx2_fma_norm::<{$dim::DIMS}>(x)
+            }
+
+            #[inline]
+            unsafe fn add_value(&self, x: &mut [f32], val: f32) {
+                crate::danger::f32_xconst_avx2_nofma_add_value::<{$dim::DIMS}>(x, val)
+            }
+
+            #[inline]
+            unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
+                crate::danger::f32_xconst_avx2_nofma_sub_value::<{$dim::DIMS}>(x, val)
+            }
+
+            #[inline]
+            unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
+                crate::danger::f32_xconst_avx2_nofma_mul_value::<{$dim::DIMS}>(x, val)
+            }
+
+            #[inline]
+            unsafe fn div_value(&self, x: &mut [f32], val: f32) {
+                crate::danger::f32_xconst_avx2_nofma_div_value::<{$dim::DIMS}>(x, val)
+            }
+
+            #[inline]
+            unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
+                crate::danger::f32_xconst_avx2_nofma_add_vertical::<{$dim::DIMS}>(x, y)
+            }
+
+            #[inline]
+            unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
+                crate::danger::f32_xconst_avx2_nofma_sub_vertical::<{$dim::DIMS}>(x, y)
+            }
+
+            #[inline]
+            unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
+                crate::danger::f32_xconst_avx2_nofma_mul_vertical::<{$dim::DIMS}>(x, y)
+            }
+
+            #[inline]
+            unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
+                crate::danger::f32_xconst_avx2_nofma_div_vertical::<{$dim::DIMS}>(x, y)
+            }
+
+            #[inline]
+            unsafe fn sum(&self, x: &[f32]) -> f32 {
+                crate::danger::f32_xconst_avx2_nofma_sum_horizontal::<{$dim::DIMS}>(x)
+            }
+
+            #[inline]
+            unsafe fn min(&self, x: &[f32]) -> f32 {
+                crate::danger::f32_xconst_avx2_nofma_min_horizontal::<{$dim::DIMS}>(x)
+            }
+
+            #[inline]
+            unsafe fn max(&self, x: &[f32]) -> f32 {
+                crate::danger::f32_xconst_avx2_nofma_max_horizontal::<{$dim::DIMS}>(x)
+            }
+        }
+    };
+}
+
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+macro_rules! impl_dangerous_avx512_nofma_fixed_ops {
+    ($dim:ident) => {
+        impl DangerousOps for ($dim, Avx512) {
+            #[inline]
+            unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
+                crate::danger::f32_xconst_avx512_nofma_dot::<{$dim::DIMS}>(x, y)
+            }
+
+            #[inline]
+            unsafe fn cosine(&self, x: &[f32], y: &[f32]) -> f32 {
+                crate::danger::f32_xconst_avx512_nofma_cosine::<{$dim::DIMS}>(x, y)
+            }
+
+            #[inline]
+            unsafe fn squared_euclidean(&self, x: &[f32], y: &[f32]) -> f32 {
+                crate::danger::f32_xconst_avx512_nofma_euclidean::<{$dim::DIMS}>(x, y)
+            }
+
+            #[inline]
+            unsafe fn angular_hyperplane(&self, x: &[f32], y: &[f32]) -> Vec<f32> {
+                crate::danger::f32_xconst_avx512_nofma_angular_hyperplane::<{$dim::DIMS}>(x, y)
+            }
+
+            #[inline]
+            unsafe fn euclidean_hyperplane(&self, x: &[f32], y: &[f32]) -> (Vec<f32>, f32) {
+                crate::danger::f32_xconst_avx512_nofma_euclidean_hyperplane::<{$dim::DIMS}>(x, y)
+            }
+
+            #[inline]
+            unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
+                crate::danger::f32_xconst_avx512_nofma_norm::<{$dim::DIMS}>(x)
+            }
+
+            #[inline]
+            unsafe fn add_value(&self, x: &mut [f32], val: f32) {
+                crate::danger::f32_xconst_avx512_nofma_add_value::<{$dim::DIMS}>(x, val)
+            }
+
+            #[inline]
+            unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
+                crate::danger::f32_xconst_avx512_nofma_sub_value::<{$dim::DIMS}>(x, val)
+            }
+
+            #[inline]
+            unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
+                crate::danger::f32_xconst_avx512_nofma_mul_value::<{$dim::DIMS}>(x, val)
+            }
+
+            #[inline]
+            unsafe fn div_value(&self, x: &mut [f32], val: f32) {
+                crate::danger::f32_xconst_avx512_nofma_div_value::<{$dim::DIMS}>(x, val)
+            }
+
+            #[inline]
+            unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
+                crate::danger::f32_xconst_avx512_nofma_add_vertical::<{$dim::DIMS}>(x, y)
+            }
+
+            #[inline]
+            unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
+                crate::danger::f32_xconst_avx512_nofma_sub_vertical::<{$dim::DIMS}>(x, y)
+            }
+
+            #[inline]
+            unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
+                crate::danger::f32_xconst_avx512_nofma_mul_vertical::<{$dim::DIMS}>(x, y)
+            }
+
+            #[inline]
+            unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
+                crate::danger::f32_xconst_avx512_nofma_div_vertical::<{$dim::DIMS}>(x, y)
+            }
+
+            #[inline]
+            unsafe fn sum(&self, x: &[f32]) -> f32 {
+                crate::danger::f32_xconst_avx512_nofma_sum_horizontal::<{$dim::DIMS}>(x)
+            }
+
+            #[inline]
+            unsafe fn min(&self, x: &[f32]) -> f32 {
+                crate::danger::f32_xconst_avx512_nofma_min_horizontal::<{$dim::DIMS}>(x)
+            }
+
+            #[inline]
+            unsafe fn max(&self, x: &[f32]) -> f32 {
+                crate::danger::f32_xconst_avx512_nofma_max_horizontal::<{$dim::DIMS}>(x)
+            }
+        }
+    };
+}
+
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+macro_rules! impl_dangerous_avx512_fma_fixed_ops {
+    ($dim:ident) => {
+        impl DangerousOps for ($dim, Avx512Fma) {
+            #[inline]
+            unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
+                crate::danger::f32_xconst_avx512_fma_dot::<{$dim::DIMS}>(x, y)
+            }
+
+            #[inline]
+            unsafe fn cosine(&self, x: &[f32], y: &[f32]) -> f32 {
+                crate::danger::f32_xconst_avx512_fma_cosine::<{$dim::DIMS}>(x, y)
+            }
+
+            #[inline]
+            unsafe fn squared_euclidean(&self, x: &[f32], y: &[f32]) -> f32 {
+                crate::danger::f32_xconst_avx512_fma_euclidean::<{$dim::DIMS}>(x, y)
+            }
+
+            #[inline]
+            unsafe fn angular_hyperplane(&self, x: &[f32], y: &[f32]) -> Vec<f32> {
+                crate::danger::f32_xconst_avx512_fma_angular_hyperplane::<{$dim::DIMS}>(x, y)
+            }
+
+            #[inline]
+            unsafe fn euclidean_hyperplane(&self, x: &[f32], y: &[f32]) -> (Vec<f32>, f32) {
+                crate::danger::f32_xconst_avx512_fma_euclidean_hyperplane::<{$dim::DIMS}>(x, y)
+            }
+
+            #[inline]
+            unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
+                crate::danger::f32_xconst_avx512_fma_norm::<{$dim::DIMS}>(x)
+            }
+
+            #[inline]
+            unsafe fn add_value(&self, x: &mut [f32], val: f32) {
+                crate::danger::f32_xconst_avx512_nofma_add_value::<{$dim::DIMS}>(x, val)
+            }
+
+            #[inline]
+            unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
+                crate::danger::f32_xconst_avx512_nofma_sub_value::<{$dim::DIMS}>(x, val)
+            }
+
+            #[inline]
+            unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
+                crate::danger::f32_xconst_avx512_nofma_mul_value::<{$dim::DIMS}>(x, val)
+            }
+
+            #[inline]
+            unsafe fn div_value(&self, x: &mut [f32], val: f32) {
+                crate::danger::f32_xconst_avx512_nofma_div_value::<{$dim::DIMS}>(x, val)
+            }
+
+            #[inline]
+            unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
+                crate::danger::f32_xconst_avx512_nofma_add_vertical::<{$dim::DIMS}>(x, y)
+            }
+
+            #[inline]
+            unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
+                crate::danger::f32_xconst_avx512_nofma_sub_vertical::<{$dim::DIMS}>(x, y)
+            }
+
+            #[inline]
+            unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
+                crate::danger::f32_xconst_avx512_nofma_mul_vertical::<{$dim::DIMS}>(x, y)
+            }
+
+            #[inline]
+            unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
+                crate::danger::f32_xconst_avx512_nofma_div_vertical::<{$dim::DIMS}>(x, y)
+            }
+
+            #[inline]
+            unsafe fn sum(&self, x: &[f32]) -> f32 {
+                crate::danger::f32_xconst_avx512_nofma_sum_horizontal::<{$dim::DIMS}>(x)
+            }
+
+            #[inline]
+            unsafe fn min(&self, x: &[f32]) -> f32 {
+                crate::danger::f32_xconst_avx512_nofma_min_horizontal::<{$dim::DIMS}>(x)
+            }
+
+            #[inline]
+            unsafe fn max(&self, x: &[f32]) -> f32 {
+                crate::danger::f32_xconst_avx512_nofma_max_horizontal::<{$dim::DIMS}>(x)
+            }
+        }
+    };
 }
 
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-impl DangerousOps for (X768, Avx2) {
-    #[inline]
-    unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x768_avx2_nofma_dot(x, y)
-    }
-
-    #[inline]
-    unsafe fn cosine(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x768_avx2_nofma_cosine(x, y)
-    }
-
-    #[inline]
-    unsafe fn squared_euclidean(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x768_avx2_nofma_euclidean(x, y)
-    }
-
-    #[inline]
-    unsafe fn angular_hyperplane(&self, x: &[f32], y: &[f32]) -> Vec<f32> {
-        crate::danger::f32_x768_avx2_nofma_angular_hyperplane(x, y)
-    }
-
-    #[inline]
-    unsafe fn euclidean_hyperplane(&self, x: &[f32], y: &[f32]) -> (Vec<f32>, f32) {
-        crate::danger::f32_x768_avx2_nofma_euclidean_hyperplane(x, y)
-    }
-
-    #[inline]
-    unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_x768_avx2_nofma_norm(x)
-    }
-
-    #[inline]
-    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx2_nofma_add_value::<768>(x, val)
-    }
-
-    #[inline]
-    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx2_nofma_sub_value::<768>(x, val)
-    }
-
-    #[inline]
-    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx2_nofma_mul_value::<768>(x, val)
-    }
-
-    #[inline]
-    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx2_nofma_div_value::<768>(x, val)
-    }
-
-    #[inline]
-    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx2_nofma_add_vertical::<768>(x, y)
-    }
-
-    #[inline]
-    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx2_nofma_sub_vertical::<768>(x, y)
-    }
-
-    #[inline]
-    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx2_nofma_mul_vertical::<768>(x, y)
-    }
-
-    #[inline]
-    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx2_nofma_div_vertical::<768>(x, y)
-    }
-
-    #[inline]
-    unsafe fn sum(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx2_nofma_sum_horizontal::<768>(x)
-    }
-
-    #[inline]
-    unsafe fn min(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx2_nofma_min_horizontal::<768>(x)
-    }
-
-    #[inline]
-    unsafe fn max(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx2_nofma_max_horizontal::<768>(x)
-    }
-}
-
+impl_dangerous_avx2_nofma_fixed_ops!(X1024);
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-impl DangerousOps for (X512, Avx2) {
-    #[inline]
-    unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x512_avx2_nofma_dot(x, y)
-    }
+impl_dangerous_avx2_nofma_fixed_ops!(X768);
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+impl_dangerous_avx2_nofma_fixed_ops!(X512);
 
-    #[inline]
-    unsafe fn cosine(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x512_avx2_nofma_cosine(x, y)
-    }
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+impl_dangerous_avx2_fma_fixed_ops!(X1024);
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+impl_dangerous_avx2_fma_fixed_ops!(X768);
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+impl_dangerous_avx2_fma_fixed_ops!(X512);
 
-    #[inline]
-    unsafe fn squared_euclidean(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x512_avx2_nofma_euclidean(x, y)
-    }
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+impl_dangerous_avx512_nofma_fixed_ops!(X1024);
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+impl_dangerous_avx512_nofma_fixed_ops!(X768);
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+impl_dangerous_avx512_nofma_fixed_ops!(X512);
 
-    #[inline]
-    unsafe fn angular_hyperplane(&self, x: &[f32], y: &[f32]) -> Vec<f32> {
-        crate::danger::f32_x512_avx2_nofma_angular_hyperplane(x, y)
-    }
-
-    #[inline]
-    unsafe fn euclidean_hyperplane(&self, x: &[f32], y: &[f32]) -> (Vec<f32>, f32) {
-        crate::danger::f32_x512_avx2_nofma_euclidean_hyperplane(x, y)
-    }
-
-    #[inline]
-    unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_x512_avx2_nofma_norm(x)
-    }
-
-    #[inline]
-    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx2_nofma_add_value::<512>(x, val)
-    }
-
-    #[inline]
-    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx2_nofma_sub_value::<512>(x, val)
-    }
-
-    #[inline]
-    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx2_nofma_mul_value::<512>(x, val)
-    }
-
-    #[inline]
-    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx2_nofma_div_value::<512>(x, val)
-    }
-
-    #[inline]
-    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx2_nofma_add_vertical::<512>(x, y)
-    }
-
-    #[inline]
-    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx2_nofma_sub_vertical::<512>(x, y)
-    }
-
-    #[inline]
-    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx2_nofma_mul_vertical::<512>(x, y)
-    }
-
-    #[inline]
-    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx2_nofma_div_vertical::<512>(x, y)
-    }
-
-    #[inline]
-    unsafe fn sum(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx2_nofma_sum_horizontal::<512>(x)
-    }
-
-    #[inline]
-    unsafe fn min(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx2_nofma_min_horizontal::<512>(x)
-    }
-
-    #[inline]
-    unsafe fn max(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx2_nofma_max_horizontal::<512>(x)
-    }
-}
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+impl_dangerous_avx512_fma_fixed_ops!(X1024);
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+impl_dangerous_avx512_fma_fixed_ops!(X768);
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+impl_dangerous_avx512_fma_fixed_ops!(X512);
 
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 impl DangerousOps for (XAny, Avx2) {
@@ -456,270 +588,6 @@ impl DangerousOps for (XAny, Avx2) {
     #[inline]
     unsafe fn max(&self, x: &[f32]) -> f32 {
         crate::danger::f32_xany_avx2_nofma_max_horizontal(x)
-    }
-}
-
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-impl DangerousOps for (X1024, Avx512) {
-    #[inline]
-    unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x1024_avx512_nofma_dot(x, y)
-    }
-
-    #[inline]
-    unsafe fn cosine(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x1024_avx512_nofma_cosine(x, y)
-    }
-
-    #[inline]
-    unsafe fn squared_euclidean(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x1024_avx512_nofma_euclidean(x, y)
-    }
-
-    #[inline]
-    unsafe fn angular_hyperplane(&self, x: &[f32], y: &[f32]) -> Vec<f32> {
-        crate::danger::f32_x1024_avx512_nofma_angular_hyperplane(x, y)
-    }
-
-    #[inline]
-    unsafe fn euclidean_hyperplane(&self, x: &[f32], y: &[f32]) -> (Vec<f32>, f32) {
-        crate::danger::f32_x1024_avx512_nofma_euclidean_hyperplane(x, y)
-    }
-
-    #[inline]
-    unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_x1024_avx512_nofma_norm(x)
-    }
-
-    #[inline]
-    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx512_nofma_add_value::<1024>(x, val)
-    }
-
-    #[inline]
-    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx512_nofma_sub_value::<1024>(x, val)
-    }
-
-    #[inline]
-    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx512_nofma_mul_value::<1024>(x, val)
-    }
-
-    #[inline]
-    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx512_nofma_div_value::<1024>(x, val)
-    }
-
-    #[inline]
-    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx512_nofma_add_vertical::<1024>(x, y)
-    }
-
-    #[inline]
-    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx512_nofma_sub_vertical::<1024>(x, y)
-    }
-
-    #[inline]
-    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx512_nofma_mul_vertical::<1024>(x, y)
-    }
-
-    #[inline]
-    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx512_nofma_div_vertical::<1024>(x, y)
-    }
-
-    #[inline]
-    unsafe fn sum(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx512_nofma_sum_horizontal::<1024>(x)
-    }
-
-    #[inline]
-    unsafe fn min(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx512_nofma_min_horizontal::<1024>(x)
-    }
-
-    #[inline]
-    unsafe fn max(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx512_nofma_max_horizontal::<1024>(x)
-    }
-}
-
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-impl DangerousOps for (X768, Avx512) {
-    #[inline]
-    unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x768_avx512_nofma_dot(x, y)
-    }
-
-    #[inline]
-    unsafe fn cosine(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x768_avx512_nofma_cosine(x, y)
-    }
-
-    #[inline]
-    unsafe fn squared_euclidean(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x768_avx512_nofma_euclidean(x, y)
-    }
-
-    #[inline]
-    unsafe fn angular_hyperplane(&self, x: &[f32], y: &[f32]) -> Vec<f32> {
-        crate::danger::f32_x768_avx512_nofma_angular_hyperplane(x, y)
-    }
-
-    #[inline]
-    unsafe fn euclidean_hyperplane(&self, x: &[f32], y: &[f32]) -> (Vec<f32>, f32) {
-        crate::danger::f32_x768_avx512_nofma_euclidean_hyperplane(x, y)
-    }
-
-    #[inline]
-    unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_x768_avx512_nofma_norm(x)
-    }
-
-    #[inline]
-    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx512_nofma_add_value::<768>(x, val)
-    }
-
-    #[inline]
-    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx512_nofma_sub_value::<768>(x, val)
-    }
-
-    #[inline]
-    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx512_nofma_mul_value::<768>(x, val)
-    }
-
-    #[inline]
-    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx512_nofma_div_value::<768>(x, val)
-    }
-
-    #[inline]
-    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx512_nofma_add_vertical::<768>(x, y)
-    }
-
-    #[inline]
-    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx512_nofma_sub_vertical::<768>(x, y)
-    }
-
-    #[inline]
-    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx512_nofma_mul_vertical::<768>(x, y)
-    }
-
-    #[inline]
-    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx512_nofma_div_vertical::<768>(x, y)
-    }
-
-    #[inline]
-    unsafe fn sum(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx512_nofma_sum_horizontal::<768>(x)
-    }
-
-    #[inline]
-    unsafe fn min(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx512_nofma_min_horizontal::<768>(x)
-    }
-
-    #[inline]
-    unsafe fn max(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx512_nofma_max_horizontal::<768>(x)
-    }
-}
-
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-impl DangerousOps for (X512, Avx512) {
-    #[inline]
-    unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x512_avx512_nofma_dot(x, y)
-    }
-
-    #[inline]
-    unsafe fn cosine(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x512_avx512_nofma_cosine(x, y)
-    }
-
-    #[inline]
-    unsafe fn squared_euclidean(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x512_avx512_nofma_euclidean(x, y)
-    }
-
-    #[inline]
-    unsafe fn angular_hyperplane(&self, x: &[f32], y: &[f32]) -> Vec<f32> {
-        crate::danger::f32_x512_avx512_nofma_angular_hyperplane(x, y)
-    }
-
-    #[inline]
-    unsafe fn euclidean_hyperplane(&self, x: &[f32], y: &[f32]) -> (Vec<f32>, f32) {
-        crate::danger::f32_x512_avx512_nofma_euclidean_hyperplane(x, y)
-    }
-
-    #[inline]
-    unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_x512_avx512_nofma_norm(x)
-    }
-
-    #[inline]
-    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx512_nofma_add_value::<512>(x, val)
-    }
-
-    #[inline]
-    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx512_nofma_sub_value::<512>(x, val)
-    }
-
-    #[inline]
-    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx512_nofma_mul_value::<512>(x, val)
-    }
-
-    #[inline]
-    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx512_nofma_div_value::<512>(x, val)
-    }
-
-    #[inline]
-    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx512_nofma_add_vertical::<512>(x, y)
-    }
-
-    #[inline]
-    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx512_nofma_sub_vertical::<512>(x, y)
-    }
-
-    #[inline]
-    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx512_nofma_mul_vertical::<512>(x, y)
-    }
-
-    #[inline]
-    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx512_nofma_div_vertical::<512>(x, y)
-    }
-
-    #[inline]
-    unsafe fn sum(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx512_nofma_sum_horizontal::<512>(x)
-    }
-
-    #[inline]
-    unsafe fn min(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx512_nofma_min_horizontal::<512>(x)
-    }
-
-    #[inline]
-    unsafe fn max(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx512_nofma_max_horizontal::<512>(x)
     }
 }
 
@@ -918,270 +786,6 @@ impl<D: Dim> DangerousOps for (D, FallbackFma) {
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-impl DangerousOps for (X1024, Avx2Fma) {
-    #[inline]
-    unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x1024_avx2_fma_dot(x, y)
-    }
-
-    #[inline]
-    unsafe fn cosine(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x1024_avx2_fma_cosine(x, y)
-    }
-
-    #[inline]
-    unsafe fn squared_euclidean(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x1024_avx2_fma_euclidean(x, y)
-    }
-
-    #[inline]
-    unsafe fn angular_hyperplane(&self, x: &[f32], y: &[f32]) -> Vec<f32> {
-        crate::danger::f32_x1024_avx2_fma_angular_hyperplane(x, y)
-    }
-
-    #[inline]
-    unsafe fn euclidean_hyperplane(&self, x: &[f32], y: &[f32]) -> (Vec<f32>, f32) {
-        crate::danger::f32_x1024_avx2_fma_euclidean_hyperplane(x, y)
-    }
-
-    #[inline]
-    unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_x1024_avx2_fma_norm(x)
-    }
-
-    #[inline]
-    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx2_nofma_add_value::<1024>(x, val)
-    }
-
-    #[inline]
-    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx2_nofma_sub_value::<1024>(x, val)
-    }
-
-    #[inline]
-    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx2_nofma_mul_value::<1024>(x, val)
-    }
-
-    #[inline]
-    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx2_nofma_div_value::<1024>(x, val)
-    }
-
-    #[inline]
-    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx2_nofma_add_vertical::<1024>(x, y)
-    }
-
-    #[inline]
-    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx2_nofma_sub_vertical::<1024>(x, y)
-    }
-
-    #[inline]
-    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx2_nofma_mul_vertical::<1024>(x, y)
-    }
-
-    #[inline]
-    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx2_nofma_div_vertical::<1024>(x, y)
-    }
-
-    #[inline]
-    unsafe fn sum(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx2_nofma_sum_horizontal::<1024>(x)
-    }
-
-    #[inline]
-    unsafe fn min(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx2_nofma_min_horizontal::<1024>(x)
-    }
-
-    #[inline]
-    unsafe fn max(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx2_nofma_max_horizontal::<1024>(x)
-    }
-}
-
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-impl DangerousOps for (X768, Avx2Fma) {
-    #[inline]
-    unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x768_avx2_fma_dot(x, y)
-    }
-
-    #[inline]
-    unsafe fn cosine(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x768_avx2_fma_cosine(x, y)
-    }
-
-    #[inline]
-    unsafe fn squared_euclidean(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x768_avx2_fma_euclidean(x, y)
-    }
-
-    #[inline]
-    unsafe fn angular_hyperplane(&self, x: &[f32], y: &[f32]) -> Vec<f32> {
-        crate::danger::f32_x768_avx2_fma_angular_hyperplane(x, y)
-    }
-
-    #[inline]
-    unsafe fn euclidean_hyperplane(&self, x: &[f32], y: &[f32]) -> (Vec<f32>, f32) {
-        crate::danger::f32_x768_avx2_fma_euclidean_hyperplane(x, y)
-    }
-
-    #[inline]
-    unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_x768_avx2_fma_norm(x)
-    }
-
-    #[inline]
-    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx2_nofma_add_value::<768>(x, val)
-    }
-
-    #[inline]
-    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx2_nofma_sub_value::<768>(x, val)
-    }
-
-    #[inline]
-    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx2_nofma_mul_value::<768>(x, val)
-    }
-
-    #[inline]
-    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx2_nofma_div_value::<768>(x, val)
-    }
-
-    #[inline]
-    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx2_nofma_add_vertical::<768>(x, y)
-    }
-
-    #[inline]
-    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx2_nofma_sub_vertical::<768>(x, y)
-    }
-
-    #[inline]
-    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx2_nofma_mul_vertical::<768>(x, y)
-    }
-
-    #[inline]
-    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx2_nofma_div_vertical::<768>(x, y)
-    }
-
-    #[inline]
-    unsafe fn sum(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx2_nofma_sum_horizontal::<768>(x)
-    }
-
-    #[inline]
-    unsafe fn min(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx2_nofma_min_horizontal::<768>(x)
-    }
-
-    #[inline]
-    unsafe fn max(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx2_nofma_max_horizontal::<768>(x)
-    }
-}
-
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-impl DangerousOps for (X512, Avx2Fma) {
-    #[inline]
-    unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x512_avx2_fma_dot(x, y)
-    }
-
-    #[inline]
-    unsafe fn cosine(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x512_avx2_fma_cosine(x, y)
-    }
-
-    #[inline]
-    unsafe fn squared_euclidean(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x512_avx2_fma_euclidean(x, y)
-    }
-
-    #[inline]
-    unsafe fn angular_hyperplane(&self, x: &[f32], y: &[f32]) -> Vec<f32> {
-        crate::danger::f32_x512_avx2_fma_angular_hyperplane(x, y)
-    }
-
-    #[inline]
-    unsafe fn euclidean_hyperplane(&self, x: &[f32], y: &[f32]) -> (Vec<f32>, f32) {
-        crate::danger::f32_x512_avx2_fma_euclidean_hyperplane(x, y)
-    }
-
-    #[inline]
-    unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_x512_avx2_fma_norm(x)
-    }
-
-    #[inline]
-    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx2_nofma_add_value::<512>(x, val)
-    }
-
-    #[inline]
-    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx2_nofma_sub_value::<512>(x, val)
-    }
-
-    #[inline]
-    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx2_nofma_mul_value::<512>(x, val)
-    }
-
-    #[inline]
-    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx2_nofma_div_value::<512>(x, val)
-    }
-
-    #[inline]
-    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx2_nofma_add_vertical::<512>(x, y)
-    }
-
-    #[inline]
-    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx2_nofma_sub_vertical::<512>(x, y)
-    }
-
-    #[inline]
-    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx2_nofma_mul_vertical::<512>(x, y)
-    }
-
-    #[inline]
-    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx2_nofma_div_vertical::<512>(x, y)
-    }
-
-    #[inline]
-    unsafe fn sum(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx2_nofma_sum_horizontal::<512>(x)
-    }
-
-    #[inline]
-    unsafe fn min(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx2_nofma_min_horizontal::<512>(x)
-    }
-
-    #[inline]
-    unsafe fn max(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx2_nofma_max_horizontal::<512>(x)
-    }
-}
-
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 impl DangerousOps for (XAny, Avx2Fma) {
     #[inline]
     unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
@@ -1275,270 +879,6 @@ impl DangerousOps for (XAny, Avx2Fma) {
     #[inline]
     unsafe fn max(&self, x: &[f32]) -> f32 {
         crate::danger::f32_xany_avx2_nofma_max_horizontal(x)
-    }
-}
-
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-impl DangerousOps for (X1024, Avx512Fma) {
-    #[inline]
-    unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x1024_avx512_fma_dot(x, y)
-    }
-
-    #[inline]
-    unsafe fn cosine(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x1024_avx512_fma_cosine(x, y)
-    }
-
-    #[inline]
-    unsafe fn squared_euclidean(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x1024_avx512_fma_euclidean(x, y)
-    }
-
-    #[inline]
-    unsafe fn angular_hyperplane(&self, x: &[f32], y: &[f32]) -> Vec<f32> {
-        crate::danger::f32_x1024_avx512_fma_angular_hyperplane(x, y)
-    }
-
-    #[inline]
-    unsafe fn euclidean_hyperplane(&self, x: &[f32], y: &[f32]) -> (Vec<f32>, f32) {
-        crate::danger::f32_x1024_avx512_fma_euclidean_hyperplane(x, y)
-    }
-
-    #[inline]
-    unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_x1024_avx512_fma_norm(x)
-    }
-
-    #[inline]
-    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx512_nofma_add_value::<1024>(x, val)
-    }
-
-    #[inline]
-    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx512_nofma_sub_value::<1024>(x, val)
-    }
-
-    #[inline]
-    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx512_nofma_mul_value::<1024>(x, val)
-    }
-
-    #[inline]
-    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx512_nofma_div_value::<1024>(x, val)
-    }
-
-    #[inline]
-    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx512_nofma_add_vertical::<1024>(x, y)
-    }
-
-    #[inline]
-    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx512_nofma_sub_vertical::<51024>(x, y)
-    }
-
-    #[inline]
-    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx512_nofma_mul_vertical::<1024>(x, y)
-    }
-
-    #[inline]
-    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx512_nofma_div_vertical::<1024>(x, y)
-    }
-
-    #[inline]
-    unsafe fn sum(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx512_nofma_sum_horizontal::<1024>(x)
-    }
-
-    #[inline]
-    unsafe fn min(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx512_nofma_min_horizontal::<1024>(x)
-    }
-
-    #[inline]
-    unsafe fn max(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx512_nofma_max_horizontal::<1024>(x)
-    }
-}
-
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-impl DangerousOps for (X768, Avx512Fma) {
-    #[inline]
-    unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x768_avx512_fma_dot(x, y)
-    }
-
-    #[inline]
-    unsafe fn cosine(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x768_avx512_fma_cosine(x, y)
-    }
-
-    #[inline]
-    unsafe fn squared_euclidean(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x768_avx512_fma_euclidean(x, y)
-    }
-
-    #[inline]
-    unsafe fn angular_hyperplane(&self, x: &[f32], y: &[f32]) -> Vec<f32> {
-        crate::danger::f32_x768_avx512_fma_angular_hyperplane(x, y)
-    }
-
-    #[inline]
-    unsafe fn euclidean_hyperplane(&self, x: &[f32], y: &[f32]) -> (Vec<f32>, f32) {
-        crate::danger::f32_x768_avx512_fma_euclidean_hyperplane(x, y)
-    }
-
-    #[inline]
-    unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_x768_avx512_fma_norm(x)
-    }
-
-    #[inline]
-    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx512_nofma_add_value::<768>(x, val)
-    }
-
-    #[inline]
-    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx512_nofma_sub_value::<768>(x, val)
-    }
-
-    #[inline]
-    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx512_nofma_mul_value::<768>(x, val)
-    }
-
-    #[inline]
-    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx512_nofma_div_value::<768>(x, val)
-    }
-
-    #[inline]
-    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx512_nofma_add_vertical::<768>(x, y)
-    }
-
-    #[inline]
-    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx512_nofma_sub_vertical::<768>(x, y)
-    }
-
-    #[inline]
-    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx512_nofma_mul_vertical::<768>(x, y)
-    }
-
-    #[inline]
-    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx512_nofma_div_vertical::<768>(x, y)
-    }
-
-    #[inline]
-    unsafe fn sum(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx512_nofma_sum_horizontal::<768>(x)
-    }
-
-    #[inline]
-    unsafe fn min(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx512_nofma_min_horizontal::<768>(x)
-    }
-
-    #[inline]
-    unsafe fn max(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx512_nofma_max_horizontal::<768>(x)
-    }
-}
-
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-impl DangerousOps for (X512, Avx512Fma) {
-    #[inline]
-    unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x512_avx512_fma_dot(x, y)
-    }
-
-    #[inline]
-    unsafe fn cosine(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x512_avx512_fma_cosine(x, y)
-    }
-
-    #[inline]
-    unsafe fn squared_euclidean(&self, x: &[f32], y: &[f32]) -> f32 {
-        crate::danger::f32_x512_avx512_fma_euclidean(x, y)
-    }
-
-    #[inline]
-    unsafe fn angular_hyperplane(&self, x: &[f32], y: &[f32]) -> Vec<f32> {
-        crate::danger::f32_x512_avx512_fma_angular_hyperplane(x, y)
-    }
-
-    #[inline]
-    unsafe fn euclidean_hyperplane(&self, x: &[f32], y: &[f32]) -> (Vec<f32>, f32) {
-        crate::danger::f32_x512_avx512_fma_euclidean_hyperplane(x, y)
-    }
-
-    #[inline]
-    unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_x512_avx512_fma_norm(x)
-    }
-
-    #[inline]
-    unsafe fn add_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx512_nofma_add_value::<512>(x, val)
-    }
-
-    #[inline]
-    unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx512_nofma_sub_value::<512>(x, val)
-    }
-
-    #[inline]
-    unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx512_nofma_mul_value::<512>(x, val)
-    }
-
-    #[inline]
-    unsafe fn div_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xconst_avx512_nofma_div_value::<512>(x, val)
-    }
-
-    #[inline]
-    unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx512_nofma_add_vertical::<512>(x, y)
-    }
-
-    #[inline]
-    unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx512_nofma_sub_vertical::<512>(x, y)
-    }
-
-    #[inline]
-    unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx512_nofma_mul_vertical::<512>(x, y)
-    }
-
-    #[inline]
-    unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
-        crate::danger::f32_xconst_avx512_nofma_div_vertical::<512>(x, y)
-    }
-
-    #[inline]
-    unsafe fn sum(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx512_nofma_sum_horizontal::<512>(x)
-    }
-
-    #[inline]
-    unsafe fn min(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx512_nofma_min_horizontal::<512>(x)
-    }
-
-    #[inline]
-    unsafe fn max(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xconst_avx512_nofma_max_horizontal::<512>(x)
     }
 }
 
