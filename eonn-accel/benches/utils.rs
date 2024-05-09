@@ -15,7 +15,7 @@ macro_rules! repeat {
     }};
 }
 
-#[cfg(not(feature = "aligned-benchmarks"))]
+#[cfg(not(feature = "benchmark-aligned"))]
 pub fn get_sample_vectors(size: usize) -> (Vec<f32>, Vec<f32>) {
     let mut rng = ChaCha8Rng::seed_from_u64(SEED);
 
@@ -29,16 +29,40 @@ pub fn get_sample_vectors(size: usize) -> (Vec<f32>, Vec<f32>) {
     (x, y)
 }
 
-#[cfg(feature = "aligned-benchmarks")]
+#[cfg(feature = "benchmark-aligned")]
 pub fn get_sample_vectors(size: usize) -> (Vec<f32>, Vec<f32>) {
     let mut rng = ChaCha8Rng::seed_from_u64(SEED);
 
-    let mut x = Vec::new();
-    let mut y = Vec::new();
+    let mut x = unsafe { aligned_vec(size) };
+    let mut y = unsafe { aligned_vec(size) };
     for _ in 0..size {
         x.push(rng.gen());
         y.push(rng.gen());
     }
 
     (x, y)
+}
+
+use std::mem;
+
+#[repr(C, align(64))]
+struct AlignToSixtyFour([f32; 16]);
+
+unsafe fn aligned_vec(n_elements: usize) -> Vec<f32> {
+    // Lazy math to ensure we always have enough.
+    let n_units = (n_elements / 16) + 1;
+
+    let mut aligned: Vec<AlignToSixtyFour> = Vec::with_capacity(n_units);
+
+    let ptr = aligned.as_mut_ptr();
+    let len_units = aligned.len();
+    let cap_units = aligned.capacity();
+
+    mem::forget(aligned);
+
+    Vec::from_raw_parts(
+        ptr as *mut f32,
+        len_units * 16,
+        cap_units * 16,
+    )
 }

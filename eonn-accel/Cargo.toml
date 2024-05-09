@@ -35,6 +35,9 @@ dangerous-access = []
 # This feature generally needs to be enabled in order to get the best optimizations.
 nightly = []
 
+# Enables algined memory with benchmarks
+benchmark-aligned = []
+
 [[bench]]
 name = "bench_3rd_parties"
 harness = false
