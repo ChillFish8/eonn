@@ -43,11 +43,14 @@ pub fn get_sample_vectors(size: usize) -> (Vec<f32>, Vec<f32>) {
     (x, y)
 }
 
+#[cfg(feature = "benchmark-aligned")]
 use std::mem;
 
+#[cfg(feature = "benchmark-aligned")]
 #[repr(C, align(64))]
 struct AlignToSixtyFour([f32; 16]);
 
+#[cfg(feature = "benchmark-aligned")]
 unsafe fn aligned_vec(n_elements: usize) -> Vec<f32> {
     // Lazy math to ensure we always have enough.
     let n_units = (n_elements / 16) + 1;

@@ -2,7 +2,6 @@ use std::arch::x86_64::*;
 
 use crate::danger::utils::{CHUNK_0, CHUNK_1};
 use crate::danger::{offsets_avx2, rollup_x8, sum_avx2};
-use crate::math::*;
 
 #[target_feature(enable = "avx2")]
 #[inline]
@@ -191,6 +190,8 @@ pub unsafe fn f32_xconst_avx2_fma_dot<const DIMS: usize>(x: &[f32], y: &[f32]) -
 /// Values within the vector should also be finite, although it is not
 /// going to crash the program, it is going to produce insane numbers.
 pub unsafe fn f32_xany_avx2_fma_dot(x: &[f32], y: &[f32]) -> f32 {
+    use crate::math::*;
+    
     debug_assert_eq!(x.len(), y.len());
 
     let len = x.len();

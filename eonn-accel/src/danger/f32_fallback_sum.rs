@@ -219,6 +219,7 @@ mod tests {
         assert_is_close(sum, x.iter().sum::<f32>());
     }
 
+    #[cfg(feature = "nightly")]
     #[test]
     fn test_xany_fma_sum() {
         let (x, _) = get_sample_vectors(131);

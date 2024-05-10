@@ -160,6 +160,7 @@ impl Arch for FallbackFma {}
 mod tests {
     use super::*;
 
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
     #[test]
     fn test_if_avx2_enabled() {
         if is_x86_feature_detected!("avx2") {
@@ -172,6 +173,7 @@ mod tests {
         }
     }
 
+    #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
     #[test]
     fn test_if_avx512_enabled() {
         if is_x86_feature_detected!("avx512f") {
