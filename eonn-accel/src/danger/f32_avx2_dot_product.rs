@@ -70,7 +70,7 @@ pub unsafe fn f32_xany_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
     debug_assert_eq!(x.len(), y.len());
 
     let len = x.len();
-    let mut offset_from = len % 64;
+    let offset_from = len % 64;
     let mut total = 0.0;
 
     let x_ptr = x.as_ptr();
@@ -84,29 +84,12 @@ pub unsafe fn f32_xany_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
     let mut acc6 = _mm256_setzero_ps();
     let mut acc7 = _mm256_setzero_ps();
     let mut acc8 = _mm256_setzero_ps();
-    
-    if offset_from != 0 {
-        let mut i = offset_from % 8;
-        for n in 0..i {
-            let x = *x.get_unchecked(n);
-            total += x * x;
-        }
 
-        while i < offset_from {
-            let x = _mm256_loadu_ps(x_ptr.add(i));
-            let y = _mm256_loadu_ps(y_ptr.add(i));
-            
-            let res = _mm256_mul_ps(x, y);
-            acc1 = _mm256_add_ps(acc1, res);
-
-            i += 8;
-        }
-    }
-    
-    while offset_from < len {
+    let mut i = 0;
+    while i < (len - offset_from) {
         execute_f32_x64_nofma_block_dot_product(
-            x_ptr.add(offset_from),
-            y_ptr.add(offset_from),
+            x_ptr.add(i),
+            y_ptr.add(i),
             &mut acc1,
             &mut acc2,
             &mut acc3,
@@ -117,7 +100,27 @@ pub unsafe fn f32_xany_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
             &mut acc8,
         );
 
-        offset_from += 64;
+        i += 64;
+    }
+
+    if offset_from != 0 {
+        let tail = offset_from % 8;
+
+        while i < (len - tail) {
+            let x = _mm256_loadu_ps(x_ptr.add(i));
+            let y = _mm256_loadu_ps(y_ptr.add(i));
+
+            let res = _mm256_mul_ps(x, y);
+            acc1 = _mm256_add_ps(acc1, res);
+
+            i += 8;
+        }
+
+        for n in i..len {
+            let x = *x.get_unchecked(n);
+            let y = *y.get_unchecked(n);
+            total += x * y;
+        }
     }
 
     let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
@@ -191,11 +194,11 @@ pub unsafe fn f32_xconst_avx2_fma_dot<const DIMS: usize>(x: &[f32], y: &[f32]) -
 /// going to crash the program, it is going to produce insane numbers.
 pub unsafe fn f32_xany_avx2_fma_dot(x: &[f32], y: &[f32]) -> f32 {
     use crate::math::*;
-    
+
     debug_assert_eq!(x.len(), y.len());
 
     let len = x.len();
-    let mut offset_from = len % 64;
+    let offset_from = len % 64;
     let mut total = 0.0;
 
     let x_ptr = x.as_ptr();
@@ -209,28 +212,12 @@ pub unsafe fn f32_xany_avx2_fma_dot(x: &[f32], y: &[f32]) -> f32 {
     let mut acc6 = _mm256_setzero_ps();
     let mut acc7 = _mm256_setzero_ps();
     let mut acc8 = _mm256_setzero_ps();
-    
-    if offset_from != 0 {
-        let mut i = offset_from % 8;
-        for n in 0..i {
-            let x = *x.get_unchecked(n);
-            total = FastMath::add(total, FastMath::mul(x, x));
-        }
 
-        while i < offset_from {
-            let x = _mm256_loadu_ps(x_ptr.add(i));
-            let y = _mm256_loadu_ps(y_ptr.add(i));
-
-            acc1 = _mm256_fmadd_ps(x, y, acc1);
-
-            i += 8;
-        }
-    }
-
-    while offset_from < len {
+    let mut i = 0;
+    while i < (len - offset_from) {
         execute_f32_x64_fma_block_dot_product(
-            x_ptr.add(offset_from),
-            y_ptr.add(offset_from),
+            x_ptr.add(i),
+            y_ptr.add(i),
             &mut acc1,
             &mut acc2,
             &mut acc3,
@@ -241,7 +228,26 @@ pub unsafe fn f32_xany_avx2_fma_dot(x: &[f32], y: &[f32]) -> f32 {
             &mut acc8,
         );
 
-        offset_from += 64;
+        i += 64;
+    }
+
+    if offset_from != 0 {
+        let tail = offset_from % 8;
+
+        while i < (len - tail) {
+            let x = _mm256_loadu_ps(x_ptr.add(i));
+            let y = _mm256_loadu_ps(y_ptr.add(i));
+
+            acc1 = _mm256_fmadd_ps(x, y, acc1);
+
+            i += 8;
+        }
+
+        for n in i..len {
+            let x = *x.get_unchecked(n);
+            let y = *y.get_unchecked(n);
+            total = FastMath::add(total, FastMath::mul(x, y));
+        }
     }
 
     let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
@@ -357,21 +363,21 @@ unsafe fn execute_f32_x64_fma_block_dot_product(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::{get_sample_vectors, is_close, simple_dot};
+    use crate::test_utils::{assert_is_close, get_sample_vectors, simple_dot};
 
     #[cfg(feature = "nightly")]
     #[test]
     fn test_xany_fma_dot() {
         let (x, y) = get_sample_vectors(127);
         let dist = unsafe { f32_xany_avx2_fma_dot(&x, &y) };
-        assert!(is_close(dist, simple_dot(&x, &y)))
+        assert_is_close(dist, simple_dot(&x, &y))
     }
 
     #[test]
     fn test_xany_nofma_dot() {
         let (x, y) = get_sample_vectors(127);
         let dist = unsafe { f32_xany_avx2_nofma_dot(&x, &y) };
-        assert!(is_close(dist, simple_dot(&x, &y)))
+        assert_is_close(dist, simple_dot(&x, &y))
     }
 
     #[cfg(feature = "nightly")]
@@ -379,13 +385,13 @@ mod tests {
     fn test_xconst_fma_dot() {
         let (x, y) = get_sample_vectors(1024);
         let dist = unsafe { f32_xconst_avx2_fma_dot::<1024>(&x, &y) };
-        assert!(is_close(dist, simple_dot(&x, &y)))
+        assert_is_close(dist, simple_dot(&x, &y))
     }
 
     #[test]
     fn test_xconst_nofma_dot() {
         let (x, y) = get_sample_vectors(1024);
         let dist = unsafe { f32_xconst_avx2_nofma_dot::<1024>(&x, &y) };
-        assert!(is_close(dist, simple_dot(&x, &y)))
+        assert_is_close(dist, simple_dot(&x, &y))
     }
 }

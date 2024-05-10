@@ -63,9 +63,5 @@ unsafe fn aligned_vec(n_elements: usize) -> Vec<f32> {
 
     mem::forget(aligned);
 
-    Vec::from_raw_parts(
-        ptr as *mut f32,
-        len_units * 16,
-        cap_units * 16,
-    )
+    Vec::from_raw_parts(ptr as *mut f32, len_units * 16, cap_units * 16)
 }

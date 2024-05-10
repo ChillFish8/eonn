@@ -1,7 +1,7 @@
 use std::arch::x86_64::*;
 use std::{mem, ptr};
 
-use crate::danger::{offsets_avx2, CHUNK_0, CHUNK_1};
+use crate::danger::{copy_avx2_register_to, offsets_avx2, CHUNK_0, CHUNK_1};
 
 #[target_feature(enable = "avx2")]
 #[inline]
@@ -164,7 +164,8 @@ pub unsafe fn f32_xconst_avx2_nofma_max_vertical<const DIMS: usize>(
 /// This method assumes AVX2 instructions are available, if this method is executed
 /// on non-AVX2 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
 pub unsafe fn f32_xany_avx2_nofma_max_horizontal(arr: &[f32]) -> f32 {
-    let dims = arr.len();
+    let len = arr.len();
+    let offset_from = len % 64;
 
     let mut max = f32::NEG_INFINITY;
 
@@ -177,19 +178,12 @@ pub unsafe fn f32_xany_avx2_nofma_max_horizontal(arr: &[f32]) -> f32 {
     let mut acc7 = _mm256_set1_ps(f32::NEG_INFINITY);
     let mut acc8 = _mm256_set1_ps(f32::NEG_INFINITY);
 
-    let mut offset_from = dims % 64;
-    if offset_from != 0 {
-        for i in 0..offset_from {
-            let x = *arr.get_unchecked(i);
-            max = max.max(x);
-        }
-    }
+    let arr_ptr = arr.as_ptr();
 
-    let arr = arr.as_ptr();
-
-    while offset_from < dims {
-        let [x1, x2, x3, x4] = offsets_avx2::<CHUNK_0>(arr.add(offset_from));
-        let [x5, x6, x7, x8] = offsets_avx2::<CHUNK_1>(arr.add(offset_from));
+    let mut i = 0;
+    while i < (len - offset_from) {
+        let [x1, x2, x3, x4] = offsets_avx2::<CHUNK_0>(arr_ptr.add(i));
+        let [x5, x6, x7, x8] = offsets_avx2::<CHUNK_1>(arr_ptr.add(i));
 
         let x1 = _mm256_loadu_ps(x1);
         let x2 = _mm256_loadu_ps(x2);
@@ -209,7 +203,23 @@ pub unsafe fn f32_xany_avx2_nofma_max_horizontal(arr: &[f32]) -> f32 {
         acc7 = _mm256_max_ps(acc7, x7);
         acc8 = _mm256_max_ps(acc8, x8);
 
-        offset_from += 64;
+        i += 64;
+    }
+
+    if offset_from != 0 {
+        let tail = offset_from % 8;
+
+        while i < (len - tail) {
+            let x = _mm256_loadu_ps(arr_ptr.add(i));
+            acc1 = _mm256_max_ps(acc1, x);
+
+            i += 8;
+        }
+
+        for n in i..len {
+            let x = *arr.get_unchecked(n);
+            max = max.max(x);
+        }
     }
 
     acc1 = _mm256_max_ps(acc1, acc2);
@@ -248,31 +258,17 @@ pub unsafe fn f32_xany_avx2_nofma_max_horizontal(arr: &[f32]) -> f32 {
 /// on non-AVX2 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
 pub unsafe fn f32_xany_avx2_nofma_max_vertical(matrix: &[&[f32]]) -> Vec<f32> {
     let dims = matrix[0].len();
+    let offset_from = dims % 64;
 
     let mut max_values = vec![0.0; dims];
-    let mut offset_from = dims % 64;
-
-    if offset_from != 64 {
-        for i in 0..offset_from {
-            let mut max = f32::NEG_INFINITY;
-            for m in 0..matrix.len() {
-                let arr = *matrix.get_unchecked(m);
-                debug_assert_eq!(arr.len(), dims);
-                let x = *arr.get_unchecked(i);
-                max = max.max(x);
-            }
-
-            *max_values.get_unchecked_mut(i) = max;
-        }
-    }
-
     let max_values_ptr = max_values.as_mut_ptr();
 
     // We work our way horizontally by taking steps of 64 and finding
     // the max of for each of the lanes vertically through the matrix.
     // TODO: I am unsure how hard this is on the cache or if there is a smarter
     //       way to write this.
-    while offset_from < dims {
+    let mut i = 0;
+    while i < (dims - offset_from) {
         let mut acc1 = _mm256_set1_ps(f32::NEG_INFINITY);
         let mut acc2 = _mm256_set1_ps(f32::NEG_INFINITY);
         let mut acc3 = _mm256_set1_ps(f32::NEG_INFINITY);
@@ -289,8 +285,8 @@ pub unsafe fn f32_xany_avx2_nofma_max_vertical(matrix: &[&[f32]]) -> Vec<f32> {
 
             let arr = arr.as_ptr();
 
-            let [x1, x2, x3, x4] = offsets_avx2::<CHUNK_0>(arr.add(offset_from));
-            let [x5, x6, x7, x8] = offsets_avx2::<CHUNK_1>(arr.add(offset_from));
+            let [x1, x2, x3, x4] = offsets_avx2::<CHUNK_0>(arr.add(i));
+            let [x5, x6, x7, x8] = offsets_avx2::<CHUNK_1>(arr.add(i));
 
             let x1 = _mm256_loadu_ps(x1);
             let x2 = _mm256_loadu_ps(x2);
@@ -314,13 +310,38 @@ pub unsafe fn f32_xany_avx2_nofma_max_vertical(matrix: &[&[f32]]) -> Vec<f32> {
         let merged = [acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8];
 
         let result = mem::transmute::<[__m256; 8], [f32; 64]>(merged);
-        ptr::copy_nonoverlapping(
-            result.as_ptr(),
-            max_values_ptr.add(offset_from),
-            result.len(),
-        );
+        ptr::copy_nonoverlapping(result.as_ptr(), max_values_ptr.add(i), result.len());
 
-        offset_from += 64;
+        i += 64;
+    }
+
+    if offset_from != 0 {
+        let tail = offset_from % 8;
+
+        while i < (dims - tail) {
+            let mut acc = _mm256_set1_ps(f32::NEG_INFINITY);
+            for m in 0..matrix.len() {
+                let arr = *matrix.get_unchecked(m);
+                debug_assert_eq!(arr.len(), dims);
+                let arr_ptr = arr.as_ptr();
+                let x = _mm256_loadu_ps(arr_ptr.add(i));
+                acc = _mm256_max_ps(acc, x);
+            }
+            copy_avx2_register_to(max_values_ptr.add(i), acc);
+
+            i += 8;
+        }
+
+        for n in i..dims {
+            let mut max = f32::NEG_INFINITY;
+            for m in 0..matrix.len() {
+                let arr = *matrix.get_unchecked(m);
+                debug_assert_eq!(arr.len(), dims);
+                let x = *arr.get_unchecked(n);
+                max = max.max(x);
+            }
+            *max_values.get_unchecked_mut(n) = max;
+        }
     }
 
     max_values

@@ -1,15 +1,6 @@
 use std::arch::x86_64::*;
 
-#[cfg(feature = "nightly")]
-use crate::danger::f32_xany_fallback_fma_euclidean;
-use crate::danger::{
-    f32_xany_fallback_nofma_euclidean,
-    offsets_avx2,
-    rollup_x8,
-    sum_avx2,
-    CHUNK_0,
-    CHUNK_1,
-};
+use crate::danger::{offsets_avx2, rollup_x8, sum_avx2, CHUNK_0, CHUNK_1};
 
 #[target_feature(enable = "avx2")]
 #[inline]
@@ -81,20 +72,11 @@ pub unsafe fn f32_xany_avx2_nofma_euclidean(x: &[f32], y: &[f32]) -> f32 {
     debug_assert_eq!(x.len(), y.len());
 
     let len = x.len();
-    let mut offset_from = len % 64;
+    let offset_from = len % 64;
     let mut total = 0.0;
 
-    if offset_from != 0 {
-        let x_subsection = &x[..offset_from];
-        let y_subsection = &y[..offset_from];
-        total = f32_xany_fallback_nofma_euclidean(x_subsection, y_subsection);
-    }
-
-    let x = x.as_ptr();
-    let y = y.as_ptr();
-
-    _mm_prefetch::<_MM_HINT_T1>(x.cast());
-    _mm_prefetch::<_MM_HINT_T1>(y.cast());
+    let x_ptr = x.as_ptr();
+    let y_ptr = y.as_ptr();
 
     let mut acc1 = _mm256_setzero_ps();
     let mut acc2 = _mm256_setzero_ps();
@@ -105,10 +87,11 @@ pub unsafe fn f32_xany_avx2_nofma_euclidean(x: &[f32], y: &[f32]) -> f32 {
     let mut acc7 = _mm256_setzero_ps();
     let mut acc8 = _mm256_setzero_ps();
 
-    while offset_from < len {
+    let mut i = 0;
+    while i < (len - offset_from) {
         execute_f32_x64_nofma_block_euclidean(
-            x.add(offset_from),
-            y.add(offset_from),
+            x_ptr.add(i),
+            y_ptr.add(i),
             &mut acc1,
             &mut acc2,
             &mut acc3,
@@ -119,7 +102,29 @@ pub unsafe fn f32_xany_avx2_nofma_euclidean(x: &[f32], y: &[f32]) -> f32 {
             &mut acc8,
         );
 
-        offset_from += 64;
+        i += 64;
+    }
+
+    if offset_from != 0 {
+        let tail = offset_from % 8;
+
+        while i < (len - tail) {
+            let x = _mm256_loadu_ps(x_ptr.add(i));
+            let y = _mm256_loadu_ps(y_ptr.add(i));
+
+            let diff = _mm256_sub_ps(x, y);
+            let res = _mm256_mul_ps(diff, diff);
+            acc1 = _mm256_add_ps(acc1, res);
+
+            i += 8;
+        }
+
+        for n in i..len {
+            let x = *x.get_unchecked(n);
+            let y = *y.get_unchecked(n);
+            let diff = x - y;
+            total += diff * diff;
+        }
     }
 
     let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
@@ -198,20 +203,11 @@ pub unsafe fn f32_xany_avx2_fma_euclidean(x: &[f32], y: &[f32]) -> f32 {
     debug_assert_eq!(x.len(), y.len());
 
     let len = x.len();
-    let mut offset_from = len % 64;
+    let offset_from = len % 64;
     let mut total = 0.0;
 
-    if offset_from != 0 {
-        let x_subsection = &x[..offset_from];
-        let y_subsection = &y[..offset_from];
-        total = f32_xany_fallback_fma_euclidean(x_subsection, y_subsection);
-    }
-
-    let x = x.as_ptr();
-    let y = y.as_ptr();
-
-    _mm_prefetch::<_MM_HINT_T1>(x.cast());
-    _mm_prefetch::<_MM_HINT_T1>(y.cast());
+    let x_ptr = x.as_ptr();
+    let y_ptr = y.as_ptr();
 
     let mut acc1 = _mm256_setzero_ps();
     let mut acc2 = _mm256_setzero_ps();
@@ -222,10 +218,11 @@ pub unsafe fn f32_xany_avx2_fma_euclidean(x: &[f32], y: &[f32]) -> f32 {
     let mut acc7 = _mm256_setzero_ps();
     let mut acc8 = _mm256_setzero_ps();
 
-    while offset_from < len {
+    let mut i = 0;
+    while i < (len - offset_from) {
         execute_f32_x64_fma_block_euclidean(
-            x.add(offset_from),
-            y.add(offset_from),
+            x_ptr.add(i),
+            y_ptr.add(i),
             &mut acc1,
             &mut acc2,
             &mut acc3,
@@ -236,7 +233,28 @@ pub unsafe fn f32_xany_avx2_fma_euclidean(x: &[f32], y: &[f32]) -> f32 {
             &mut acc8,
         );
 
-        offset_from += 64;
+        i += 64;
+    }
+
+    if offset_from != 0 {
+        let tail = offset_from % 8;
+
+        while i < (len - tail) {
+            let x = _mm256_loadu_ps(x_ptr.add(i));
+            let y = _mm256_loadu_ps(y_ptr.add(i));
+
+            let diff = _mm256_sub_ps(x, y);
+            acc1 = _mm256_fmadd_ps(diff, diff, acc1);
+
+            i += 8;
+        }
+
+        for n in i..len {
+            let x = *x.get_unchecked(n);
+            let y = *y.get_unchecked(n);
+            let diff = x - y;
+            total += diff * diff;
+        }
     }
 
     let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);

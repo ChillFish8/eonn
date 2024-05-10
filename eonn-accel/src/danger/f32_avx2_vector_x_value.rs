@@ -3,6 +3,30 @@ use std::{mem, ptr};
 
 use crate::danger::{copy_avx2_register_to, offsets_avx2, CHUNK_0, CHUNK_1};
 
+macro_rules! complete_tail {
+    ($offset_from:expr, $i:expr, $arr:ident, $value:expr, $value_reg:expr, $inst:ident, op = $op:tt) => {{
+        if $offset_from != 0 {
+            let len = $arr.len();
+            let arr_ptr = $arr.as_mut_ptr();
+            let remainder = $offset_from % 8;
+
+            while $i < (len - remainder) {
+                let x = _mm256_loadu_ps(arr_ptr.add($i));
+                let r = $inst(x, $value_reg);
+                copy_avx2_register_to(arr_ptr.add($i), r);
+
+                $i += 8;
+            }
+
+            while $i < len {
+                let x = $arr.get_unchecked_mut($i);
+                *x $op $value;
+                $i += 1;
+            }
+        }
+    }};
+}
+
 #[target_feature(enable = "avx2")]
 #[inline]
 /// Divides each element in the provided mutable `[f32; DIMS]` vector by `value`.
@@ -73,37 +97,18 @@ pub unsafe fn f32_xconst_avx2_nofma_mul_value<const DIMS: usize>(
 /// on non-avx2 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
 pub unsafe fn f32_xany_avx2_nofma_mul_value(arr: &mut [f32], multiplier: f32) {
     let len = arr.len();
-    let mut offset_from = len % 64;
+    let offset_from = len % 64;
 
     let multiplier_reg = _mm256_set1_ps(multiplier);
     let arr_ptr = arr.as_mut_ptr();
 
-    if offset_from != 0 {
-        let mut i = 0;
-        while i < offset_from {
-            let n = offset_from - i;
-
-            if n < 8 {
-                for _ in 0..n {
-                    let x = arr.get_unchecked_mut(i);
-                    *x *= multiplier;
-                    i += 1;
-                }
-                break;
-            }
-
-            let x = _mm256_loadu_ps(arr_ptr.add(i));
-            let r = _mm256_mul_ps(x, multiplier_reg);
-            copy_avx2_register_to(arr_ptr.add(i), r);
-
-            i += 8;
-        }
+    let mut i = 0;
+    while i < (len - offset_from) {
+        execute_f32_x64_mul(arr_ptr.add(i), multiplier_reg);
+        i += 64;
     }
 
-    while offset_from < len {
-        execute_f32_x64_mul(arr_ptr.add(offset_from), multiplier_reg);
-        offset_from += 64;
-    }
+    complete_tail!(offset_from, i, arr, multiplier, multiplier_reg, _mm256_mul_ps, op = *=);
 }
 
 #[target_feature(enable = "avx2")]
@@ -145,37 +150,18 @@ pub unsafe fn f32_xconst_avx2_nofma_add_value<const DIMS: usize>(
 /// on non-avx2 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
 pub unsafe fn f32_xany_avx2_nofma_add_value(arr: &mut [f32], value: f32) {
     let len = arr.len();
-    let mut offset_from = len % 64;
+    let offset_from = len % 64;
 
     let value_reg = _mm256_set1_ps(value);
     let arr_ptr = arr.as_mut_ptr();
 
-    if offset_from != 0 {
-        let mut i = 0;
-        while i < offset_from {
-            let n = offset_from - i;
-
-            if n < 8 {
-                for _ in 0..n {
-                    let x = arr.get_unchecked_mut(i);
-                    *x += value;
-                    i += 1;
-                }
-                break;
-            }
-
-            let x = _mm256_loadu_ps(arr_ptr.add(i));
-            let r = _mm256_add_ps(x, value_reg);
-            copy_avx2_register_to(arr_ptr.add(i), r);
-
-            i += 8;
-        }
+    let mut i = 0;
+    while i < (len - offset_from) {
+        execute_f32_x64_add(arr_ptr.add(i), value_reg);
+        i += 64;
     }
 
-    while offset_from < len {
-        execute_f32_x64_add(arr_ptr.add(offset_from), value_reg);
-        offset_from += 64;
-    }
+    complete_tail!(offset_from, i, arr, value, value_reg, _mm256_add_ps, op = +=);
 }
 
 #[target_feature(enable = "avx2")]
@@ -217,37 +203,18 @@ pub unsafe fn f32_xconst_avx2_nofma_sub_value<const DIMS: usize>(
 /// on non-avx2 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
 pub unsafe fn f32_xany_avx2_nofma_sub_value(arr: &mut [f32], value: f32) {
     let len = arr.len();
-    let mut offset_from = len % 64;
+    let offset_from = len % 64;
 
     let value_reg = _mm256_set1_ps(value);
     let arr_ptr = arr.as_mut_ptr();
 
-    if offset_from != 0 {
-        let mut i = 0;
-        while i < offset_from {
-            let n = offset_from - i;
-
-            if n < 8 {
-                for _ in 0..n {
-                    let x = arr.get_unchecked_mut(i);
-                    *x -= value;
-                    i += 1;
-                }
-                break;
-            }
-
-            let x = _mm256_loadu_ps(arr_ptr.add(i));
-            let r = _mm256_sub_ps(x, value_reg);
-            copy_avx2_register_to(arr_ptr.add(i), r);
-
-            i += 8;
-        }
+    let mut i = 0;
+    while i < (len - offset_from) {
+        execute_f32_x64_sub(arr_ptr.add(i), value_reg);
+        i += 64;
     }
 
-    while offset_from < len {
-        execute_f32_x64_sub(arr_ptr.add(offset_from), value_reg);
-        offset_from += 64;
-    }
+    complete_tail!(offset_from, i, arr, value, value_reg, _mm256_sub_ps, op = -=);
 }
 
 #[inline(always)]

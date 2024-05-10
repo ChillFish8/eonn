@@ -110,7 +110,7 @@ pub unsafe fn f32_xany_avx2_nofma_angular_hyperplane(x: &[f32], y: &[f32]) -> Ve
     debug_assert_eq!(x.len(), y.len());
 
     let len = x.len();
-    let mut offset_from = len % 64;
+    let offset_from = len % 64;
 
     let mut norm_x = f32_xany_avx2_nofma_norm(x).sqrt();
     let mut norm_y = f32_xany_avx2_nofma_norm(y).sqrt();
@@ -124,16 +124,6 @@ pub unsafe fn f32_xany_avx2_nofma_angular_hyperplane(x: &[f32], y: &[f32]) -> Ve
     }
 
     let mut hyperplane = vec![0.0; len];
-    if offset_from != 0 {
-        linear_apply_normal_vector::<StdMath>(
-            x,
-            y,
-            offset_from,
-            &mut hyperplane,
-            1.0 / norm_x,
-            1.0 / norm_y,
-        );
-    }
 
     let x_ptr = x.as_ptr();
     let y_ptr = y.as_ptr();
@@ -145,21 +135,30 @@ pub unsafe fn f32_xany_avx2_nofma_angular_hyperplane(x: &[f32], y: &[f32]) -> Ve
     let inverse_norm_x = _mm256_set1_ps(1.0 / norm_x);
     let inverse_norm_y = _mm256_set1_ps(1.0 / norm_y);
 
-    while offset_from < len {
+    let mut i = 0;
+    while i < (len - offset_from) {
         let results = execute_f32_x64_block_normal_vector(
-            x_ptr.add(offset_from),
-            y_ptr.add(offset_from),
+            x_ptr.add(i),
+            y_ptr.add(i),
             inverse_norm_x,
             inverse_norm_y,
         );
 
-        ptr::copy_nonoverlapping(
-            results.as_ptr(),
-            hyperplane_ptr.add(offset_from),
-            results.len(),
-        );
+        ptr::copy_nonoverlapping(results.as_ptr(), hyperplane_ptr.add(i), results.len());
 
-        offset_from += 64;
+        i += 64;
+    }
+
+    if offset_from != 0 {
+        linear_apply_normal_vector::<StdMath>(
+            &x,
+            &y,
+            i,
+            len,
+            &mut hyperplane,
+            1.0 / norm_x,
+            1.0 / norm_y,
+        );
     }
 
     let mut norm_hyperplane = f32_xany_avx2_nofma_norm(&hyperplane).sqrt();
@@ -172,27 +171,21 @@ pub unsafe fn f32_xany_avx2_nofma_angular_hyperplane(x: &[f32], y: &[f32]) -> Ve
     // grinding to a crawl.
     let inverse_norm_hyperplane = _mm256_set1_ps(1.0 / norm_hyperplane);
 
-    let mut offset_from = len % 64;
-    if offset_from != 0 {
-        linear_apply_norm::<StdMath>(
-            &mut hyperplane,
-            offset_from,
-            1.0 / norm_hyperplane,
-        );
-    }
-
-    while offset_from < len {
+    let offset_from = len % 64;
+    let mut i = 0;
+    while i < (len - offset_from) {
         let results = execute_f32_x64_block_apply_norm(
-            hyperplane_ptr.add(offset_from),
+            hyperplane_ptr.add(i),
             inverse_norm_hyperplane,
         );
-        ptr::copy_nonoverlapping(
-            results.as_ptr(),
-            hyperplane_ptr.add(offset_from),
-            results.len(),
-        );
+        ptr::copy_nonoverlapping(results.as_ptr(), hyperplane_ptr.add(i), results.len());
 
-        offset_from += 64;
+        i += 64;
+    }
+
+    let offset_from = len % 64;
+    if offset_from != 0 {
+        linear_apply_norm::<FastMath>(&mut hyperplane, i, len, 1.0 / norm_hyperplane);
     }
 
     hyperplane
@@ -298,10 +291,10 @@ pub unsafe fn f32_xany_avx2_fma_angular_hyperplane(x: &[f32], y: &[f32]) -> Vec<
     debug_assert_eq!(x.len(), y.len());
 
     let len = x.len();
-    let mut offset_from = len % 64;
+    let offset_from = len % 64;
 
     let mut norm_x = f32_xany_avx2_fma_norm(x).sqrt();
-    let mut norm_y = f32_xany_avx2_fma_norm(&y).sqrt();
+    let mut norm_y = f32_xany_avx2_fma_norm(y).sqrt();
 
     if norm_x.abs() < f32::EPSILON {
         norm_x = 1.0;
@@ -312,16 +305,6 @@ pub unsafe fn f32_xany_avx2_fma_angular_hyperplane(x: &[f32], y: &[f32]) -> Vec<
     }
 
     let mut hyperplane = vec![0.0; len];
-    if offset_from != 0 {
-        linear_apply_normal_vector::<FastMath>(
-            x,
-            y,
-            offset_from,
-            &mut hyperplane,
-            1.0 / norm_x,
-            1.0 / norm_y,
-        );
-    }
 
     let x_ptr = x.as_ptr();
     let y_ptr = y.as_ptr();
@@ -333,21 +316,30 @@ pub unsafe fn f32_xany_avx2_fma_angular_hyperplane(x: &[f32], y: &[f32]) -> Vec<
     let inverse_norm_x = _mm256_set1_ps(1.0 / norm_x);
     let inverse_norm_y = _mm256_set1_ps(1.0 / norm_y);
 
-    while offset_from < len {
+    let mut i = 0;
+    while i < (len - offset_from) {
         let results = execute_f32_x64_block_normal_vector(
-            x_ptr.add(offset_from),
-            y_ptr.add(offset_from),
+            x_ptr.add(i),
+            y_ptr.add(i),
             inverse_norm_x,
             inverse_norm_y,
         );
 
-        ptr::copy_nonoverlapping(
-            results.as_ptr(),
-            hyperplane_ptr.add(offset_from),
-            results.len(),
-        );
+        ptr::copy_nonoverlapping(results.as_ptr(), hyperplane_ptr.add(i), results.len());
 
-        offset_from += 64;
+        i += 64;
+    }
+
+    if offset_from != 0 {
+        linear_apply_normal_vector::<FastMath>(
+            x,
+            y,
+            i,
+            len,
+            &mut hyperplane,
+            1.0 / norm_x,
+            1.0 / norm_y,
+        );
     }
 
     let mut norm_hyperplane = f32_xany_avx2_fma_norm(&hyperplane).sqrt();
@@ -360,27 +352,20 @@ pub unsafe fn f32_xany_avx2_fma_angular_hyperplane(x: &[f32], y: &[f32]) -> Vec<
     // grinding to a crawl.
     let inverse_norm_hyperplane = _mm256_set1_ps(1.0 / norm_hyperplane);
 
-    let mut offset_from = len % 64;
-    if offset_from != 0 {
-        linear_apply_norm::<FastMath>(
-            &mut hyperplane,
-            offset_from,
-            1.0 / norm_hyperplane,
-        );
-    }
-
-    while offset_from < len {
+    let mut i = 0;
+    while i < (len - offset_from) {
         let results = execute_f32_x64_block_apply_norm(
-            hyperplane_ptr.add(offset_from),
+            hyperplane_ptr.add(i),
             inverse_norm_hyperplane,
         );
-        ptr::copy_nonoverlapping(
-            results.as_ptr(),
-            hyperplane_ptr.add(offset_from),
-            results.len(),
-        );
+        ptr::copy_nonoverlapping(results.as_ptr(), hyperplane_ptr.add(i), results.len());
 
-        offset_from += 64;
+        i += 64;
+    }
+
+    let offset_from = len % 64;
+    if offset_from != 0 {
+        linear_apply_norm::<FastMath>(&mut hyperplane, i, len, 1.0 / norm_hyperplane);
     }
 
     hyperplane
@@ -390,12 +375,13 @@ pub unsafe fn f32_xany_avx2_fma_angular_hyperplane(x: &[f32], y: &[f32]) -> Vec<
 unsafe fn linear_apply_normal_vector<M: Math>(
     x: &[f32],
     y: &[f32],
-    n: usize,
+    start: usize,
+    stop: usize,
     hyperplane: &mut [f32],
     inverse_norm_x: f32,
     inverse_norm_y: f32,
 ) {
-    for i in 0..n {
+    for i in start..stop {
         let x = *x.get_unchecked(i);
         let y = *y.get_unchecked(i);
 
@@ -409,10 +395,11 @@ unsafe fn linear_apply_normal_vector<M: Math>(
 #[inline]
 unsafe fn linear_apply_norm<M: Math>(
     hyperplane: &mut [f32],
-    n: usize,
+    start: usize,
+    stop: usize,
     inverse_norm_hyperplane: f32,
 ) {
-    for i in 0..n {
+    for i in start..stop {
         let x = hyperplane.get_unchecked_mut(i);
         *x = M::mul(*x, inverse_norm_hyperplane);
     }

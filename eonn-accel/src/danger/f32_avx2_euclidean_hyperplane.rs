@@ -96,22 +96,13 @@ pub unsafe fn f32_xany_avx2_nofma_euclidean_hyperplane(
     debug_assert_eq!(x.len(), y.len(), "Provided vectors must match in size");
 
     let len = x.len();
-    let mut offset_from = len % 64;
+    let offset_from = len % 64;
+
     let mut hyperplane_offset = 0.0;
     let mut hyperplane = vec![0.0; len];
 
-    if offset_from != 0 {
-        let x_subsection = &x[..offset_from];
-        let y_subsection = &y[..offset_from];
-        hyperplane_offset = fallback_euclidean_hyperplane::<StdMath>(
-            x_subsection,
-            y_subsection,
-            &mut hyperplane,
-        );
-    }
-
-    let x = x.as_ptr();
-    let y = y.as_ptr();
+    let x_ptr = x.as_ptr();
+    let y_ptr = y.as_ptr();
 
     let mut offset_acc1 = _mm256_setzero_ps();
     let mut offset_acc2 = _mm256_setzero_ps();
@@ -122,10 +113,11 @@ pub unsafe fn f32_xany_avx2_nofma_euclidean_hyperplane(
     let mut offset_acc7 = _mm256_setzero_ps();
     let mut offset_acc8 = _mm256_setzero_ps();
 
-    while offset_from < len {
+    let mut i = 0;
+    while i < (len - offset_from) {
         let results = execute_f32_x64_block_nofma_hyperplane(
-            x.add(offset_from),
-            y.add(offset_from),
+            x_ptr.add(i),
+            y_ptr.add(i),
             &mut offset_acc1,
             &mut offset_acc2,
             &mut offset_acc3,
@@ -138,11 +130,21 @@ pub unsafe fn f32_xany_avx2_nofma_euclidean_hyperplane(
 
         ptr::copy_nonoverlapping(
             results.as_ptr(),
-            hyperplane.as_mut_ptr().add(offset_from),
+            hyperplane.as_mut_ptr().add(i),
             results.len(),
         );
 
-        offset_from += 64;
+        i += 64;
+    }
+
+    if offset_from != 0 {
+        let x_subsection = &x[(len - offset_from)..];
+        let y_subsection = &y[(len - offset_from)..];
+        hyperplane_offset = fallback_euclidean_hyperplane::<StdMath>(
+            x_subsection,
+            y_subsection,
+            &mut hyperplane[(len - offset_from)..],
+        );
     }
 
     hyperplane_offset += sub_reduce_x8(
@@ -246,22 +248,12 @@ pub unsafe fn f32_xany_avx2_fma_euclidean_hyperplane(
     debug_assert_eq!(x.len(), y.len(), "Provided vectors must match in size");
 
     let len = x.len();
-    let mut offset_from = len % 64;
+    let offset_from = len % 64;
     let mut hyperplane_offset = 0.0;
     let mut hyperplane = vec![0.0; len];
 
-    if offset_from != 0 {
-        let x_subsection = &x[..offset_from];
-        let y_subsection = &y[..offset_from];
-        hyperplane_offset = fallback_euclidean_hyperplane::<FastMath>(
-            x_subsection,
-            y_subsection,
-            &mut hyperplane,
-        );
-    }
-
-    let x = x.as_ptr();
-    let y = y.as_ptr();
+    let x_ptr = x.as_ptr();
+    let y_ptr = y.as_ptr();
 
     let mut offset_acc1 = _mm256_setzero_ps();
     let mut offset_acc2 = _mm256_setzero_ps();
@@ -272,10 +264,11 @@ pub unsafe fn f32_xany_avx2_fma_euclidean_hyperplane(
     let mut offset_acc7 = _mm256_setzero_ps();
     let mut offset_acc8 = _mm256_setzero_ps();
 
-    while offset_from < len {
+    let mut i = 0;
+    while i < (len - offset_from) {
         let results = execute_f32_x64_block_fma_hyperplane(
-            x.add(offset_from),
-            y.add(offset_from),
+            x_ptr.add(i),
+            y_ptr.add(i),
             &mut offset_acc1,
             &mut offset_acc2,
             &mut offset_acc3,
@@ -288,11 +281,21 @@ pub unsafe fn f32_xany_avx2_fma_euclidean_hyperplane(
 
         ptr::copy_nonoverlapping(
             results.as_ptr(),
-            hyperplane.as_mut_ptr().add(offset_from),
+            hyperplane.as_mut_ptr().add(i),
             results.len(),
         );
 
-        offset_from += 64;
+        i += 64;
+    }
+
+    if offset_from != 0 {
+        let x_subsection = &x[(len - offset_from)..];
+        let y_subsection = &y[(len - offset_from)..];
+        hyperplane_offset = fallback_euclidean_hyperplane::<FastMath>(
+            x_subsection,
+            y_subsection,
+            &mut hyperplane[(len - offset_from)..],
+        );
     }
 
     hyperplane_offset = FastMath::add(

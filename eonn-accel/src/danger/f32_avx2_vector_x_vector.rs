@@ -43,26 +43,26 @@ macro_rules! x64_op_inplace {
 }
 
 macro_rules! execute_tail_op_inplace {
-    ($offset_from:expr, $x:ident, $y:ident, $op:ident, op = $raw_op:tt) => {{
+    ($len:expr, $i:expr, $x:ident, $y:ident, $op:ident, op = $raw_op:tt) => {{
         let x_ptr = $x.as_mut_ptr();
         let y_ptr = $y.as_ptr();
 
-        let remainder = $offset_from % 8;
-        for i in 0..remainder {
+        let remainder = $len % 8;
+        while $i < ($len - remainder) {
+            let x = _mm256_loadu_ps(x_ptr.add($i));
+            let y = _mm256_loadu_ps(y_ptr.add($i));
+
+            let reg = $op(x, y);
+            copy_avx2_register_to(x_ptr.add($i), reg);
+
+            $i += 8;
+        }
+
+        for i in $i..$len {
             let v = *$x.get_unchecked(i);
             *$x.get_unchecked_mut(i) = v $raw_op *$y.get_unchecked(i);
         }
 
-        let mut i = remainder;
-        while i < $offset_from {
-            let x = _mm256_loadu_ps(x_ptr.add(i));
-            let y = _mm256_loadu_ps(y_ptr.add(i));
-
-            let reg = $op(x, y);
-            copy_avx2_register_to(x_ptr.add(i), reg);
-
-            i += 8;
-        }
     }};
 }
 
@@ -127,19 +127,20 @@ pub unsafe fn f32_xconst_avx2_nofma_div_vertical<const DIMS: usize>(
 pub unsafe fn f32_xany_avx2_nofma_div_vertical(x: &mut [f32], y: &[f32]) {
     debug_assert_eq!(x.len(), y.len());
     let len = x.len();
-    let mut offset_from = len % 64;
+    let offset_from = len % 64;
 
-    if offset_from != 0 {
-        execute_tail_op_inplace!(offset_from, x, y, _mm256_div_ps, op = /);
+    let x_ptr = x.as_mut_ptr();
+    let y_ptr = y.as_ptr();
+
+    let mut i = 0;
+    while i < (len - offset_from) {
+        x64_op_inplace!(x_ptr.add(i), y_ptr.add(i), _mm256_div_ps);
+
+        i += 64;
     }
 
-    let x = x.as_mut_ptr();
-    let y = y.as_ptr();
-
-    while offset_from < len {
-        x64_op_inplace!(x.add(offset_from), y.add(offset_from), _mm256_div_ps);
-
-        offset_from += 64;
+    if offset_from != 0 {
+        execute_tail_op_inplace!(len, i, x, y, _mm256_div_ps, op = /);
     }
 }
 
@@ -204,19 +205,20 @@ pub unsafe fn f32_xconst_avx2_nofma_mul_vertical<const DIMS: usize>(
 pub unsafe fn f32_xany_avx2_nofma_mul_vertical(x: &mut [f32], y: &[f32]) {
     debug_assert_eq!(x.len(), y.len());
     let len = x.len();
-    let mut offset_from = len % 64;
+    let offset_from = len % 64;
 
-    if offset_from != 0 {
-        execute_tail_op_inplace!(offset_from, x, y, _mm256_mul_ps, op = *);
+    let x_ptr = x.as_mut_ptr();
+    let y_ptr = y.as_ptr();
+
+    let mut i = 0;
+    while i < (len - offset_from) {
+        x64_op_inplace!(x_ptr.add(i), y_ptr.add(i), _mm256_mul_ps);
+
+        i += 64;
     }
 
-    let x = x.as_mut_ptr();
-    let y = y.as_ptr();
-
-    while offset_from < len {
-        x64_op_inplace!(x.add(offset_from), y.add(offset_from), _mm256_mul_ps);
-
-        offset_from += 64;
+    if offset_from != 0 {
+        execute_tail_op_inplace!(len, i, x, y, _mm256_mul_ps, op = *);
     }
 }
 
@@ -281,19 +283,20 @@ pub unsafe fn f32_xconst_avx2_nofma_add_vertical<const DIMS: usize>(
 pub unsafe fn f32_xany_avx2_nofma_add_vertical(x: &mut [f32], y: &[f32]) {
     debug_assert_eq!(x.len(), y.len());
     let len = x.len();
-    let mut offset_from = len % 64;
+    let offset_from = len % 64;
 
-    if offset_from != 0 {
-        execute_tail_op_inplace!(offset_from, x, y, _mm256_add_ps, op = +);
+    let x_ptr = x.as_mut_ptr();
+    let y_ptr = y.as_ptr();
+
+    let mut i = 0;
+    while i < (len - offset_from) {
+        x64_op_inplace!(x_ptr.add(i), y_ptr.add(i), _mm256_add_ps);
+
+        i += 64;
     }
 
-    let x = x.as_mut_ptr();
-    let y = y.as_ptr();
-
-    while offset_from < len {
-        x64_op_inplace!(x.add(offset_from), y.add(offset_from), _mm256_add_ps);
-
-        offset_from += 64;
+    if offset_from != 0 {
+        execute_tail_op_inplace!(len, i, x, y, _mm256_add_ps, op = +);
     }
 }
 
@@ -358,19 +361,20 @@ pub unsafe fn f32_xconst_avx2_nofma_sub_vertical<const DIMS: usize>(
 pub unsafe fn f32_xany_avx2_nofma_sub_vertical(x: &mut [f32], y: &[f32]) {
     debug_assert_eq!(x.len(), y.len());
     let len = x.len();
-    let mut offset_from = len % 64;
+    let offset_from = len % 64;
 
-    if offset_from != 0 {
-        execute_tail_op_inplace!(offset_from, x, y, _mm256_sub_ps, op = -);
+    let x_ptr = x.as_mut_ptr();
+    let y_ptr = y.as_ptr();
+
+    let mut i = 0;
+    while i < len {
+        x64_op_inplace!(x_ptr.add(i), y_ptr.add(i), _mm256_sub_ps);
+
+        i += 64;
     }
 
-    let x = x.as_mut_ptr();
-    let y = y.as_ptr();
-
-    while offset_from < len {
-        x64_op_inplace!(x.add(offset_from), y.add(offset_from), _mm256_sub_ps);
-
-        offset_from += 64;
+    if offset_from != 0 {
+        execute_tail_op_inplace!(len, i, x, y, _mm256_sub_ps, op = -);
     }
 }
 

@@ -1,9 +1,7 @@
 use std::arch::x86_64::*;
 
-#[cfg(feature = "nightly")]
-use crate::danger::f32_xany_fallback_fma_dot;
 use crate::danger::utils::{CHUNK_0, CHUNK_1};
-use crate::danger::{f32_xany_fallback_nofma_dot, offsets_avx2, rollup_x8, sum_avx2};
+use crate::danger::{offsets_avx2, rollup_x8, sum_avx2};
 
 #[target_feature(enable = "avx2")]
 #[inline]
@@ -62,15 +60,10 @@ pub unsafe fn f32_xconst_avx2_nofma_norm<const DIMS: usize>(x: &[f32]) -> f32 {
 /// going to crash the program, it is going to produce insane numbers.
 pub unsafe fn f32_xany_avx2_nofma_norm(x: &[f32]) -> f32 {
     let len = x.len();
-    let mut offset_from = len % 64;
+    let offset_from = len % 64;
     let mut total = 0.0;
 
-    if offset_from != 0 {
-        let subsection = &x[..offset_from];
-        total = f32_xany_fallback_nofma_dot(subsection, subsection);
-    }
-
-    let x = x.as_ptr();
+    let x_ptr = x.as_ptr();
     let mut acc1 = _mm256_setzero_ps();
     let mut acc2 = _mm256_setzero_ps();
     let mut acc3 = _mm256_setzero_ps();
@@ -80,9 +73,10 @@ pub unsafe fn f32_xany_avx2_nofma_norm(x: &[f32]) -> f32 {
     let mut acc7 = _mm256_setzero_ps();
     let mut acc8 = _mm256_setzero_ps();
 
-    while offset_from < len {
+    let mut i = 0;
+    while i < (len - offset_from) {
         execute_f32_x64_nofma_block_norm(
-            x.add(offset_from),
+            x_ptr.add(i),
             &mut acc1,
             &mut acc2,
             &mut acc3,
@@ -93,7 +87,25 @@ pub unsafe fn f32_xany_avx2_nofma_norm(x: &[f32]) -> f32 {
             &mut acc8,
         );
 
-        offset_from += 64;
+        i += 64;
+    }
+
+    if offset_from != 0 {
+        let tail = offset_from % 8;
+
+        while i < (len - tail) {
+            let x = _mm256_loadu_ps(x_ptr.add(i));
+
+            let res = _mm256_mul_ps(x, x);
+            acc1 = _mm256_add_ps(acc1, res);
+
+            i += 8;
+        }
+
+        for n in i..len {
+            let x = *x.get_unchecked(n);
+            total += x * x;
+        }
     }
 
     let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
@@ -159,15 +171,10 @@ pub unsafe fn f32_xconst_avx2_fma_norm<const DIMS: usize>(x: &[f32]) -> f32 {
 /// going to crash the program, it is going to produce insane numbers.
 pub unsafe fn f32_xany_avx2_fma_norm(x: &[f32]) -> f32 {
     let len = x.len();
-    let mut offset_from = len % 64;
+    let offset_from = len % 64;
     let mut total = 0.0;
 
-    if offset_from != 0 {
-        let subsection = &x[..offset_from];
-        total = f32_xany_fallback_fma_dot(subsection, subsection);
-    }
-
-    let x = x.as_ptr();
+    let x_ptr = x.as_ptr();
     let mut acc1 = _mm256_setzero_ps();
     let mut acc2 = _mm256_setzero_ps();
     let mut acc3 = _mm256_setzero_ps();
@@ -177,9 +184,10 @@ pub unsafe fn f32_xany_avx2_fma_norm(x: &[f32]) -> f32 {
     let mut acc7 = _mm256_setzero_ps();
     let mut acc8 = _mm256_setzero_ps();
 
-    while offset_from < len {
+    let mut i = 0;
+    while i < (len - offset_from) {
         execute_f32_x64_fma_block_norm(
-            x.add(offset_from),
+            x_ptr.add(i),
             &mut acc1,
             &mut acc2,
             &mut acc3,
@@ -190,7 +198,23 @@ pub unsafe fn f32_xany_avx2_fma_norm(x: &[f32]) -> f32 {
             &mut acc8,
         );
 
-        offset_from += 64;
+        i += 64;
+    }
+
+    if offset_from != 0 {
+        let tail = offset_from % 8;
+
+        while i < (len - tail) {
+            let x = _mm256_loadu_ps(x_ptr.add(i));
+            acc1 = _mm256_fmadd_ps(x, x, acc1);
+
+            i += 8;
+        }
+
+        for n in i..len {
+            let x = *x.get_unchecked(n);
+            total += x * x;
+        }
     }
 
     let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);

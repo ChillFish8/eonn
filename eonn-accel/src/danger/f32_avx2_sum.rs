@@ -85,7 +85,7 @@ pub unsafe fn f32_xconst_avx2_nofma_sum_horizontal<const DIMS: usize>(x: &[f32])
 /// on non-AVX2 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
 pub unsafe fn f32_xany_avx2_nofma_sum_horizontal(x: &[f32]) -> f32 {
     let len = x.len();
-    let mut offset_from = len % 64;
+    let offset_from = len % 64;
 
     let x_ptr = x.as_ptr();
     let mut extra = 0.0;
@@ -99,24 +99,10 @@ pub unsafe fn f32_xany_avx2_nofma_sum_horizontal(x: &[f32]) -> f32 {
     let mut acc7 = _mm256_setzero_ps();
     let mut acc8 = _mm256_setzero_ps();
 
-    if offset_from != 0 {
-        let mut i = offset_from % 8;
-        for n in 0..i {
-            let x = *x.get_unchecked(n);
-            extra += x;
-        }
-
-        while i < offset_from {
-            let x = _mm256_loadu_ps(x_ptr.add(i));
-            acc1 = _mm256_add_ps(acc1, x);
-
-            i += 8;
-        }
-    }
-
-    while offset_from < len {
+    let mut i = 0;
+    while i < (len - offset_from) {
         sum_x64_block(
-            x_ptr.add(offset_from),
+            x_ptr.add(i),
             &mut acc1,
             &mut acc2,
             &mut acc3,
@@ -127,7 +113,23 @@ pub unsafe fn f32_xany_avx2_nofma_sum_horizontal(x: &[f32]) -> f32 {
             &mut acc8,
         );
 
-        offset_from += 64;
+        i += 64;
+    }
+
+    if offset_from != 0 {
+        let tail = offset_from % 8;
+
+        while i < (len - tail) {
+            let x = _mm256_loadu_ps(x_ptr.add(i));
+            acc1 = _mm256_add_ps(acc1, x);
+
+            i += 8;
+        }
+
+        for n in i..len {
+            let x = *x.get_unchecked(n);
+            extra += x;
+        }
     }
 
     let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
