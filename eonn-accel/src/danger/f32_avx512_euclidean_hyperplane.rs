@@ -99,7 +99,7 @@ pub unsafe fn f32_xany_avx512_fma_euclidean_hyperplane(
     debug_assert_eq!(x.len(), y.len());
 
     let len = x.len();
-    let mut offset_from = len % 128;
+    let offset_from = len % 128;
     let mut hyperplane = vec![0.0; len];
     let hyperplane_ptr = hyperplane.as_mut_ptr();
 
@@ -116,33 +116,11 @@ pub unsafe fn f32_xany_avx512_fma_euclidean_hyperplane(
     let mut offset_acc7 = _mm512_setzero_ps();
     let mut offset_acc8 = _mm512_setzero_ps();
 
-    if offset_from != 0 {
-        let mut i = 0;
-        while i < offset_from {
-            let (x, y) =
-                load_two_variable_size_avx512(x.add(i), y.add(i), offset_from - i);
-
-            let diff = _mm512_sub_ps(x, y);
-            let sum = _mm512_add_ps(x, y);
-            let mean = _mm512_mul_ps(sum, div_by_2);
-
-            offset_acc1 = _mm512_fmadd_ps(diff, mean, offset_acc1);
-
-            let result = mem::transmute::<__m512, [f32; 16]>(diff);
-            ptr::copy_nonoverlapping(
-                result.as_ptr(),
-                hyperplane_ptr.add(i),
-                result.len(),
-            );
-
-            i += 16;
-        }
-    }
-
-    while offset_from < len {
+    let mut i = 0;
+    while i < (len - offset_from) {
         let results = execute_f32_x128_block_fma_hyperplane(
-            x.add(offset_from),
-            y.add(offset_from),
+            x.add(i),
+            y.add(i),
             &mut offset_acc1,
             &mut offset_acc2,
             &mut offset_acc3,
@@ -155,13 +133,33 @@ pub unsafe fn f32_xany_avx512_fma_euclidean_hyperplane(
 
         ptr::copy_nonoverlapping(
             results.as_ptr(),
-            hyperplane_ptr.add(offset_from),
+            hyperplane_ptr.add(i),
             results.len(),
         );
 
-        offset_from += 128;
+        i += 128;
     }
 
+    while i < len {
+        let (x, y) =
+            load_two_variable_size_avx512(x.add(i), y.add(i), len - i);
+
+        let diff = _mm512_sub_ps(x, y);
+        let sum = _mm512_add_ps(x, y);
+        let mean = _mm512_mul_ps(sum, div_by_2);
+
+        offset_acc1 = _mm512_fmadd_ps(diff, mean, offset_acc1);
+
+        let result = mem::transmute::<__m512, [f32; 16]>(diff);
+        ptr::copy_nonoverlapping(
+            result.as_ptr(),
+            hyperplane_ptr.add(i),
+            result.len(),
+        );
+
+        i += 16;
+    }
+    
     let hyperplane_offset = -sum_avx512_x8(
         offset_acc1,
         offset_acc2,

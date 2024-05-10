@@ -74,7 +74,7 @@ pub unsafe fn f32_xany_avx512_fma_dot(x: &[f32], y: &[f32]) -> f32 {
     debug_assert_eq!(x.len(), y.len());
 
     let len = x.len();
-    let mut offset_from = len % 128;
+    let offset_from = len % 128;
 
     let x = x.as_ptr();
     let y = y.as_ptr();
@@ -88,22 +88,11 @@ pub unsafe fn f32_xany_avx512_fma_dot(x: &[f32], y: &[f32]) -> f32 {
     let mut acc7 = _mm512_setzero_ps();
     let mut acc8 = _mm512_setzero_ps();
 
-    if offset_from != 0 {
-        let mut i = 0;
-        while i < offset_from {
-            let (x, y) =
-                load_two_variable_size_avx512(x.add(i), y.add(i), offset_from - i);
-
-            acc1 = _mm512_fmadd_ps(x, y, acc1);
-
-            i += 16;
-        }
-    }
-
-    while offset_from < len {
+    let mut i = 0;
+    while i < (len - offset_from) {
         execute_f32_x128_fma_block_dot_product(
-            x.add(offset_from),
-            y.add(offset_from),
+            x.add(i),
+            y.add(i),
             &mut acc1,
             &mut acc2,
             &mut acc3,
@@ -114,9 +103,18 @@ pub unsafe fn f32_xany_avx512_fma_dot(x: &[f32], y: &[f32]) -> f32 {
             &mut acc8,
         );
 
-        offset_from += 128;
+        i += 128;
     }
 
+    while i < len {
+        let (x, y) =
+            load_two_variable_size_avx512(x.add(i), y.add(i), len - i);
+
+        acc1 = _mm512_fmadd_ps(x, y, acc1);
+
+        i += 16;
+    }
+    
     sum_avx512_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
 }
 

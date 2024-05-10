@@ -79,27 +79,25 @@ pub unsafe fn f32_xconst_avx512_nofma_mul_value<const DIMS: usize>(
 /// on non-AVX512 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
 pub unsafe fn f32_xany_avx512_nofma_mul_value(arr: &mut [f32], multiplier: f32) {
     let len = arr.len();
-    let mut offset_from = len % 128;
+    let offset_from = len % 128;
 
     let multiplier = _mm512_set1_ps(multiplier);
     let arr = arr.as_mut_ptr();
 
-    if offset_from != 0 {
-        let mut i = 0;
-        while i < offset_from {
-            let n = offset_from - i;
-            let arr = arr.add(i);
-            let x = load_one_variable_size_avx512(arr, offset_from - i);
-            let r = _mm512_mul_ps(x, multiplier);
-            copy_masked_avx512_register_to(arr, r, n);
-
-            i += 16;
-        }
+    let mut i = 0;
+    while i < (len - offset_from) {
+        execute_f32_x128_mul(arr.add(i), multiplier);
+        i += 128;
     }
+        
+    while i < len {
+        let n = len - i;
+        let arr = arr.add(i);
+        let x = load_one_variable_size_avx512(arr, n);
+        let r = _mm512_mul_ps(x, multiplier);
+        copy_masked_avx512_register_to(arr, r, n);
 
-    while offset_from < len {
-        execute_f32_x128_mul(arr.add(offset_from), multiplier);
-        offset_from += 128;
+        i += 16;
     }
 }
 
@@ -140,37 +138,35 @@ pub unsafe fn f32_xconst_avx512_nofma_add_value<const DIMS: usize>(
 ///
 /// This method assumes AVX512 instructions are available, if this method is executed
 /// on non-AVX512 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
-pub unsafe fn f32_xany_avx512_nofma_add_value(arr: &mut [f32], value: f32) {
+pub unsafe fn f32_xany_avx512_nofma_add_value(arr: &mut [f32], value: f32) {           
     let len = arr.len();
-    let mut offset_from = len % 128;
+    let offset_from = len % 128;
 
     let value = _mm512_set1_ps(value);
     let arr = arr.as_mut_ptr();
 
-    if offset_from != 0 {
-        let mut i = 0;
-        while i < offset_from {
-            let n = offset_from - i;
-            let arr = arr.add(i);
-
-            let r = if n < 16 {
-                let mask = _bzhi_u32(0xFFFFFFFF, n as u32) as _;
-                let x = _mm512_maskz_loadu_ps(mask, arr);
-                _mm512_maskz_add_ps(mask, x, value)
-            } else {
-                let x = _mm512_loadu_ps(arr);
-                _mm512_add_ps(x, value)
-            };
-
-            copy_masked_avx512_register_to(arr, r, n);
-
-            i += 16;
-        }
+    let mut i = 0;
+    while i < (len - offset_from) {
+        execute_f32_x128_add(arr.add(i), value);
+        i += 128;
     }
+    
+    while i < len {
+        let n = len - i;
+        let arr = arr.add(i);
 
-    while offset_from < len {
-        execute_f32_x128_add(arr.add(offset_from), value);
-        offset_from += 128;
+        let r = if n < 16 {
+            let mask = _bzhi_u32(0xFFFFFFFF, n as u32) as _;
+            let x = _mm512_maskz_loadu_ps(mask, arr);
+            _mm512_maskz_add_ps(mask, x, value)
+        } else {
+            let x = _mm512_loadu_ps(arr);
+            _mm512_add_ps(x, value)
+        };
+
+        copy_masked_avx512_register_to(arr, r, n);
+
+        i += 16;
     }
 }
 
@@ -213,35 +209,33 @@ pub unsafe fn f32_xconst_avx512_nofma_sub_value<const DIMS: usize>(
 /// on non-AVX512 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
 pub unsafe fn f32_xany_avx512_nofma_sub_value(arr: &mut [f32], value: f32) {
     let len = arr.len();
-    let mut offset_from = len % 128;
+    let offset_from = len % 128;
 
     let value = _mm512_set1_ps(value);
     let arr = arr.as_mut_ptr();
 
-    if offset_from != 0 {
-        let mut i = 0;
-        while i < offset_from {
-            let n = offset_from - i;
-            let arr = arr.add(i);
-
-            let r = if n < 16 {
-                let mask = _bzhi_u32(0xFFFFFFFF, n as u32) as _;
-                let x = _mm512_maskz_loadu_ps(mask, arr);
-                _mm512_maskz_sub_ps(mask, x, value)
-            } else {
-                let x = _mm512_loadu_ps(arr);
-                _mm512_sub_ps(x, value)
-            };
-
-            copy_masked_avx512_register_to(arr, r, n);
-
-            i += 16;
-        }
+    let mut i = 0;
+    while i < (len - offset_from) {
+        execute_f32_x128_sub(arr.add(i), value);
+        i += 128;
     }
+    
+    while i < len {
+        let n = len - i;
+        let arr = arr.add(i);
 
-    while offset_from < len {
-        execute_f32_x128_sub(arr.add(offset_from), value);
-        offset_from += 128;
+        let r = if n < 16 {
+            let mask = _bzhi_u32(0xFFFFFFFF, n as u32) as _;
+            let x = _mm512_maskz_loadu_ps(mask, arr);
+            _mm512_maskz_sub_ps(mask, x, value)
+        } else {
+            let x = _mm512_loadu_ps(arr);
+            _mm512_sub_ps(x, value)
+        };
+
+        copy_masked_avx512_register_to(arr, r, n);
+
+        i += 16;
     }
 }
 
@@ -338,6 +332,7 @@ unsafe fn execute_f32_x128_sub(x: *mut f32, value: __m512) {
     ptr::copy_nonoverlapping(result.as_ptr(), x, result.len());
 }
 
+#[cfg(all(test, target_feature = "avx512f"))]
 #[cfg(test)]
 mod tests {
     use super::*;

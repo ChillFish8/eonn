@@ -122,7 +122,7 @@ unsafe fn any_size_f32_hyperplane(
     hyperplane_ptr: *mut f32,
 ) {
     let len = x.len();
-    let mut offset_from = len % 128;
+    let offset_from = len % 128;
 
     let x = x.as_ptr();
     let y = y.as_ptr();
@@ -130,37 +130,35 @@ unsafe fn any_size_f32_hyperplane(
     let inverse_norm_x = _mm512_set1_ps(1.0 / norm_x);
     let inverse_norm_y = _mm512_set1_ps(1.0 / norm_y);
 
-    if offset_from != 0 {
-        let mut i = 0;
-        while i < offset_from {
-            let n = offset_from - i;
-
-            let (x, y) = load_two_variable_size_avx512(x.add(i), y.add(i), n);
-
-            let normalized_x = _mm512_mul_ps(x, inverse_norm_x);
-            let normalized_y = _mm512_mul_ps(y, inverse_norm_y);
-            let diff = _mm512_sub_ps(normalized_x, normalized_y);
-
-            copy_masked_avx512_register_to(hyperplane_ptr.add(i), diff, n);
-
-            i += 16;
-        }
-    }
-
-    while offset_from < len {
+    let mut i = 0;
+    while i < (len - offset_from) {
         let results = execute_f32_x128_block_normal_vector(
-            x.add(offset_from),
-            y.add(offset_from),
+            x.add(i),
+            y.add(i),
             inverse_norm_x,
             inverse_norm_y,
         );
         ptr::copy_nonoverlapping(
             results.as_ptr(),
-            hyperplane_ptr.add(offset_from),
+            hyperplane_ptr.add(i),
             results.len(),
         );
 
-        offset_from += 128;
+        i += 128;
+    }
+    
+    while i < len {
+        let n = len - i;
+
+        let (x, y) = load_two_variable_size_avx512(x.add(i), y.add(i), n);
+
+        let normalized_x = _mm512_mul_ps(x, inverse_norm_x);
+        let normalized_y = _mm512_mul_ps(y, inverse_norm_y);
+        let diff = _mm512_sub_ps(normalized_x, normalized_y);
+
+        copy_masked_avx512_register_to(hyperplane_ptr.add(i), diff, n);
+
+        i += 16;
     }
 }
 

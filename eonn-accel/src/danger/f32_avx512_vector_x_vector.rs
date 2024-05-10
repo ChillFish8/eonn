@@ -49,18 +49,17 @@ macro_rules! x128_op_inplace {
 }
 
 macro_rules! execute_tail_op_inplace {
-    ($offset_from:expr, $x_ptr:ident, $y_ptr:ident, $op:ident) => {{
-        let mut i = 0;
-        while i < $offset_from {
-            let n = $offset_from - i;
+    ($len:expr, $i:expr, $x_ptr:ident, $y_ptr:ident, $op:ident) => {{
+        while $i < $len {
+            let n = $len - $i;
 
-            let (x, y) = load_two_variable_size_avx512($x_ptr.add(i), $y_ptr.add(i), n);
+            let (x, y) = load_two_variable_size_avx512($x_ptr.add($i), $y_ptr.add($i), n);
 
             let reg = $op(x, y);
 
-            copy_masked_avx512_register_to($x_ptr.add(i), reg, n);
+            copy_masked_avx512_register_to($x_ptr.add($i), reg, n);
 
-            i += 16;
+            $i += 16;
         }
     }};
 }
@@ -126,20 +125,19 @@ pub unsafe fn f32_xconst_avx512_nofma_div_vertical<const DIMS: usize>(
 pub unsafe fn f32_xany_avx512_nofma_div_vertical(x: &mut [f32], y: &[f32]) {
     debug_assert_eq!(x.len(), y.len());
     let len = x.len();
-    let mut offset_from = len % 128;
+    let offset_from = len % 128;
 
     let x = x.as_mut_ptr();
     let y = y.as_ptr();
 
-    if offset_from != 0 {
-        execute_tail_op_inplace!(offset_from, x, y, _mm512_div_ps);
-    }
+    let mut i = 0;
+    while i < (len - offset_from) {
+        x128_op_inplace!(x.add(i), y.add(i), _mm512_div_ps);
 
-    while offset_from < len {
-        x128_op_inplace!(x.add(offset_from), y.add(offset_from), _mm512_div_ps);
-
-        offset_from += 128;
+        i += 128;
     }
+    
+    execute_tail_op_inplace!(len, i, x, y, _mm512_div_ps);
 }
 
 #[target_feature(enable = "avx512f")]
@@ -203,20 +201,19 @@ pub unsafe fn f32_xconst_avx512_nofma_mul_vertical<const DIMS: usize>(
 pub unsafe fn f32_xany_avx512_nofma_mul_vertical(x: &mut [f32], y: &[f32]) {
     debug_assert_eq!(x.len(), y.len());
     let len = x.len();
-    let mut offset_from = len % 128;
+    let offset_from = len % 128;
 
     let x = x.as_mut_ptr();
     let y = y.as_ptr();
 
-    if offset_from != 0 {
-        execute_tail_op_inplace!(offset_from, x, y, _mm512_mul_ps);
-    }
+    let mut i = 0;
+    while i < (len - offset_from) {
+        x128_op_inplace!(x.add(i), y.add(i), _mm512_mul_ps);
 
-    while offset_from < len {
-        x128_op_inplace!(x.add(offset_from), y.add(offset_from), _mm512_mul_ps);
-
-        offset_from += 128;
+        i += 128;
     }
+    
+    execute_tail_op_inplace!(len, i, x, y, _mm512_mul_ps);
 }
 
 #[target_feature(enable = "avx512f")]
@@ -280,20 +277,19 @@ pub unsafe fn f32_xconst_avx512_nofma_add_vertical<const DIMS: usize>(
 pub unsafe fn f32_xany_avx512_nofma_add_vertical(x: &mut [f32], y: &[f32]) {
     debug_assert_eq!(x.len(), y.len());
     let len = x.len();
-    let mut offset_from = len % 128;
+    let offset_from = len % 128;
 
     let x = x.as_mut_ptr();
     let y = y.as_ptr();
 
-    if offset_from != 0 {
-        execute_tail_op_inplace!(offset_from, x, y, _mm512_add_ps);
-    }
+    let mut i = 0;
+    while i < (len - offset_from) {
+        x128_op_inplace!(x.add(i), y.add(i), _mm512_add_ps);
 
-    while offset_from < len {
-        x128_op_inplace!(x.add(offset_from), y.add(offset_from), _mm512_add_ps);
-
-        offset_from += 128;
+        i += 128;
     }
+    
+    execute_tail_op_inplace!(len, i, x, y, _mm512_add_ps);
 }
 
 #[target_feature(enable = "avx512f")]
@@ -357,20 +353,19 @@ pub unsafe fn f32_xconst_avx512_nofma_sub_vertical<const DIMS: usize>(
 pub unsafe fn f32_xany_avx512_nofma_sub_vertical(x: &mut [f32], y: &[f32]) {
     debug_assert_eq!(x.len(), y.len());
     let len = x.len();
-    let mut offset_from = len % 128;
+    let offset_from = len % 128;
 
     let x = x.as_mut_ptr();
     let y = y.as_ptr();
 
-    if offset_from != 0 {
-        execute_tail_op_inplace!(offset_from, x, y, _mm512_sub_ps);
-    }
+    let mut i = 0;
+    while i < (len - offset_from) {
+        x128_op_inplace!(x.add(i), y.add(i), _mm512_sub_ps);
 
-    while offset_from < len {
-        x128_op_inplace!(x.add(offset_from), y.add(offset_from), _mm512_sub_ps);
-
-        offset_from += 128;
+        i += 128;
     }
+    
+    execute_tail_op_inplace!(len, i, x, y, _mm512_sub_ps);
 }
 
 #[allow(clippy::too_many_arguments)]

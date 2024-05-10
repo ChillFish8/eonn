@@ -130,7 +130,8 @@ pub unsafe fn f32_xconst_avx512_nofma_min_vertical<const DIMS: usize>(
 /// This method assumes AVX512 instructions are available, if this method is executed
 /// on non-AVX512 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
 pub unsafe fn f32_xany_avx512_nofma_min_horizontal(arr: &[f32]) -> f32 {
-    let dims = arr.len();
+    let len = arr.len();
+    let offset_from = len % 128;
     let arr = arr.as_ptr();
 
     let mut acc1 = _mm512_set1_ps(f32::INFINITY);
@@ -142,29 +143,10 @@ pub unsafe fn f32_xany_avx512_nofma_min_horizontal(arr: &[f32]) -> f32 {
     let mut acc7 = _mm512_set1_ps(f32::INFINITY);
     let mut acc8 = _mm512_set1_ps(f32::INFINITY);
 
-    let mut offset_from = dims % 128;
-    if offset_from != 0 {
-        let mut i = 0;
-        while i < offset_from {
-            let n = offset_from - i;
-            let arr = arr.add(i);
-
-            if n < 16 {
-                let mask = _bzhi_u32(0xFFFFFFFF, n as u32) as _;
-                let x = _mm512_maskz_loadu_ps(mask, arr);
-                acc1 = _mm512_mask_min_ps(acc1, mask, acc1, x);
-            } else {
-                let x = _mm512_loadu_ps(arr);
-                acc1 = _mm512_min_ps(acc1, x);
-            }
-
-            i += 16;
-        }
-    }
-
-    while offset_from < dims {
+    let mut i = 0;
+    while i < (len - offset_from) {
         min_by_x128_horizontal(
-            arr.add(offset_from),
+            arr.add(i),
             &mut acc1,
             &mut acc2,
             &mut acc3,
@@ -175,9 +157,25 @@ pub unsafe fn f32_xany_avx512_nofma_min_horizontal(arr: &[f32]) -> f32 {
             &mut acc8,
         );
 
-        offset_from += 128;
+        i += 128;
     }
 
+    while i < len {
+        let n = len - i;
+        let arr = arr.add(i);
+
+        if n < 16 {
+            let mask = _bzhi_u32(0xFFFFFFFF, n as u32) as _;
+            let x = _mm512_maskz_loadu_ps(mask, arr);
+            acc1 = _mm512_mask_min_ps(acc1, mask, acc1, x);
+        } else {
+            let x = _mm512_loadu_ps(arr);
+            acc1 = _mm512_min_ps(acc1, x);
+        }
+
+        i += 16;
+    }
+    
     rollup_min_acc(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
 }
 
@@ -194,39 +192,18 @@ pub unsafe fn f32_xany_avx512_nofma_min_horizontal(arr: &[f32]) -> f32 {
 /// This method assumes AVX512 instructions are available, if this method is executed
 /// on non-AVX512 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
 pub unsafe fn f32_xany_avx512_nofma_min_vertical(matrix: &[&[f32]]) -> Vec<f32> {
-    let dims = matrix[0].len();
+    let len = matrix[0].len();
+    let offset_from = len % 128;
 
-    let mut min_values = vec![0.0; dims];
+    let mut min_values = vec![0.0; len];
     let min_values_ptr = min_values.as_mut_ptr();
-    let mut offset_from = dims % 128;
-
-    if offset_from != 128 {
-        let mut i = 0;
-        while i < offset_from {
-            let n = offset_from - i;
-
-            let mut acc = _mm512_set1_ps(f32::INFINITY);
-
-            for m in 0..matrix.len() {
-                let arr = *matrix.get_unchecked(m);
-                debug_assert_eq!(arr.len(), dims);
-
-                let arr = arr.as_ptr();
-                let x = load_one_variable_size_avx512(arr.add(i), n);
-                acc = _mm512_min_ps(acc, x);
-            }
-
-            copy_masked_avx512_register_to(min_values_ptr.add(i), acc, n);
-
-            i += 16;
-        }
-    }
 
     // We work our way horizontally by taking steps of 128 and finding
     // the min of for each of the lanes vertically through the matrix.
     // TODO: I am unsure how hard this is on the cache or if there is a smarter
     //       way to write this.
-    while offset_from < dims {
+    let mut i = 0;
+    while i < (len - offset_from) {
         let mut acc1 = _mm512_set1_ps(f32::INFINITY);
         let mut acc2 = _mm512_set1_ps(f32::INFINITY);
         let mut acc3 = _mm512_set1_ps(f32::INFINITY);
@@ -239,11 +216,11 @@ pub unsafe fn f32_xany_avx512_nofma_min_vertical(matrix: &[&[f32]]) -> Vec<f32> 
         // Vertical min of the 128 elements.
         for m in 0..matrix.len() {
             let arr = *matrix.get_unchecked(m);
-            debug_assert_eq!(arr.len(), dims);
+            debug_assert_eq!(arr.len(), len);
 
             let arr = arr.as_ptr();
             min_by_x128_horizontal(
-                arr.add(offset_from),
+                arr.add(i),
                 &mut acc1,
                 &mut acc2,
                 &mut acc3,
@@ -260,13 +237,32 @@ pub unsafe fn f32_xany_avx512_nofma_min_vertical(matrix: &[&[f32]]) -> Vec<f32> 
         let result = mem::transmute::<[__m512; 8], [f32; 128]>(merged);
         ptr::copy_nonoverlapping(
             result.as_ptr(),
-            min_values_ptr.add(offset_from),
+            min_values_ptr.add(i),
             result.len(),
         );
 
-        offset_from += 128;
+        i += 128;
     }
 
+    while i < len {
+        let n = offset_from - i;
+
+        let mut acc = _mm512_set1_ps(f32::INFINITY);
+
+        for m in 0..matrix.len() {
+            let arr = *matrix.get_unchecked(m);
+            debug_assert_eq!(arr.len(), len);
+
+            let arr = arr.as_ptr();
+            let x = load_one_variable_size_avx512(arr.add(i), n);
+            acc = _mm512_min_ps(acc, x);
+        }
+
+        copy_masked_avx512_register_to(min_values_ptr.add(i), acc, n);
+
+        i += 16;
+    }
+    
     min_values
 }
 

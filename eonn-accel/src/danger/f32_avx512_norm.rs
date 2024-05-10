@@ -60,7 +60,7 @@ pub unsafe fn f32_xconst_avx512_fma_norm<const DIMS: usize>(x: &[f32]) -> f32 {
 /// going to crash the program, it is going to produce insane numbers.
 pub unsafe fn f32_xany_avx512_fma_norm(x: &[f32]) -> f32 {
     let len = x.len();
-    let mut offset_from = len % 128;
+    let offset_from = len % 128;
     let x = x.as_ptr();
 
     let mut acc1 = _mm512_setzero_ps();
@@ -72,13 +72,10 @@ pub unsafe fn f32_xany_avx512_fma_norm(x: &[f32]) -> f32 {
     let mut acc7 = _mm512_setzero_ps();
     let mut acc8 = _mm512_setzero_ps();
 
-    if offset_from != 0 {
-        execute_f32_xany_fma_block_norm(x, offset_from, &mut acc1);
-    }
-
-    while offset_from < len {
+    let mut i = 0;
+    while i < (len - offset_from) {
         execute_f32_x128_fma_block_norm(
-            x.add(offset_from),
+            x.add(i),
             &mut acc1,
             &mut acc2,
             &mut acc3,
@@ -89,9 +86,25 @@ pub unsafe fn f32_xany_avx512_fma_norm(x: &[f32]) -> f32 {
             &mut acc8,
         );
 
-        offset_from += 128;
+        i += 128;
     }
+    
+    while i < len {
+        let n = len - i;
+        let addr = x.add(i);
 
+        let x = if n < 16 {
+            let mask = _bzhi_u32(0xFFFFFFFF, n as u32) as _;
+            _mm512_maskz_loadu_ps(mask, addr)
+        } else {
+            _mm512_loadu_ps(addr)
+        };
+
+        acc1 = _mm512_fmadd_ps(x, x, acc1);
+
+        i += 16
+    }
+    
     sum_avx512_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
 }
 
@@ -128,26 +141,6 @@ unsafe fn execute_f32_x128_fma_block_norm(
     *acc6 = _mm512_fmadd_ps(x6, x6, *acc6);
     *acc7 = _mm512_fmadd_ps(x7, x7, *acc7);
     *acc8 = _mm512_fmadd_ps(x8, x8, *acc8);
-}
-
-#[inline(always)]
-unsafe fn execute_f32_xany_fma_block_norm(x: *const f32, n: usize, acc: &mut __m512) {
-    let mut i = 0;
-    while i < n {
-        let cap = n - i;
-        let addr = x.add(i);
-
-        let x = if cap < 16 {
-            let mask = _bzhi_u32(0xFFFFFFFF, cap as u32) as _;
-            _mm512_maskz_loadu_ps(mask, addr)
-        } else {
-            _mm512_loadu_ps(addr)
-        };
-
-        *acc = _mm512_fmadd_ps(x, x, *acc);
-
-        i += 16
-    }
 }
 
 #[cfg(all(test, target_feature = "avx512f"))]

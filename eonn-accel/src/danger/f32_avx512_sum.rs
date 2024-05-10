@@ -86,7 +86,7 @@ pub unsafe fn f32_xconst_avx512_nofma_sum_horizontal<const DIMS: usize>(
 /// on non-AVX512 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
 pub unsafe fn f32_xany_avx512_nofma_sum_horizontal(x: &[f32]) -> f32 {
     let len = x.len();
-    let mut offset_from = len % 128;
+    let offset_from = len % 128;
 
     let x = x.as_ptr();
 
@@ -99,21 +99,10 @@ pub unsafe fn f32_xany_avx512_nofma_sum_horizontal(x: &[f32]) -> f32 {
     let mut acc7 = _mm512_setzero_ps();
     let mut acc8 = _mm512_setzero_ps();
 
-    if offset_from != 0 {
-        let mut i = 0;
-        while i < offset_from {
-            let n = offset_from - i;
-
-            let x = load_one_variable_size_avx512(x.add(i), n);
-            acc1 = _mm512_add_ps(acc1, x);
-
-            i += 16;
-        }
-    }
-
-    while offset_from < len {
+    let mut i = 0;
+    while i < (len - offset_from) {
         sum_x128_block(
-            x.add(offset_from),
+            x.add(i),
             &mut acc1,
             &mut acc2,
             &mut acc3,
@@ -124,9 +113,18 @@ pub unsafe fn f32_xany_avx512_nofma_sum_horizontal(x: &[f32]) -> f32 {
             &mut acc8,
         );
 
-        offset_from += 128;
+        i += 128;
     }
 
+    while i < len {
+        let n = len - i;
+
+        let x = load_one_variable_size_avx512(x.add(i), n);
+        acc1 = _mm512_add_ps(acc1, x);
+
+        i += 16;
+    }
+    
     sum_avx512_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
 }
 
@@ -224,35 +222,14 @@ pub unsafe fn f32_xconst_avx512_nofma_sum_vertical<const DIMS: usize>(
 /// This method assumes AVX512 instructions are available, if this method is executed
 /// on non-AVX512 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
 pub unsafe fn f32_xany_avx512_nofma_sum_vertical(matrix: &[&[f32]]) -> Vec<f32> {
-    let dims = matrix[0].len();
-    let mut offset_from = dims % 128;
+    let len = matrix[0].len();
+    let offset_from = len % 128;
 
-    let mut results = vec![0.0; dims];
+    let mut results = vec![0.0; len];
     let results_ptr = results.as_mut_ptr();
 
-    if offset_from != 0 {
-        let mut i = 0;
-        while i < offset_from {
-            let n = offset_from - i;
-
-            let mut acc = _mm512_setzero_ps();
-
-            for m in 0..matrix.len() {
-                let arr = *matrix.get_unchecked(m);
-                debug_assert_eq!(arr.len(), dims);
-
-                let arr = arr.as_ptr();
-                let x = load_one_variable_size_avx512(arr.add(i), n);
-                acc = _mm512_add_ps(acc, x);
-            }
-
-            copy_masked_avx512_register_to(results_ptr.add(i), acc, n);
-
-            i += 16;
-        }
-    }
-
-    while offset_from < dims {
+    let mut i = 0;
+    while i < (len - offset_from) {
         let mut acc1 = _mm512_setzero_ps();
         let mut acc2 = _mm512_setzero_ps();
         let mut acc3 = _mm512_setzero_ps();
@@ -264,11 +241,11 @@ pub unsafe fn f32_xany_avx512_nofma_sum_vertical(matrix: &[&[f32]]) -> Vec<f32> 
 
         for m in 0..matrix.len() {
             let arr = *matrix.get_unchecked(m);
-            debug_assert_eq!(arr.len(), dims);
+            debug_assert_eq!(arr.len(), len);
             let arr = arr.as_ptr();
 
             sum_x128_block(
-                arr.add(offset_from),
+                arr.add(i),
                 &mut acc1,
                 &mut acc2,
                 &mut acc3,
@@ -285,13 +262,32 @@ pub unsafe fn f32_xany_avx512_nofma_sum_vertical(matrix: &[&[f32]]) -> Vec<f32> 
         let result = mem::transmute::<[__m512; 8], [f32; 128]>(merged);
         ptr::copy_nonoverlapping(
             result.as_ptr(),
-            results_ptr.add(offset_from),
+            results_ptr.add(i),
             result.len(),
         );
 
-        offset_from += 128;
+        i += 128;
     }
 
+    while i < len {
+        let n = len - i;
+
+        let mut acc = _mm512_setzero_ps();
+
+        for m in 0..matrix.len() {
+            let arr = *matrix.get_unchecked(m);
+            debug_assert_eq!(arr.len(), len);
+
+            let arr = arr.as_ptr();
+            let x = load_one_variable_size_avx512(arr.add(i), n);
+            acc = _mm512_add_ps(acc, x);
+        }
+
+        copy_masked_avx512_register_to(results_ptr.add(i), acc, n);
+
+        i += 16;
+    }
+    
     results
 }
 

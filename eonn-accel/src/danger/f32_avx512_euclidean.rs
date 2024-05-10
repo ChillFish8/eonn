@@ -77,7 +77,7 @@ pub unsafe fn f32_xany_avx512_fma_euclidean(x: &[f32], y: &[f32]) -> f32 {
     debug_assert_eq!(x.len(), y.len());
 
     let len = x.len();
-    let mut offset_from = len % 128;
+    let offset_from = len % 128;
 
     let x = x.as_ptr();
     let y = y.as_ptr();
@@ -91,23 +91,11 @@ pub unsafe fn f32_xany_avx512_fma_euclidean(x: &[f32], y: &[f32]) -> f32 {
     let mut acc7 = _mm512_setzero_ps();
     let mut acc8 = _mm512_setzero_ps();
 
-    if offset_from != 0 {
-        let mut i = 0;
-        while i < offset_from {
-            let (x, y) =
-                load_two_variable_size_avx512(x.add(i), y.add(i), offset_from - i);
-
-            let diff = _mm512_sub_ps(x, y);
-            acc1 = _mm512_fmadd_ps(diff, diff, acc1);
-
-            i += 16;
-        }
-    }
-
-    while offset_from < len {
+    let mut i = 0;
+    while i < (len - offset_from) {
         execute_f32_x128_fma_block_euclidean(
-            x.add(offset_from),
-            y.add(offset_from),
+            x.add(i),
+            y.add(i),
             &mut acc1,
             &mut acc2,
             &mut acc3,
@@ -118,9 +106,19 @@ pub unsafe fn f32_xany_avx512_fma_euclidean(x: &[f32], y: &[f32]) -> f32 {
             &mut acc8,
         );
 
-        offset_from += 128;
+        i += 128;
     }
 
+    while i < len {
+        let (x, y) =
+            load_two_variable_size_avx512(x.add(i), y.add(i), len - i);
+
+        let diff = _mm512_sub_ps(x, y);
+        acc1 = _mm512_fmadd_ps(diff, diff, acc1);
+
+        i += 16;
+    }
+    
     sum_avx512_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
 }
 
@@ -184,19 +182,19 @@ unsafe fn execute_f32_x128_fma_block_euclidean(
 #[cfg(all(test, target_feature = "avx512f"))]
 mod tests {
     use super::*;
-    use crate::test_utils::{get_sample_vectors, is_close, simple_euclidean};
+    use crate::test_utils::{assert_is_close, get_sample_vectors, simple_euclidean};
 
     #[test]
     fn test_xconst_fma_euclidean() {
         let (x, y) = get_sample_vectors(1024);
         let dist = unsafe { f32_xconst_avx512_fma_euclidean::<1024>(&x, &y) };
-        assert!(is_close(dist, simple_euclidean(&x, &y)));
+        assert_is_close(dist, simple_euclidean(&x, &y));
     }
 
     #[test]
     fn test_xany_fma_euclidean() {
         let (x, y) = get_sample_vectors(563);
         let dist = unsafe { f32_xany_avx512_fma_euclidean(&x, &y) };
-        assert!(is_close(dist, simple_euclidean(&x, &y)));
+        assert_is_close(dist, simple_euclidean(&x, &y));
     }
 }
