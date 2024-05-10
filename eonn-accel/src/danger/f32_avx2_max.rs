@@ -22,8 +22,6 @@ pub unsafe fn f32_xconst_avx2_nofma_max_horizontal<const DIMS: usize>(
 
     let arr = arr.as_ptr();
 
-    _mm_prefetch::<_MM_HINT_T1>(arr.cast());
-
     let mut acc1 = _mm256_set1_ps(f32::NEG_INFINITY);
     let mut acc2 = _mm256_set1_ps(f32::NEG_INFINITY);
     let mut acc3 = _mm256_set1_ps(f32::NEG_INFINITY);
