@@ -63,29 +63,14 @@ benchmark_distance_measure!(
 );
 
 benchmark_distance_measure!(
-    "f32_avx512_nofma_dot",
-    x1024 = f32_xconst_avx512_nofma_dot::<1024>,
-    xany = f32_xany_avx512_nofma_dot,
-);
-benchmark_distance_measure!(
     "f32_avx512_fma_dot",
     x1024 = f32_xconst_avx512_fma_dot::<1024>,
     xany = f32_xany_avx512_fma_dot,
 );
 benchmark_distance_measure!(
-    "f32_avx512_nofma_cosine",
-    x1024 = f32_xconst_avx512_nofma_cosine::<1024>,
-    xany = f32_xany_avx512_nofma_cosine,
-);
-benchmark_distance_measure!(
     "f32_avx512_fma_cosine",
     x1024 = f32_xconst_avx512_fma_cosine::<1024>,
     xany = f32_xany_avx512_fma_cosine,
-);
-benchmark_distance_measure!(
-    "f32_avx512_nofma_euclidean",
-    x1024 = f32_xconst_avx512_nofma_euclidean::<1024>,
-    xany = f32_xany_avx512_nofma_euclidean,
 );
 benchmark_distance_measure!(
     "f32_avx512_fma_euclidean",
@@ -135,11 +120,8 @@ criterion_group!(
         benchmark_f32_avx2_fma_cosine,
         benchmark_f32_avx2_nofma_euclidean,
         benchmark_f32_avx2_fma_euclidean,
-        benchmark_f32_avx512_nofma_dot,
         benchmark_f32_avx512_fma_dot,
-        benchmark_f32_avx512_nofma_cosine,
         benchmark_f32_avx512_fma_cosine,
-        benchmark_f32_avx512_nofma_euclidean,
         benchmark_f32_avx512_fma_euclidean,
         benchmark_f32_fallback_nofma_dot,
         benchmark_f32_fallback_fma_dot,
