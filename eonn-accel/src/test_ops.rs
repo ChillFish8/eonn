@@ -400,7 +400,7 @@ define_vector_op_test_suite!(
     suite_name = f32_x1024_avx512_nofma,
     dim = X1024,
     len = 1024,
-    arch = Avx512Fma,
+    arch = Avx512,
     tp = f32,
 );
 #[cfg(all(
@@ -412,7 +412,7 @@ define_vector_op_test_suite!(
     suite_name = f32_x768_avx512_nofma,
     dim = X768,
     len = 768,
-    arch = Avx512Fma,
+    arch = Avx512,
     tp = f32,
 );
 #[cfg(all(
@@ -424,7 +424,7 @@ define_vector_op_test_suite!(
     suite_name = f32_x512_avx512_nofma,
     dim = X512,
     len = 512,
-    arch = Avx512Fma,
+    arch = Avx512,
     tp = f32,
 );
 #[cfg(all(
@@ -436,57 +436,7 @@ define_vector_op_test_suite!(
     suite_name = f32_xany_avx512_nofma,
     dim = XAny,
     len = 537,
-    arch = Avx512Fma,
-    tp = f32,
-);
-
-// AVX512 routines w/fma
-#[cfg(all(
-    any(target_arch = "x86", target_arch = "x86_64"),
-    feature = "nightly",
-    target_feature = "avx512f"
-))]
-define_vector_op_test_suite!(
-    suite_name = f32_x1024_avx512_fma,
-    dim = X1024,
-    len = 1024,
-    arch = Avx512Fma,
-    tp = f32,
-);
-#[cfg(all(
-    any(target_arch = "x86", target_arch = "x86_64"),
-    feature = "nightly",
-    target_feature = "avx512f"
-))]
-define_vector_op_test_suite!(
-    suite_name = f32_x768_avx512_fma,
-    dim = X768,
-    len = 768,
-    arch = Avx512Fma,
-    tp = f32,
-);
-#[cfg(all(
-    any(target_arch = "x86", target_arch = "x86_64"),
-    feature = "nightly",
-    target_feature = "avx512f"
-))]
-define_vector_op_test_suite!(
-    suite_name = f32_x512_avx512_fma,
-    dim = X512,
-    len = 512,
-    arch = Avx512Fma,
-    tp = f32,
-);
-#[cfg(all(
-    any(target_arch = "x86", target_arch = "x86_64"),
-    feature = "nightly",
-    target_feature = "avx512f"
-))]
-define_vector_op_test_suite!(
-    suite_name = f32_xany_avx512_fma,
-    dim = XAny,
-    len = 537,
-    arch = Avx512Fma,
+    arch = Avx512,
     tp = f32,
 );
 
@@ -853,55 +803,5 @@ define_vector_op_auto_arch_test_suite!(
     dim = XAny,
     len = 537,
     variant = Avx512,
-    tp = f32,
-);
-
-// Auto select routines w/ AVX512Fma enabled
-#[cfg(all(
-    any(target_arch = "x86", target_arch = "x86_64"),
-    feature = "nightly",
-    target_feature = "avx512f"
-))]
-define_vector_op_auto_arch_test_suite!(
-    suite_name = f32_x1024_auto_avx512fma_variant,
-    dim = X1024,
-    len = 1024,
-    variant = Avx512Fma,
-    tp = f32,
-);
-#[cfg(all(
-    any(target_arch = "x86", target_arch = "x86_64"),
-    feature = "nightly",
-    target_feature = "avx512f"
-))]
-define_vector_op_auto_arch_test_suite!(
-    suite_name = f32_x768_auto_avx512fma_variant,
-    dim = X768,
-    len = 768,
-    variant = Avx512Fma,
-    tp = f32,
-);
-#[cfg(all(
-    any(target_arch = "x86", target_arch = "x86_64"),
-    feature = "nightly",
-    target_feature = "avx512f"
-))]
-define_vector_op_auto_arch_test_suite!(
-    suite_name = f32_x512_auto_avx512fma_variant,
-    dim = X512,
-    len = 512,
-    variant = Avx512Fma,
-    tp = f32,
-);
-#[cfg(all(
-    any(target_arch = "x86", target_arch = "x86_64"),
-    feature = "nightly",
-    target_feature = "avx512f"
-))]
-define_vector_op_auto_arch_test_suite!(
-    suite_name = f32_xauto_auto_avx512fma_variant,
-    dim = XAny,
-    len = 537,
-    variant = Avx512Fma,
     tp = f32,
 );

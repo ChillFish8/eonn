@@ -5,119 +5,13 @@ use crate::danger::{
     copy_masked_avx512_register_to,
     f32_xany_avx512_fma_norm,
     f32_xany_avx512_nofma_div_value,
-    f32_xany_avx512_nofma_norm,
     f32_xconst_avx512_fma_norm,
     f32_xconst_avx512_nofma_div_value,
-    f32_xconst_avx512_nofma_norm,
     load_two_variable_size_avx512,
     offsets_avx512,
     CHUNK_0,
     CHUNK_1,
 };
-
-#[target_feature(enable = "avx512f")]
-#[inline]
-/// Computes the angular hyperplane of two `[f32; DIMS]` vectors.
-///
-/// # Safety
-///
-/// DIMS **MUST** be a multiple of `128` and vectors must be `DIMS` in length,
-/// otherwise this routine will become immediately UB due to out of bounds pointer accesses.
-///
-/// NOTE:
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_xconst_avx512_nofma_angular_hyperplane<const DIMS: usize>(
-    x: &[f32],
-    y: &[f32],
-) -> Vec<f32> {
-    debug_assert_eq!(DIMS % 128, 0);
-    debug_assert_eq!(x.len(), y.len());
-    debug_assert_eq!(x.len(), DIMS);
-
-    let mut norm_x = f32_xconst_avx512_nofma_norm::<DIMS>(x).sqrt();
-    if norm_x.abs() < f32::EPSILON {
-        norm_x = 1.0;
-    }
-
-    let mut norm_y = f32_xconst_avx512_nofma_norm::<DIMS>(y).sqrt();
-    if norm_y.abs() < f32::EPSILON {
-        norm_y = 1.0;
-    }
-
-    let x = x.as_ptr();
-    let y = y.as_ptr();
-
-    let inverse_norm_x = _mm512_set1_ps(1.0 / norm_x);
-    let inverse_norm_y = _mm512_set1_ps(1.0 / norm_y);
-
-    let mut hyperplane = vec![0.0; DIMS];
-    let hyperplane_ptr = hyperplane.as_mut_ptr();
-
-    let mut i = 0;
-    while i < DIMS {
-        let results = execute_f32_x128_block_normal_vector(
-            x.add(i),
-            y.add(i),
-            inverse_norm_x,
-            inverse_norm_y,
-        );
-        ptr::copy_nonoverlapping(results.as_ptr(), hyperplane_ptr.add(i), results.len());
-
-        i += 128;
-    }
-
-    let mut norm_hyperplane = f32_xconst_avx512_nofma_norm::<DIMS>(&hyperplane).sqrt();
-    if norm_hyperplane.abs() < f32::EPSILON {
-        norm_hyperplane = 1.0;
-    }
-
-    f32_xconst_avx512_nofma_div_value::<DIMS>(&mut hyperplane, norm_hyperplane);
-
-    hyperplane
-}
-
-#[target_feature(enable = "avx512f")]
-#[inline]
-/// Computes the angular hyperplane of two `f32` vectors.
-///
-/// # Safety
-///
-/// Vectors **MUST** be equal length, otherwise this routine
-/// will become immediately UB due to out of bounds pointer accesses.
-///
-/// NOTE:
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_xany_avx512_nofma_angular_hyperplane(
-    x: &[f32],
-    y: &[f32],
-) -> Vec<f32> {
-    debug_assert_eq!(x.len(), y.len());
-
-    let mut norm_x = f32_xany_avx512_nofma_norm(x).sqrt();
-    if norm_x.abs() < f32::EPSILON {
-        norm_x = 1.0;
-    }
-
-    let mut norm_y = f32_xany_avx512_nofma_norm(y).sqrt();
-    if norm_y.abs() < f32::EPSILON {
-        norm_y = 1.0;
-    }
-
-    let mut hyperplane = vec![0.0; x.len()];
-
-    any_size_f32_hyperplane(x, y, norm_x, norm_y, hyperplane.as_mut_ptr());
-
-    let mut norm_hyperplane = f32_xany_avx512_nofma_norm(&hyperplane).sqrt();
-    if norm_hyperplane.abs() < f32::EPSILON {
-        norm_hyperplane = 1.0;
-    }
-
-    f32_xany_avx512_nofma_div_value(&mut hyperplane, norm_hyperplane);
-
-    hyperplane
-}
 
 #[target_feature(enable = "avx512f")]
 #[inline]
@@ -352,26 +246,9 @@ mod tests {
     }
 
     #[test]
-    fn test_xconst_nofma_angular_hyperplane() {
-        let (x, y) = get_sample_vectors(1024);
-        let hyperplane =
-            unsafe { f32_xconst_avx512_nofma_angular_hyperplane::<1024>(&x, &y) };
-        let expected = simple_angular_hyperplane(&x, &y);
-        assert_is_close_vector(&hyperplane, &expected);
-    }
-
-    #[test]
     fn test_xany_fma_angular_hyperplane() {
         let (x, y) = get_sample_vectors(517);
         let hyperplane = unsafe { f32_xany_avx512_fma_angular_hyperplane(&x, &y) };
-        let expected = simple_angular_hyperplane(&x, &y);
-        assert_is_close_vector(&hyperplane, &expected);
-    }
-
-    #[test]
-    fn test_xany_nofma_angular_hyperplane() {
-        let (x, y) = get_sample_vectors(517);
-        let hyperplane = unsafe { f32_xany_avx512_nofma_angular_hyperplane(&x, &y) };
         let expected = simple_angular_hyperplane(&x, &y);
         assert_is_close_vector(&hyperplane, &expected);
     }

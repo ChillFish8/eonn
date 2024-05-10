@@ -48,15 +48,6 @@ impl Default for Avx2Fma {
     }
 }
 
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-pub struct Avx512Fma(Avx512, Fma);
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-impl Default for Avx512Fma {
-    fn default() -> Self {
-        Self(Avx512(()), Fma(()))
-    }
-}
-
 #[cfg(feature = "nightly")]
 pub struct FallbackFma(Fallback, Fma);
 #[cfg(feature = "nightly")]
@@ -80,8 +71,6 @@ pub(crate) enum SelectedArch {
     Avx2Fma,
     #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
     Avx512,
-    #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-    Avx512Fma,
     #[allow(unused)]
     Fallback,
     #[cfg(feature = "nightly")]
@@ -95,8 +84,8 @@ impl Default for SelectedArch {
             any(target_arch = "x86", target_arch = "x86_64"),
             feature = "nightly"
         ))]
-        if is_x86_feature_detected!("avx512f") && is_x86_feature_detected!("fma") {
-            return Self::Avx512Fma;
+        if is_x86_feature_detected!("avx512f") {
+            return Self::Avx512;
         }
 
         #[cfg(all(
@@ -149,8 +138,6 @@ impl Arch for Avx2 {}
 impl Arch for Avx2Fma {}
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 impl Arch for Avx512 {}
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-impl Arch for Avx512Fma {}
 impl Arch for Auto {}
 impl Arch for Fallback {}
 #[cfg(feature = "nightly")]
