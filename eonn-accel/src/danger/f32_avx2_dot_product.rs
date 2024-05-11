@@ -2,6 +2,7 @@ use std::arch::x86_64::*;
 
 use crate::danger::utils::{CHUNK_0, CHUNK_1};
 use crate::danger::{offsets_avx2, rollup_x8, sum_avx2};
+use crate::math::*;
 
 #[target_feature(enable = "avx2")]
 #[inline]
@@ -62,10 +63,6 @@ pub unsafe fn f32_xconst_avx2_nofma_dot<const DIMS: usize>(x: &[f32], y: &[f32])
 ///
 /// Vectors **MUST** be the same length, otherwise this routine
 /// will become immediately UB due to out of bounds pointer accesses.
-///
-/// NOTE:
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
 pub unsafe fn f32_xany_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
     debug_assert_eq!(x.len(), y.len());
 
@@ -119,15 +116,14 @@ pub unsafe fn f32_xany_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
         for n in i..len {
             let x = *x.get_unchecked(n);
             let y = *y.get_unchecked(n);
-            total += x * y;
+            total = AutoMath::add(total, AutoMath::mul(x, y));
         }
     }
 
     let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
-    total + sum_avx2(acc)
+    AutoMath::add(total, sum_avx2(acc))
 }
 
-#[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
 /// Computes the dot product of two `[f32; DIMS]` vectors.
@@ -136,10 +132,6 @@ pub unsafe fn f32_xany_avx2_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
 ///
 /// DIMS **MUST** be a multiple of `64` and both vectors must be `DIMS` in length,
 /// otherwise this routine will become immediately UB due to out of bounds pointer accesses.
-///
-/// NOTE:
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
 pub unsafe fn f32_xconst_avx2_fma_dot<const DIMS: usize>(x: &[f32], y: &[f32]) -> f32 {
     debug_assert_eq!(DIMS % 64, 0);
     debug_assert_eq!(x.len(), y.len());
@@ -179,7 +171,6 @@ pub unsafe fn f32_xconst_avx2_fma_dot<const DIMS: usize>(x: &[f32], y: &[f32]) -
     sum_avx2(acc)
 }
 
-#[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
 /// Computes the dot product of two `f32` vectors.
@@ -188,10 +179,6 @@ pub unsafe fn f32_xconst_avx2_fma_dot<const DIMS: usize>(x: &[f32], y: &[f32]) -
 ///
 /// Vectors **MUST** be the same length, otherwise this routine
 /// will become immediately UB due to out of bounds pointer accesses.
-///
-/// NOTE:
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
 pub unsafe fn f32_xany_avx2_fma_dot(x: &[f32], y: &[f32]) -> f32 {
     use crate::math::*;
 
@@ -246,12 +233,12 @@ pub unsafe fn f32_xany_avx2_fma_dot(x: &[f32], y: &[f32]) -> f32 {
         for n in i..len {
             let x = *x.get_unchecked(n);
             let y = *y.get_unchecked(n);
-            total = FastMath::add(total, FastMath::mul(x, y));
+            total = AutoMath::add(total, AutoMath::mul(x, y));
         }
     }
 
     let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
-    total + sum_avx2(acc)
+    AutoMath::add(total, sum_avx2(acc))
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -311,7 +298,6 @@ unsafe fn execute_f32_x64_nofma_block_dot_product(
     *acc8 = _mm256_add_ps(*acc8, r8);
 }
 
-#[cfg(feature = "nightly")]
 #[allow(clippy::too_many_arguments)]
 #[inline(always)]
 unsafe fn execute_f32_x64_fma_block_dot_product(
@@ -365,7 +351,6 @@ mod tests {
     use super::*;
     use crate::test_utils::{assert_is_close, get_sample_vectors, simple_dot};
 
-    #[cfg(feature = "nightly")]
     #[test]
     fn test_xany_fma_dot() {
         let (x, y) = get_sample_vectors(127);
@@ -380,7 +365,6 @@ mod tests {
         assert_is_close(dist, simple_dot(&x, &y))
     }
 
-    #[cfg(feature = "nightly")]
     #[test]
     fn test_xconst_fma_dot() {
         let (x, y) = get_sample_vectors(1024);

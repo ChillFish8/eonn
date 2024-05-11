@@ -140,7 +140,7 @@ pub unsafe fn f32_xany_avx2_nofma_euclidean_hyperplane(
     if offset_from != 0 {
         let x_subsection = &x[(len - offset_from)..];
         let y_subsection = &y[(len - offset_from)..];
-        hyperplane_offset = fallback_euclidean_hyperplane::<StdMath>(
+        hyperplane_offset = fallback_euclidean_hyperplane::<AutoMath>(
             x_subsection,
             y_subsection,
             &mut hyperplane[(len - offset_from)..],
@@ -161,7 +161,6 @@ pub unsafe fn f32_xany_avx2_nofma_euclidean_hyperplane(
     (hyperplane, hyperplane_offset)
 }
 
-#[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
 /// Computes the Euclidean hyperplane of two `[f32; DIMS]` vectors.
@@ -232,7 +231,6 @@ pub unsafe fn f32_xconst_avx2_fma_euclidean_hyperplane<const DIMS: usize>(
     (hyperplane, hyperplane_offset)
 }
 
-#[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
 /// Computes the Euclidean hyperplane of two f32 vectors of any size, assuming
@@ -291,14 +289,14 @@ pub unsafe fn f32_xany_avx2_fma_euclidean_hyperplane(
     if offset_from != 0 {
         let x_subsection = &x[(len - offset_from)..];
         let y_subsection = &y[(len - offset_from)..];
-        hyperplane_offset = fallback_euclidean_hyperplane::<FastMath>(
+        hyperplane_offset = fallback_euclidean_hyperplane::<AutoMath>(
             x_subsection,
             y_subsection,
             &mut hyperplane[(len - offset_from)..],
         );
     }
 
-    hyperplane_offset = FastMath::add(
+    hyperplane_offset = AutoMath::add(
         hyperplane_offset,
         sub_reduce_x8(
             offset_acc1,
@@ -407,7 +405,6 @@ unsafe fn execute_f32_x64_block_nofma_hyperplane(
     mem::transmute(plane)
 }
 
-#[cfg(feature = "nightly")]
 #[allow(clippy::too_many_arguments)]
 #[inline(always)]
 unsafe fn execute_f32_x64_block_fma_hyperplane(
@@ -517,7 +514,6 @@ mod tests {
         simple_euclidean_hyperplane,
     };
 
-    #[cfg(feature = "nightly")]
     #[test]
     fn test_xconst_fma_euclidean_hyperplane() {
         let (x, y) = get_sample_vectors(1024);
@@ -538,7 +534,6 @@ mod tests {
         assert_is_close_vector(&hyperplane, &expected);
     }
 
-    #[cfg(feature = "nightly")]
     #[test]
     fn test_xany_fma_euclidean_hyperplane() {
         let (x, y) = get_sample_vectors(127);

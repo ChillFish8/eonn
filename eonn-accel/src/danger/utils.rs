@@ -198,7 +198,7 @@ mod tests {
     use std::array;
 
     use super::*;
-    use crate::math::StdMath;
+    use crate::math::AutoMath;
 
     #[test]
     fn test_avx2_offsets() {
@@ -222,10 +222,10 @@ mod tests {
 
     #[test]
     fn test_rollup_scalar_x8() {
-        let res = rollup_scalar_x8::<StdMath>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+        let res = rollup_scalar_x8::<AutoMath>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
         assert_eq!(res, 0.0);
 
-        let res = rollup_scalar_x8::<StdMath>(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0);
+        let res = rollup_scalar_x8::<AutoMath>(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0);
         assert_eq!(res, 8.0);
     }
 

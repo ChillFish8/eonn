@@ -2,6 +2,7 @@ use std::arch::x86_64::*;
 
 use crate::danger::utils::{CHUNK_0, CHUNK_1};
 use crate::danger::{offsets_avx2, rollup_x8, sum_avx2};
+use crate::math::*;
 
 #[target_feature(enable = "avx2")]
 #[inline]
@@ -104,15 +105,14 @@ pub unsafe fn f32_xany_avx2_nofma_norm(x: &[f32]) -> f32 {
 
         for n in i..len {
             let x = *x.get_unchecked(n);
-            total += x * x;
+            total = AutoMath::add(total, AutoMath::mul(x, x));
         }
     }
 
     let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
-    total + sum_avx2(acc)
+    AutoMath::add(total, sum_avx2(acc))
 }
 
-#[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
 /// Computes the squared norm of one `[f32; DIMS]` vector.
@@ -157,7 +157,6 @@ pub unsafe fn f32_xconst_avx2_fma_norm<const DIMS: usize>(x: &[f32]) -> f32 {
     sum_avx2(acc)
 }
 
-#[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
 /// Computes the squared norm of one f32 vector.
@@ -213,12 +212,12 @@ pub unsafe fn f32_xany_avx2_fma_norm(x: &[f32]) -> f32 {
 
         for n in i..len {
             let x = *x.get_unchecked(n);
-            total += x * x;
+            total = AutoMath::add(total, AutoMath::mul(x, x));
         }
     }
 
     let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
-    total + sum_avx2(acc)
+    AutoMath::add(total, sum_avx2(acc))
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -265,7 +264,6 @@ unsafe fn execute_f32_x64_nofma_block_norm(
     *acc8 = _mm256_add_ps(*acc8, r8);
 }
 
-#[cfg(feature = "nightly")]
 #[allow(clippy::too_many_arguments)]
 #[inline(always)]
 unsafe fn execute_f32_x64_fma_block_norm(
@@ -306,7 +304,6 @@ mod tests {
     use super::*;
     use crate::test_utils::{assert_is_close, get_sample_vectors, simple_dot};
 
-    #[cfg(feature = "nightly")]
     #[test]
     fn test_xany_fma_norm() {
         let (x, _) = get_sample_vectors(127);
@@ -321,7 +318,6 @@ mod tests {
         assert_is_close(dist, simple_dot(&x, &x));
     }
 
-    #[cfg(feature = "nightly")]
     #[test]
     fn test_xconst_fma_norm() {
         let (x, _) = get_sample_vectors(1024);

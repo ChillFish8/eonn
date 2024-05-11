@@ -1,6 +1,4 @@
 use crate::danger::f32_fallback_dot_product::fallback_dot;
-#[cfg(feature = "nightly")]
-use crate::danger::{f32_xany_fallback_fma_div_value, f32_xany_fallback_fma_dot};
 use crate::danger::{f32_xany_fallback_nofma_div_value, f32_xany_fallback_nofma_dot};
 use crate::math::*;
 
@@ -15,16 +13,12 @@ use crate::math::*;
 ///
 /// Vectors **MUST** be equal length, otherwise this routine
 /// will become immediately UB due to out of bounds pointer accesses.
-///
-/// NOTE:
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
 pub unsafe fn f32_xany_fallback_nofma_angular_hyperplane(
     x: &[f32],
     y: &[f32],
 ) -> Vec<f32> {
     let mut hyperplane = vec![0.0; x.len()];
-    fallback_angular_hyperplane::<StdMath>(x, y, &mut hyperplane);
+    fallback_angular_hyperplane::<AutoMath>(x, y, &mut hyperplane);
 
     let mut norm_hyperplane =
         f32_xany_fallback_nofma_dot(&hyperplane, &hyperplane).sqrt();
@@ -33,39 +27,6 @@ pub unsafe fn f32_xany_fallback_nofma_angular_hyperplane(
     }
 
     f32_xany_fallback_nofma_div_value(&mut hyperplane, norm_hyperplane);
-
-    hyperplane
-}
-
-#[cfg(feature = "nightly")]
-#[inline]
-/// Computes the angular hyperplane of two `f32` vectors.
-///
-/// These are fallback routines, they are designed to be optimized
-/// by the compiler only, in areas where manually optimized routines
-/// are unable to run due to lack of CPU features.
-///
-/// # Safety
-///
-/// Vectors **MUST** be equal length, otherwise this routine
-/// will become immediately UB due to out of bounds pointer accesses.
-///
-/// NOTE:
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_xany_fallback_fma_angular_hyperplane(
-    x: &[f32],
-    y: &[f32],
-) -> Vec<f32> {
-    let mut hyperplane = vec![0.0; x.len()];
-    fallback_angular_hyperplane::<FastMath>(x, y, &mut hyperplane);
-
-    let mut norm_hyperplane = f32_xany_fallback_fma_dot(&hyperplane, &hyperplane).sqrt();
-    if norm_hyperplane.abs() < f32::EPSILON {
-        norm_hyperplane = 1.0;
-    }
-
-    f32_xany_fallback_fma_div_value(&mut hyperplane, norm_hyperplane);
 
     hyperplane
 }
@@ -158,15 +119,6 @@ mod tests {
         get_sample_vectors,
         simple_angular_hyperplane,
     };
-
-    #[cfg(feature = "nightly")]
-    #[test]
-    fn test_xany_fma_angular_hyperplane() {
-        let (x, y) = get_sample_vectors(517);
-        let hyperplane = unsafe { f32_xany_fallback_fma_angular_hyperplane(&x, &y) };
-        let expected = simple_angular_hyperplane(&x, &y);
-        assert_is_close_vector(&hyperplane, &expected);
-    }
 
     #[test]
     fn test_xany_nofma_angular_hyperplane() {

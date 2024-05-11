@@ -53,7 +53,8 @@ macro_rules! execute_tail_op_inplace {
         while $i < $len {
             let n = $len - $i;
 
-            let (x, y) = load_two_variable_size_avx512($x_ptr.add($i), $y_ptr.add($i), n);
+            let (x, y) =
+                load_two_variable_size_avx512($x_ptr.add($i), $y_ptr.add($i), n);
 
             let reg = $op(x, y);
 
@@ -136,7 +137,7 @@ pub unsafe fn f32_xany_avx512_nofma_div_vertical(x: &mut [f32], y: &[f32]) {
 
         i += 128;
     }
-    
+
     execute_tail_op_inplace!(len, i, x, y, _mm512_div_ps);
 }
 
@@ -212,7 +213,7 @@ pub unsafe fn f32_xany_avx512_nofma_mul_vertical(x: &mut [f32], y: &[f32]) {
 
         i += 128;
     }
-    
+
     execute_tail_op_inplace!(len, i, x, y, _mm512_mul_ps);
 }
 
@@ -288,7 +289,7 @@ pub unsafe fn f32_xany_avx512_nofma_add_vertical(x: &mut [f32], y: &[f32]) {
 
         i += 128;
     }
-    
+
     execute_tail_op_inplace!(len, i, x, y, _mm512_add_ps);
 }
 
@@ -364,7 +365,7 @@ pub unsafe fn f32_xany_avx512_nofma_sub_vertical(x: &mut [f32], y: &[f32]) {
 
         i += 128;
     }
-    
+
     execute_tail_op_inplace!(len, i, x, y, _mm512_sub_ps);
 }
 

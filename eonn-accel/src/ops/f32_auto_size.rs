@@ -10,10 +10,7 @@ macro_rules! impl_dangerous_auto_ops {
                 match self.1 .0 {
                     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
                     SelectedArch::Avx2 => crate::danger::f32_xconst_avx2_nofma_dot::<{$dim::DIMS}>(x, y),
-                    #[cfg(all(
-                        any(target_arch = "x86", target_arch = "x86_64"),
-                        feature = "nightly"
-                    ))]
+                    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
                     SelectedArch::Avx2Fma => crate::danger::f32_xconst_avx2_fma_dot::<{$dim::DIMS}>(x, y),
                     #[cfg(all(
                         any(target_arch = "x86", target_arch = "x86_64"),
@@ -21,8 +18,6 @@ macro_rules! impl_dangerous_auto_ops {
                     ))]
                     SelectedArch::Avx512 => crate::danger::f32_xconst_avx512_fma_dot::<{$dim::DIMS}>(x, y),
                     SelectedArch::Fallback => crate::danger::f32_xany_fallback_nofma_dot(x, y),
-                    #[cfg(feature = "nightly")]
-                    SelectedArch::FallbackFma => crate::danger::f32_xany_fallback_fma_dot(x, y),
                 }
             }
 
@@ -31,10 +26,7 @@ macro_rules! impl_dangerous_auto_ops {
                 match self.1 .0 {
                     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
                     SelectedArch::Avx2 => crate::danger::f32_xconst_avx2_nofma_cosine::<{$dim::DIMS}>(x, y),
-                    #[cfg(all(
-                        any(target_arch = "x86", target_arch = "x86_64"),
-                        feature = "nightly"
-                    ))]
+                    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
                     SelectedArch::Avx2Fma => crate::danger::f32_xconst_avx2_fma_cosine::<{$dim::DIMS}>(x, y),
                     #[cfg(all(
                         any(target_arch = "x86", target_arch = "x86_64"),
@@ -44,10 +36,6 @@ macro_rules! impl_dangerous_auto_ops {
                     SelectedArch::Fallback => {
                         crate::danger::f32_xany_fallback_nofma_cosine(x, y)
                     },
-                    #[cfg(feature = "nightly")]
-                    SelectedArch::FallbackFma => {
-                        crate::danger::f32_xany_fallback_fma_cosine(x, y)
-                    },
                 }
             }
 
@@ -56,10 +44,7 @@ macro_rules! impl_dangerous_auto_ops {
                 match self.1 .0 {
                     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
                     SelectedArch::Avx2 => crate::danger::f32_xconst_avx2_nofma_euclidean::<{$dim::DIMS}>(x, y),
-                    #[cfg(all(
-                        any(target_arch = "x86", target_arch = "x86_64"),
-                        feature = "nightly"
-                    ))]
+                    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
                     SelectedArch::Avx2Fma => crate::danger::f32_xconst_avx2_fma_euclidean::<{$dim::DIMS}>(x, y),
                     #[cfg(all(
                         any(target_arch = "x86", target_arch = "x86_64"),
@@ -71,10 +56,6 @@ macro_rules! impl_dangerous_auto_ops {
                     SelectedArch::Fallback => {
                         crate::danger::f32_xany_fallback_nofma_euclidean(x, y)
                     },
-                    #[cfg(feature = "nightly")]
-                    SelectedArch::FallbackFma => {
-                        crate::danger::f32_xany_fallback_fma_euclidean(x, y)
-                    },
                 }
             }
 
@@ -85,10 +66,7 @@ macro_rules! impl_dangerous_auto_ops {
                     SelectedArch::Avx2 => {
                         crate::danger::f32_xconst_avx2_nofma_angular_hyperplane::<{$dim::DIMS}>(x, y)
                     },
-                    #[cfg(all(
-                        any(target_arch = "x86", target_arch = "x86_64"),
-                        feature = "nightly"
-                    ))]
+                    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
                     SelectedArch::Avx2Fma => {
                         crate::danger::f32_xconst_avx2_fma_angular_hyperplane::<{$dim::DIMS}>(x, y)
                     },
@@ -102,10 +80,6 @@ macro_rules! impl_dangerous_auto_ops {
                     SelectedArch::Fallback => {
                         crate::danger::f32_xany_fallback_nofma_angular_hyperplane(x, y)
                     },
-                    #[cfg(feature = "nightly")]
-                    SelectedArch::FallbackFma => {
-                        crate::danger::f32_xany_fallback_fma_angular_hyperplane(x, y)
-                    },
                 }
             }
 
@@ -116,10 +90,7 @@ macro_rules! impl_dangerous_auto_ops {
                     SelectedArch::Avx2 => {
                         crate::danger::f32_xconst_avx2_nofma_euclidean_hyperplane::<{$dim::DIMS}>(x, y)
                     },
-                    #[cfg(all(
-                        any(target_arch = "x86", target_arch = "x86_64"),
-                        feature = "nightly"
-                    ))]
+                    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
                     SelectedArch::Avx2Fma => {
                         crate::danger::f32_xconst_avx2_fma_euclidean_hyperplane::<{$dim::DIMS}>(x, y)
                     },
@@ -133,10 +104,6 @@ macro_rules! impl_dangerous_auto_ops {
                     SelectedArch::Fallback => {
                         crate::danger::f32_xany_fallback_nofma_euclidean_hyperplane(x, y)
                     },
-                    #[cfg(feature = "nightly")]
-                    SelectedArch::FallbackFma => {
-                        crate::danger::f32_xany_fallback_fma_euclidean_hyperplane(x, y)
-                    },
                 }
             }
 
@@ -145,10 +112,7 @@ macro_rules! impl_dangerous_auto_ops {
                 match self.1 .0 {
                     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
                     SelectedArch::Avx2 => crate::danger::f32_xconst_avx2_nofma_norm::<{$dim::DIMS}>(x),
-                    #[cfg(all(
-                        any(target_arch = "x86", target_arch = "x86_64"),
-                        feature = "nightly"
-                    ))]
+                    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
                     SelectedArch::Avx2Fma => crate::danger::f32_xconst_avx2_fma_norm::<{$dim::DIMS}>(x),
                     #[cfg(all(
                         any(target_arch = "x86", target_arch = "x86_64"),
@@ -156,8 +120,6 @@ macro_rules! impl_dangerous_auto_ops {
                     ))]
                     SelectedArch::Avx512 => crate::danger::f32_xconst_avx512_fma_norm::<{$dim::DIMS}>(x),
                     SelectedArch::Fallback => crate::danger::f32_xany_fallback_nofma_dot(x, x),
-                    #[cfg(feature = "nightly")]
-                    SelectedArch::FallbackFma => crate::danger::f32_xany_fallback_fma_dot(x, x),
                 }
             }
 
@@ -168,10 +130,7 @@ macro_rules! impl_dangerous_auto_ops {
                     SelectedArch::Avx2 => {
                         crate::danger::f32_xconst_avx2_nofma_add_value::<{$dim::DIMS}>(x, val)
                     },
-                    #[cfg(all(
-                        any(target_arch = "x86", target_arch = "x86_64"),
-                        feature = "nightly"
-                    ))]
+                    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
                     SelectedArch::Avx2Fma => {
                         crate::danger::f32_xconst_avx2_nofma_add_value::<{$dim::DIMS}>(x, val)
                     },
@@ -185,10 +144,6 @@ macro_rules! impl_dangerous_auto_ops {
                     SelectedArch::Fallback => {
                         crate::danger::f32_xany_fallback_nofma_add_value(x, val)
                     },
-                    #[cfg(feature = "nightly")]
-                    SelectedArch::FallbackFma => {
-                        crate::danger::f32_xany_fallback_fma_add_value(x, val)
-                    },
                 }
             }
 
@@ -199,10 +154,7 @@ macro_rules! impl_dangerous_auto_ops {
                     SelectedArch::Avx2 => {
                         crate::danger::f32_xconst_avx2_nofma_sub_value::<{$dim::DIMS}>(x, val)
                     },
-                    #[cfg(all(
-                        any(target_arch = "x86", target_arch = "x86_64"),
-                        feature = "nightly"
-                    ))]
+                    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
                     SelectedArch::Avx2Fma => {
                         crate::danger::f32_xconst_avx2_nofma_sub_value::<{$dim::DIMS}>(x, val)
                     },
@@ -216,10 +168,6 @@ macro_rules! impl_dangerous_auto_ops {
                     SelectedArch::Fallback => {
                         crate::danger::f32_xany_fallback_nofma_sub_value(x, val)
                     },
-                    #[cfg(feature = "nightly")]
-                    SelectedArch::FallbackFma => {
-                        crate::danger::f32_xany_fallback_fma_sub_value(x, val)
-                    },
                 }
             }
 
@@ -230,10 +178,7 @@ macro_rules! impl_dangerous_auto_ops {
                     SelectedArch::Avx2 => {
                         crate::danger::f32_xconst_avx2_nofma_mul_value::<{$dim::DIMS}>(x, val)
                     },
-                    #[cfg(all(
-                        any(target_arch = "x86", target_arch = "x86_64"),
-                        feature = "nightly"
-                    ))]
+                    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
                     SelectedArch::Avx2Fma => {
                         crate::danger::f32_xconst_avx2_nofma_mul_value::<{$dim::DIMS}>(x, val)
                     },
@@ -247,10 +192,6 @@ macro_rules! impl_dangerous_auto_ops {
                     SelectedArch::Fallback => {
                         crate::danger::f32_xany_fallback_nofma_mul_value(x, val)
                     },
-                    #[cfg(feature = "nightly")]
-                    SelectedArch::FallbackFma => {
-                        crate::danger::f32_xany_fallback_fma_mul_value(x, val)
-                    },
                 }
             }
 
@@ -261,10 +202,7 @@ macro_rules! impl_dangerous_auto_ops {
                     SelectedArch::Avx2 => {
                         crate::danger::f32_xconst_avx2_nofma_div_value::<{$dim::DIMS}>(x, val)
                     },
-                    #[cfg(all(
-                        any(target_arch = "x86", target_arch = "x86_64"),
-                        feature = "nightly"
-                    ))]
+                    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
                     SelectedArch::Avx2Fma => {
                         crate::danger::f32_xconst_avx2_nofma_div_value::<{$dim::DIMS}>(x, val)
                     },
@@ -278,10 +216,6 @@ macro_rules! impl_dangerous_auto_ops {
                     SelectedArch::Fallback => {
                         crate::danger::f32_xany_fallback_nofma_div_value(x, val)
                     },
-                    #[cfg(feature = "nightly")]
-                    SelectedArch::FallbackFma => {
-                        crate::danger::f32_xany_fallback_fma_div_value(x, val)
-                    },
                 }
             }
 
@@ -292,10 +226,7 @@ macro_rules! impl_dangerous_auto_ops {
                     SelectedArch::Avx2 => {
                         crate::danger::f32_xconst_avx2_nofma_add_vertical::<{$dim::DIMS}>(x, y)
                     },
-                    #[cfg(all(
-                        any(target_arch = "x86", target_arch = "x86_64"),
-                        feature = "nightly"
-                    ))]
+                    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
                     SelectedArch::Avx2Fma => {
                         crate::danger::f32_xconst_avx2_nofma_add_vertical::<{$dim::DIMS}>(x, y)
                     },
@@ -309,10 +240,6 @@ macro_rules! impl_dangerous_auto_ops {
                     SelectedArch::Fallback => {
                         crate::danger::f32_xany_fallback_nofma_add_vertical(x, y)
                     },
-                    #[cfg(feature = "nightly")]
-                    SelectedArch::FallbackFma => {
-                        crate::danger::f32_xany_fallback_fma_add_vertical(x, y)
-                    },
                 }
             }
 
@@ -323,10 +250,7 @@ macro_rules! impl_dangerous_auto_ops {
                     SelectedArch::Avx2 => {
                         crate::danger::f32_xconst_avx2_nofma_sub_vertical::<{$dim::DIMS}>(x, y)
                     },
-                    #[cfg(all(
-                        any(target_arch = "x86", target_arch = "x86_64"),
-                        feature = "nightly"
-                    ))]
+                    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
                     SelectedArch::Avx2Fma => {
                         crate::danger::f32_xconst_avx2_nofma_sub_vertical::<{$dim::DIMS}>(x, y)
                     },
@@ -340,10 +264,6 @@ macro_rules! impl_dangerous_auto_ops {
                     SelectedArch::Fallback => {
                         crate::danger::f32_xany_fallback_nofma_sub_vertical(x, y)
                     },
-                    #[cfg(feature = "nightly")]
-                    SelectedArch::FallbackFma => {
-                        crate::danger::f32_xany_fallback_fma_sub_vertical(x, y)
-                    },
                 }
             }
 
@@ -354,10 +274,7 @@ macro_rules! impl_dangerous_auto_ops {
                     SelectedArch::Avx2 => {
                         crate::danger::f32_xconst_avx2_nofma_mul_vertical::<{$dim::DIMS}>(x, y)
                     },
-                    #[cfg(all(
-                        any(target_arch = "x86", target_arch = "x86_64"),
-                        feature = "nightly"
-                    ))]
+                    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
                     SelectedArch::Avx2Fma => {
                         crate::danger::f32_xconst_avx2_nofma_mul_vertical::<{$dim::DIMS}>(x, y)
                     },
@@ -371,10 +288,6 @@ macro_rules! impl_dangerous_auto_ops {
                     SelectedArch::Fallback => {
                         crate::danger::f32_xany_fallback_nofma_mul_vertical(x, y)
                     },
-                    #[cfg(feature = "nightly")]
-                    SelectedArch::FallbackFma => {
-                        crate::danger::f32_xany_fallback_fma_mul_vertical(x, y)
-                    },
                 }
             }
 
@@ -385,10 +298,7 @@ macro_rules! impl_dangerous_auto_ops {
                     SelectedArch::Avx2 => {
                         crate::danger::f32_xconst_avx2_nofma_div_vertical::<{$dim::DIMS}>(x, y)
                     },
-                    #[cfg(all(
-                        any(target_arch = "x86", target_arch = "x86_64"),
-                        feature = "nightly"
-                    ))]
+                    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
                     SelectedArch::Avx2Fma => {
                         crate::danger::f32_xconst_avx2_nofma_div_vertical::<{$dim::DIMS}>(x, y)
                     },
@@ -402,10 +312,6 @@ macro_rules! impl_dangerous_auto_ops {
                     SelectedArch::Fallback => {
                         crate::danger::f32_xany_fallback_nofma_div_vertical(x, y)
                     },
-                    #[cfg(feature = "nightly")]
-                    SelectedArch::FallbackFma => {
-                        crate::danger::f32_xany_fallback_fma_div_vertical(x, y)
-                    },
                 }
             }
 
@@ -416,10 +322,7 @@ macro_rules! impl_dangerous_auto_ops {
                     SelectedArch::Avx2 => {
                         crate::danger::f32_xconst_avx2_nofma_sum_horizontal::<{$dim::DIMS}>(x)
                     },
-                    #[cfg(all(
-                        any(target_arch = "x86", target_arch = "x86_64"),
-                        feature = "nightly"
-                    ))]
+                    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
                     SelectedArch::Avx2Fma => {
                         crate::danger::f32_xconst_avx2_nofma_sum_horizontal::<{$dim::DIMS}>(x)
                     },
@@ -433,10 +336,6 @@ macro_rules! impl_dangerous_auto_ops {
                     SelectedArch::Fallback => {
                         crate::danger::f32_xany_fallback_nofma_sum_horizontal(x)
                     },
-                    #[cfg(feature = "nightly")]
-                    SelectedArch::FallbackFma => {
-                        crate::danger::f32_xany_fallback_fma_sum_horizontal(x)
-                    },
                 }
             }
 
@@ -447,10 +346,7 @@ macro_rules! impl_dangerous_auto_ops {
                     SelectedArch::Avx2 => {
                         crate::danger::f32_xconst_avx2_nofma_min_horizontal::<{$dim::DIMS}>(x)
                     },
-                    #[cfg(all(
-                        any(target_arch = "x86", target_arch = "x86_64"),
-                        feature = "nightly"
-                    ))]
+                    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
                     SelectedArch::Avx2Fma => {
                         crate::danger::f32_xconst_avx2_nofma_min_horizontal::<{$dim::DIMS}>(x)
                     },
@@ -464,10 +360,6 @@ macro_rules! impl_dangerous_auto_ops {
                     SelectedArch::Fallback => {
                         crate::danger::f32_xany_fallback_nofma_min_horizontal(x)
                     },
-                    #[cfg(feature = "nightly")]
-                    SelectedArch::FallbackFma => {
-                        crate::danger::f32_xany_fallback_nofma_min_horizontal(x)
-                    },
                 }
             }
 
@@ -478,10 +370,7 @@ macro_rules! impl_dangerous_auto_ops {
                     SelectedArch::Avx2 => {
                         crate::danger::f32_xconst_avx2_nofma_max_horizontal::<{$dim::DIMS}>(x)
                     },
-                    #[cfg(all(
-                        any(target_arch = "x86", target_arch = "x86_64"),
-                        feature = "nightly"
-                    ))]
+                    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
                     SelectedArch::Avx2Fma => {
                         crate::danger::f32_xconst_avx2_nofma_max_horizontal::<{$dim::DIMS}>(x)
                     },
@@ -493,10 +382,6 @@ macro_rules! impl_dangerous_auto_ops {
                         crate::danger::f32_xconst_avx512_nofma_max_horizontal::<{$dim::DIMS}>(x)
                     },
                     SelectedArch::Fallback => {
-                        crate::danger::f32_xany_fallback_nofma_max_horizontal(x)
-                    },
-                    #[cfg(feature = "nightly")]
-                    SelectedArch::FallbackFma => {
                         crate::danger::f32_xany_fallback_nofma_max_horizontal(x)
                     },
                 }
@@ -516,10 +401,7 @@ impl DangerousOps for (XAny, Auto) {
         match self.1 .0 {
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_dot(x, y),
-            #[cfg(all(
-                any(target_arch = "x86", target_arch = "x86_64"),
-                feature = "nightly"
-            ))]
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2Fma => crate::danger::f32_xany_avx2_fma_dot(x, y),
             #[cfg(all(
                 any(target_arch = "x86", target_arch = "x86_64"),
@@ -527,8 +409,6 @@ impl DangerousOps for (XAny, Auto) {
             ))]
             SelectedArch::Avx512 => crate::danger::f32_xany_avx512_fma_dot(x, y),
             SelectedArch::Fallback => crate::danger::f32_xany_fallback_nofma_dot(x, y),
-            #[cfg(feature = "nightly")]
-            SelectedArch::FallbackFma => crate::danger::f32_xany_fallback_fma_dot(x, y),
         }
     }
 
@@ -538,10 +418,7 @@ impl DangerousOps for (XAny, Auto) {
         match self.1 .0 {
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_cosine(x, y),
-            #[cfg(all(
-                any(target_arch = "x86", target_arch = "x86_64"),
-                feature = "nightly"
-            ))]
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2Fma => crate::danger::f32_xany_avx2_fma_cosine(x, y),
             #[cfg(all(
                 any(target_arch = "x86", target_arch = "x86_64"),
@@ -550,10 +427,6 @@ impl DangerousOps for (XAny, Auto) {
             SelectedArch::Avx512 => crate::danger::f32_xany_avx512_fma_cosine(x, y),
             SelectedArch::Fallback => {
                 crate::danger::f32_xany_fallback_nofma_cosine(x, y)
-            },
-            #[cfg(feature = "nightly")]
-            SelectedArch::FallbackFma => {
-                crate::danger::f32_xany_fallback_fma_cosine(x, y)
             },
         }
     }
@@ -564,10 +437,7 @@ impl DangerousOps for (XAny, Auto) {
         match self.1 .0 {
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_euclidean(x, y),
-            #[cfg(all(
-                any(target_arch = "x86", target_arch = "x86_64"),
-                feature = "nightly"
-            ))]
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2Fma => crate::danger::f32_xany_avx2_fma_euclidean(x, y),
             #[cfg(all(
                 any(target_arch = "x86", target_arch = "x86_64"),
@@ -576,10 +446,6 @@ impl DangerousOps for (XAny, Auto) {
             SelectedArch::Avx512 => crate::danger::f32_xany_avx512_fma_euclidean(x, y),
             SelectedArch::Fallback => {
                 crate::danger::f32_xany_fallback_nofma_euclidean(x, y)
-            },
-            #[cfg(feature = "nightly")]
-            SelectedArch::FallbackFma => {
-                crate::danger::f32_xany_fallback_fma_euclidean(x, y)
             },
         }
     }
@@ -592,10 +458,7 @@ impl DangerousOps for (XAny, Auto) {
             SelectedArch::Avx2 => {
                 crate::danger::f32_xany_avx2_nofma_angular_hyperplane(x, y)
             },
-            #[cfg(all(
-                any(target_arch = "x86", target_arch = "x86_64"),
-                feature = "nightly"
-            ))]
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2Fma => {
                 crate::danger::f32_xany_avx2_fma_angular_hyperplane(x, y)
             },
@@ -609,10 +472,6 @@ impl DangerousOps for (XAny, Auto) {
             SelectedArch::Fallback => {
                 crate::danger::f32_xany_fallback_nofma_angular_hyperplane(x, y)
             },
-            #[cfg(feature = "nightly")]
-            SelectedArch::FallbackFma => {
-                crate::danger::f32_xany_fallback_fma_angular_hyperplane(x, y)
-            },
         }
     }
 
@@ -624,10 +483,7 @@ impl DangerousOps for (XAny, Auto) {
             SelectedArch::Avx2 => {
                 crate::danger::f32_xany_avx2_nofma_euclidean_hyperplane(x, y)
             },
-            #[cfg(all(
-                any(target_arch = "x86", target_arch = "x86_64"),
-                feature = "nightly"
-            ))]
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2Fma => {
                 crate::danger::f32_xany_avx2_fma_euclidean_hyperplane(x, y)
             },
@@ -641,10 +497,6 @@ impl DangerousOps for (XAny, Auto) {
             SelectedArch::Fallback => {
                 crate::danger::f32_xany_fallback_nofma_euclidean_hyperplane(x, y)
             },
-            #[cfg(feature = "nightly")]
-            SelectedArch::FallbackFma => {
-                crate::danger::f32_xany_fallback_fma_euclidean_hyperplane(x, y)
-            },
         }
     }
 
@@ -653,10 +505,7 @@ impl DangerousOps for (XAny, Auto) {
         match self.1 .0 {
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_norm(x),
-            #[cfg(all(
-                any(target_arch = "x86", target_arch = "x86_64"),
-                feature = "nightly"
-            ))]
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2Fma => crate::danger::f32_xany_avx2_fma_norm(x),
             #[cfg(all(
                 any(target_arch = "x86", target_arch = "x86_64"),
@@ -664,8 +513,6 @@ impl DangerousOps for (XAny, Auto) {
             ))]
             SelectedArch::Avx512 => crate::danger::f32_xany_avx512_fma_norm(x),
             SelectedArch::Fallback => crate::danger::f32_xany_fallback_nofma_dot(x, x),
-            #[cfg(feature = "nightly")]
-            SelectedArch::FallbackFma => crate::danger::f32_xany_fallback_fma_dot(x, x),
         }
     }
 
@@ -674,10 +521,7 @@ impl DangerousOps for (XAny, Auto) {
         match self.1 .0 {
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_add_value(x, val),
-            #[cfg(all(
-                any(target_arch = "x86", target_arch = "x86_64"),
-                feature = "nightly"
-            ))]
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2Fma => {
                 crate::danger::f32_xany_avx2_nofma_add_value(x, val)
             },
@@ -691,10 +535,6 @@ impl DangerousOps for (XAny, Auto) {
             SelectedArch::Fallback => {
                 crate::danger::f32_xany_fallback_nofma_add_value(x, val)
             },
-            #[cfg(feature = "nightly")]
-            SelectedArch::FallbackFma => {
-                crate::danger::f32_xany_fallback_nofma_add_value(x, val)
-            },
         }
     }
 
@@ -703,10 +543,7 @@ impl DangerousOps for (XAny, Auto) {
         match self.1 .0 {
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_sub_value(x, val),
-            #[cfg(all(
-                any(target_arch = "x86", target_arch = "x86_64"),
-                feature = "nightly"
-            ))]
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2Fma => {
                 crate::danger::f32_xany_avx2_nofma_sub_value(x, val)
             },
@@ -720,10 +557,6 @@ impl DangerousOps for (XAny, Auto) {
             SelectedArch::Fallback => {
                 crate::danger::f32_xany_fallback_nofma_sub_value(x, val)
             },
-            #[cfg(feature = "nightly")]
-            SelectedArch::FallbackFma => {
-                crate::danger::f32_xany_fallback_nofma_sub_value(x, val)
-            },
         }
     }
 
@@ -732,10 +565,7 @@ impl DangerousOps for (XAny, Auto) {
         match self.1 .0 {
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_mul_value(x, val),
-            #[cfg(all(
-                any(target_arch = "x86", target_arch = "x86_64"),
-                feature = "nightly"
-            ))]
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2Fma => {
                 crate::danger::f32_xany_avx2_nofma_mul_value(x, val)
             },
@@ -749,10 +579,6 @@ impl DangerousOps for (XAny, Auto) {
             SelectedArch::Fallback => {
                 crate::danger::f32_xany_fallback_nofma_mul_value(x, val)
             },
-            #[cfg(feature = "nightly")]
-            SelectedArch::FallbackFma => {
-                crate::danger::f32_xany_fallback_nofma_mul_value(x, val)
-            },
         }
     }
 
@@ -761,10 +587,7 @@ impl DangerousOps for (XAny, Auto) {
         match self.1 .0 {
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_div_value(x, val),
-            #[cfg(all(
-                any(target_arch = "x86", target_arch = "x86_64"),
-                feature = "nightly"
-            ))]
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2Fma => {
                 crate::danger::f32_xany_avx2_nofma_div_value(x, val)
             },
@@ -778,10 +601,6 @@ impl DangerousOps for (XAny, Auto) {
             SelectedArch::Fallback => {
                 crate::danger::f32_xany_fallback_nofma_div_value(x, val)
             },
-            #[cfg(feature = "nightly")]
-            SelectedArch::FallbackFma => {
-                crate::danger::f32_xany_fallback_fma_div_value(x, val)
-            },
         }
     }
 
@@ -791,10 +610,7 @@ impl DangerousOps for (XAny, Auto) {
         match self.1 .0 {
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_add_vertical(x, y),
-            #[cfg(all(
-                any(target_arch = "x86", target_arch = "x86_64"),
-                feature = "nightly"
-            ))]
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2Fma => {
                 crate::danger::f32_xany_avx2_nofma_add_vertical(x, y)
             },
@@ -808,10 +624,6 @@ impl DangerousOps for (XAny, Auto) {
             SelectedArch::Fallback => {
                 crate::danger::f32_xany_fallback_nofma_add_vertical(x, y)
             },
-            #[cfg(feature = "nightly")]
-            SelectedArch::FallbackFma => {
-                crate::danger::f32_xany_fallback_fma_add_vertical(x, y)
-            },
         }
     }
 
@@ -821,10 +633,7 @@ impl DangerousOps for (XAny, Auto) {
         match self.1 .0 {
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_sub_vertical(x, y),
-            #[cfg(all(
-                any(target_arch = "x86", target_arch = "x86_64"),
-                feature = "nightly"
-            ))]
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2Fma => {
                 crate::danger::f32_xany_avx2_nofma_sub_vertical(x, y)
             },
@@ -838,10 +647,6 @@ impl DangerousOps for (XAny, Auto) {
             SelectedArch::Fallback => {
                 crate::danger::f32_xany_fallback_nofma_sub_vertical(x, y)
             },
-            #[cfg(feature = "nightly")]
-            SelectedArch::FallbackFma => {
-                crate::danger::f32_xany_fallback_fma_sub_vertical(x, y)
-            },
         }
     }
 
@@ -851,10 +656,7 @@ impl DangerousOps for (XAny, Auto) {
         match self.1 .0 {
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_mul_vertical(x, y),
-            #[cfg(all(
-                any(target_arch = "x86", target_arch = "x86_64"),
-                feature = "nightly"
-            ))]
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2Fma => {
                 crate::danger::f32_xany_avx2_nofma_mul_vertical(x, y)
             },
@@ -868,10 +670,6 @@ impl DangerousOps for (XAny, Auto) {
             SelectedArch::Fallback => {
                 crate::danger::f32_xany_fallback_nofma_mul_vertical(x, y)
             },
-            #[cfg(feature = "nightly")]
-            SelectedArch::FallbackFma => {
-                crate::danger::f32_xany_fallback_fma_mul_vertical(x, y)
-            },
         }
     }
 
@@ -881,10 +679,7 @@ impl DangerousOps for (XAny, Auto) {
         match self.1 .0 {
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_div_vertical(x, y),
-            #[cfg(all(
-                any(target_arch = "x86", target_arch = "x86_64"),
-                feature = "nightly"
-            ))]
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2Fma => {
                 crate::danger::f32_xany_avx2_nofma_div_vertical(x, y)
             },
@@ -898,10 +693,6 @@ impl DangerousOps for (XAny, Auto) {
             SelectedArch::Fallback => {
                 crate::danger::f32_xany_fallback_nofma_div_vertical(x, y)
             },
-            #[cfg(feature = "nightly")]
-            SelectedArch::FallbackFma => {
-                crate::danger::f32_xany_fallback_fma_div_vertical(x, y)
-            },
         }
     }
 
@@ -910,10 +701,7 @@ impl DangerousOps for (XAny, Auto) {
         match self.1 .0 {
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_sum_horizontal(x),
-            #[cfg(all(
-                any(target_arch = "x86", target_arch = "x86_64"),
-                feature = "nightly"
-            ))]
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2Fma => {
                 crate::danger::f32_xany_avx2_nofma_sum_horizontal(x)
             },
@@ -927,10 +715,6 @@ impl DangerousOps for (XAny, Auto) {
             SelectedArch::Fallback => {
                 crate::danger::f32_xany_fallback_nofma_sum_horizontal(x)
             },
-            #[cfg(feature = "nightly")]
-            SelectedArch::FallbackFma => {
-                crate::danger::f32_xany_fallback_fma_sum_horizontal(x)
-            },
         }
     }
 
@@ -939,10 +723,7 @@ impl DangerousOps for (XAny, Auto) {
         match self.1 .0 {
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_min_horizontal(x),
-            #[cfg(all(
-                any(target_arch = "x86", target_arch = "x86_64"),
-                feature = "nightly"
-            ))]
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2Fma => {
                 crate::danger::f32_xany_avx2_nofma_min_horizontal(x)
             },
@@ -956,10 +737,6 @@ impl DangerousOps for (XAny, Auto) {
             SelectedArch::Fallback => {
                 crate::danger::f32_xany_fallback_nofma_min_horizontal(x)
             },
-            #[cfg(feature = "nightly")]
-            SelectedArch::FallbackFma => {
-                crate::danger::f32_xany_fallback_nofma_min_horizontal(x)
-            },
         }
     }
 
@@ -968,10 +745,7 @@ impl DangerousOps for (XAny, Auto) {
         match self.1 .0 {
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2 => crate::danger::f32_xany_avx2_nofma_max_horizontal(x),
-            #[cfg(all(
-                any(target_arch = "x86", target_arch = "x86_64"),
-                feature = "nightly"
-            ))]
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             SelectedArch::Avx2Fma => {
                 crate::danger::f32_xany_avx2_nofma_max_horizontal(x)
             },
@@ -983,10 +757,6 @@ impl DangerousOps for (XAny, Auto) {
                 crate::danger::f32_xany_avx512_nofma_max_horizontal(x)
             },
             SelectedArch::Fallback => {
-                crate::danger::f32_xany_fallback_nofma_max_horizontal(x)
-            },
-            #[cfg(feature = "nightly")]
-            SelectedArch::FallbackFma => {
                 crate::danger::f32_xany_fallback_nofma_max_horizontal(x)
             },
         }

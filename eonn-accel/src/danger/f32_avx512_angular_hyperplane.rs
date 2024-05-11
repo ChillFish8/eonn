@@ -138,15 +138,11 @@ unsafe fn any_size_f32_hyperplane(
             inverse_norm_x,
             inverse_norm_y,
         );
-        ptr::copy_nonoverlapping(
-            results.as_ptr(),
-            hyperplane_ptr.add(i),
-            results.len(),
-        );
+        ptr::copy_nonoverlapping(results.as_ptr(), hyperplane_ptr.add(i), results.len());
 
         i += 128;
     }
-    
+
     while i < len {
         let n = len - i;
 

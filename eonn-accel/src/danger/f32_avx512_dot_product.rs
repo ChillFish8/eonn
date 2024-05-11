@@ -107,14 +107,13 @@ pub unsafe fn f32_xany_avx512_fma_dot(x: &[f32], y: &[f32]) -> f32 {
     }
 
     while i < len {
-        let (x, y) =
-            load_two_variable_size_avx512(x.add(i), y.add(i), len - i);
+        let (x, y) = load_two_variable_size_avx512(x.add(i), y.add(i), len - i);
 
         acc1 = _mm512_fmadd_ps(x, y, acc1);
 
         i += 16;
     }
-    
+
     sum_avx512_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
 }
 

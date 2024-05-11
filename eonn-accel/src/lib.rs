@@ -11,7 +11,7 @@
 
 mod arch;
 mod dims;
-pub(crate) mod math;
+pub mod math;
 
 #[cfg(feature = "dangerous-access")]
 pub mod danger;

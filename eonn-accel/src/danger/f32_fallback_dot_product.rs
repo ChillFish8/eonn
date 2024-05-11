@@ -8,28 +8,8 @@ use crate::math::*;
 ///
 /// Vectors **MUST** be equal in length, otherwise this routine
 /// will become immediately UB due to out of bounds pointer accesses.
-///
-/// NOTE:
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
 pub unsafe fn f32_xany_fallback_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
-    fallback_dot::<StdMath>(x, y)
-}
-
-#[cfg(feature = "nightly")]
-#[inline]
-/// Computes the dot product of two `f32` vectors.
-///
-/// # Safety
-///
-/// Vectors **MUST** be equal in length, otherwise this routine
-/// will become immediately UB due to out of bounds pointer accesses.
-///
-/// NOTE:
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_xany_fallback_fma_dot(x: &[f32], y: &[f32]) -> f32 {
-    fallback_dot::<FastMath>(x, y)
+    fallback_dot::<AutoMath>(x, y)
 }
 
 #[inline]
@@ -105,15 +85,6 @@ mod tests {
     fn test_f32_xany_nofma_dot() {
         let (x, y) = get_sample_vectors(514);
         let dist = unsafe { f32_xany_fallback_nofma_dot(&x, &y) };
-        let expected = simple_dot(&x, &y);
-        assert_is_close(dist, expected);
-    }
-
-    #[cfg(feature = "nightly")]
-    #[test]
-    fn test_f32_xany_fma_dot() {
-        let (x, y) = get_sample_vectors(514);
-        let dist = unsafe { f32_xany_fallback_fma_dot(&x, &y) };
         let expected = simple_dot(&x, &y);
         assert_is_close(dist, expected);
     }

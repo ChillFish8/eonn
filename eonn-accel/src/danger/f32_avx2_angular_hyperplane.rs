@@ -52,8 +52,8 @@ pub unsafe fn f32_xconst_avx2_nofma_angular_hyperplane<const DIMS: usize>(
     // Convert the norms to the inverse so we can use mul instructions
     // instead of divide operations. This prevents the system from
     // grinding to a crawl.
-    let inverse_norm_x = _mm256_set1_ps(1.0 / norm_x);
-    let inverse_norm_y = _mm256_set1_ps(1.0 / norm_y);
+    let inverse_norm_x = _mm256_set1_ps(AutoMath::div(1.0, norm_x));
+    let inverse_norm_y = _mm256_set1_ps(AutoMath::div(1.0, norm_y));
 
     let mut i = 0;
     while i < DIMS {
@@ -77,7 +77,7 @@ pub unsafe fn f32_xconst_avx2_nofma_angular_hyperplane<const DIMS: usize>(
     // Convert the norms to the inverse so we can use mul instructions
     // instead of divide operations.This prevents the system from
     // grinding to a crawl.
-    let inverse_norm_hyperplane = _mm256_set1_ps(1.0 / norm_hyperplane);
+    let inverse_norm_hyperplane = _mm256_set1_ps(AutoMath::div(1.0, norm_hyperplane));
 
     let mut i = 0;
     while i < DIMS {
@@ -132,8 +132,8 @@ pub unsafe fn f32_xany_avx2_nofma_angular_hyperplane(x: &[f32], y: &[f32]) -> Ve
     // Convert the norms to the inverse so we can use mul instructions
     // instead of divide operations. This prevents the system from
     // grinding to a crawl.
-    let inverse_norm_x = _mm256_set1_ps(1.0 / norm_x);
-    let inverse_norm_y = _mm256_set1_ps(1.0 / norm_y);
+    let inverse_norm_x = _mm256_set1_ps(AutoMath::div(1.0, norm_x));
+    let inverse_norm_y = _mm256_set1_ps(AutoMath::div(1.0, norm_y));
 
     let mut i = 0;
     while i < (len - offset_from) {
@@ -150,14 +150,14 @@ pub unsafe fn f32_xany_avx2_nofma_angular_hyperplane(x: &[f32], y: &[f32]) -> Ve
     }
 
     if offset_from != 0 {
-        linear_apply_normal_vector::<StdMath>(
+        linear_apply_normal_vector::<AutoMath>(
             &x,
             &y,
             i,
             len,
             &mut hyperplane,
-            1.0 / norm_x,
-            1.0 / norm_y,
+            AutoMath::div(1.0, norm_x),
+            AutoMath::div(1.0, norm_y),
         );
     }
 
@@ -169,7 +169,7 @@ pub unsafe fn f32_xany_avx2_nofma_angular_hyperplane(x: &[f32], y: &[f32]) -> Ve
     // Convert the norms to the inverse so we can use mul instructions
     // instead of divide operations.This prevents the system from
     // grinding to a crawl.
-    let inverse_norm_hyperplane = _mm256_set1_ps(1.0 / norm_hyperplane);
+    let inverse_norm_hyperplane = _mm256_set1_ps(AutoMath::div(1.0, norm_hyperplane));
 
     let offset_from = len % 64;
     let mut i = 0;
@@ -185,13 +185,17 @@ pub unsafe fn f32_xany_avx2_nofma_angular_hyperplane(x: &[f32], y: &[f32]) -> Ve
 
     let offset_from = len % 64;
     if offset_from != 0 {
-        linear_apply_norm::<FastMath>(&mut hyperplane, i, len, 1.0 / norm_hyperplane);
+        linear_apply_norm::<AutoMath>(
+            &mut hyperplane,
+            i,
+            len,
+            AutoMath::div(1.0, norm_hyperplane),
+        );
     }
 
     hyperplane
 }
 
-#[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
 /// Computes the angular hyperplane of two `[f32; DIMS]` vectors.
@@ -232,8 +236,8 @@ pub unsafe fn f32_xconst_avx2_fma_angular_hyperplane<const DIMS: usize>(
     // Convert the norms to the inverse so we can use mul instructions
     // instead of divide operations. This prevents the system from
     // grinding to a crawl.
-    let inverse_norm_x = _mm256_set1_ps(1.0 / norm_x);
-    let inverse_norm_y = _mm256_set1_ps(1.0 / norm_y);
+    let inverse_norm_x = _mm256_set1_ps(AutoMath::div(1.0, norm_x));
+    let inverse_norm_y = _mm256_set1_ps(AutoMath::div(1.0, norm_y));
 
     let mut i = 0;
     while i < DIMS {
@@ -257,7 +261,7 @@ pub unsafe fn f32_xconst_avx2_fma_angular_hyperplane<const DIMS: usize>(
     // Convert the norms to the inverse so we can use mul instructions
     // instead of divide operations.This prevents the system from
     // grinding to a crawl.
-    let inverse_norm_hyperplane = _mm256_set1_ps(1.0 / norm_hyperplane);
+    let inverse_norm_hyperplane = _mm256_set1_ps(AutoMath::div(1.0, norm_hyperplane));
 
     let mut i = 0;
     while i < DIMS {
@@ -274,7 +278,6 @@ pub unsafe fn f32_xconst_avx2_fma_angular_hyperplane<const DIMS: usize>(
     hyperplane
 }
 
-#[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
 /// Computes the angular hyperplane of two `f32` vectors.
@@ -313,8 +316,8 @@ pub unsafe fn f32_xany_avx2_fma_angular_hyperplane(x: &[f32], y: &[f32]) -> Vec<
     // Convert the norms to the inverse so we can use mul instructions
     // instead of divide operations. This prevents the system from
     // grinding to a crawl.
-    let inverse_norm_x = _mm256_set1_ps(1.0 / norm_x);
-    let inverse_norm_y = _mm256_set1_ps(1.0 / norm_y);
+    let inverse_norm_x = _mm256_set1_ps(AutoMath::div(1.0, norm_x));
+    let inverse_norm_y = _mm256_set1_ps(AutoMath::div(1.0, norm_y));
 
     let mut i = 0;
     while i < (len - offset_from) {
@@ -331,14 +334,14 @@ pub unsafe fn f32_xany_avx2_fma_angular_hyperplane(x: &[f32], y: &[f32]) -> Vec<
     }
 
     if offset_from != 0 {
-        linear_apply_normal_vector::<FastMath>(
+        linear_apply_normal_vector::<AutoMath>(
             x,
             y,
             i,
             len,
             &mut hyperplane,
-            1.0 / norm_x,
-            1.0 / norm_y,
+            AutoMath::div(1.0, norm_x),
+            AutoMath::div(1.0, norm_y),
         );
     }
 
@@ -350,7 +353,7 @@ pub unsafe fn f32_xany_avx2_fma_angular_hyperplane(x: &[f32], y: &[f32]) -> Vec<
     // Convert the norms to the inverse so we can use mul instructions
     // instead of divide operations.This prevents the system from
     // grinding to a crawl.
-    let inverse_norm_hyperplane = _mm256_set1_ps(1.0 / norm_hyperplane);
+    let inverse_norm_hyperplane = _mm256_set1_ps(AutoMath::div(1.0, norm_hyperplane));
 
     let mut i = 0;
     while i < (len - offset_from) {
@@ -365,7 +368,12 @@ pub unsafe fn f32_xany_avx2_fma_angular_hyperplane(x: &[f32], y: &[f32]) -> Vec<
 
     let offset_from = len % 64;
     if offset_from != 0 {
-        linear_apply_norm::<FastMath>(&mut hyperplane, i, len, 1.0 / norm_hyperplane);
+        linear_apply_norm::<AutoMath>(
+            &mut hyperplane,
+            i,
+            len,
+            AutoMath::div(1.0, norm_hyperplane),
+        );
     }
 
     hyperplane

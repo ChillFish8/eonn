@@ -131,18 +131,13 @@ pub unsafe fn f32_xany_avx512_fma_euclidean_hyperplane(
             &mut offset_acc8,
         );
 
-        ptr::copy_nonoverlapping(
-            results.as_ptr(),
-            hyperplane_ptr.add(i),
-            results.len(),
-        );
+        ptr::copy_nonoverlapping(results.as_ptr(), hyperplane_ptr.add(i), results.len());
 
         i += 128;
     }
 
     while i < len {
-        let (x, y) =
-            load_two_variable_size_avx512(x.add(i), y.add(i), len - i);
+        let (x, y) = load_two_variable_size_avx512(x.add(i), y.add(i), len - i);
 
         let diff = _mm512_sub_ps(x, y);
         let sum = _mm512_add_ps(x, y);
@@ -151,15 +146,11 @@ pub unsafe fn f32_xany_avx512_fma_euclidean_hyperplane(
         offset_acc1 = _mm512_fmadd_ps(diff, mean, offset_acc1);
 
         let result = mem::transmute::<__m512, [f32; 16]>(diff);
-        ptr::copy_nonoverlapping(
-            result.as_ptr(),
-            hyperplane_ptr.add(i),
-            result.len(),
-        );
+        ptr::copy_nonoverlapping(result.as_ptr(), hyperplane_ptr.add(i), result.len());
 
         i += 16;
     }
-    
+
     let hyperplane_offset = -sum_avx512_x8(
         offset_acc1,
         offset_acc2,

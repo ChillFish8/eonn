@@ -17,28 +17,7 @@ use crate::math::*;
 ///
 /// Lengths of `x` and `y` **MUST** be equal.
 pub unsafe fn f32_xany_fallback_nofma_div_vertical(x: &mut [f32], y: &[f32]) {
-    f32_op_vertical(StdMath::div, x, y)
-}
-
-#[cfg(feature = "nightly")]
-#[inline]
-/// Divides each the input mutable vector `x` by the elements provided by `y`
-/// element wise.
-///
-/// ```py
-/// D: int
-/// x: [f32; D]
-/// y: [f32; D]
-///
-/// for i in 0..D:
-///     x[i] = x[i] / y[i]
-/// ```
-///
-/// # Safety
-///
-/// Lengths of `x` and `y` **MUST** be equal.
-pub unsafe fn f32_xany_fallback_fma_div_vertical(x: &mut [f32], y: &[f32]) {
-    f32_op_vertical(FastMath::div, x, y)
+    f32_op_vertical(AutoMath::div, x, y)
 }
 
 #[inline]
@@ -58,28 +37,7 @@ pub unsafe fn f32_xany_fallback_fma_div_vertical(x: &mut [f32], y: &[f32]) {
 ///
 /// Lengths of `x` and `y` **MUST** be equal.
 pub unsafe fn f32_xany_fallback_nofma_mul_vertical(x: &mut [f32], y: &[f32]) {
-    f32_op_vertical(StdMath::mul, x, y)
-}
-
-#[cfg(feature = "nightly")]
-#[inline]
-/// Multiplies each the input mutable vector `x` by the elements provided by `y`
-/// element wise.
-///
-/// ```py
-/// D: int
-/// x: [f32; D]
-/// y: [f32; D]
-///
-/// for i in 0..D:
-///     x[i] = x[i] * y[i]
-/// ```
-///
-/// # Safety
-///
-/// Lengths of `x` and `y` **MUST** be equal.
-pub unsafe fn f32_xany_fallback_fma_mul_vertical(x: &mut [f32], y: &[f32]) {
-    f32_op_vertical(FastMath::mul, x, y)
+    f32_op_vertical(AutoMath::mul, x, y)
 }
 
 #[inline]
@@ -99,28 +57,7 @@ pub unsafe fn f32_xany_fallback_fma_mul_vertical(x: &mut [f32], y: &[f32]) {
 ///
 /// Lengths of `x` and `y` **MUST** be equal.
 pub unsafe fn f32_xany_fallback_nofma_add_vertical(x: &mut [f32], y: &[f32]) {
-    f32_op_vertical(StdMath::add, x, y)
-}
-
-#[cfg(feature = "nightly")]
-#[inline]
-/// Adds each the input mutable vector `x` with the elements provided by `y`
-/// element wise.
-///
-/// ```py
-/// D: int
-/// x: [f32; D]
-/// y: [f32; D]
-///
-/// for i in 0..D:
-///     x[i] = x[i] + y[i]
-/// ```
-///
-/// # Safety
-///
-/// Lengths of `x` and `y` **MUST** be equal.
-pub unsafe fn f32_xany_fallback_fma_add_vertical(x: &mut [f32], y: &[f32]) {
-    f32_op_vertical(FastMath::add, x, y)
+    f32_op_vertical(AutoMath::add, x, y)
 }
 
 #[inline]
@@ -140,28 +77,7 @@ pub unsafe fn f32_xany_fallback_fma_add_vertical(x: &mut [f32], y: &[f32]) {
 ///
 /// Lengths of `x` and `y` **MUST** be equal.
 pub unsafe fn f32_xany_fallback_nofma_sub_vertical(x: &mut [f32], y: &[f32]) {
-    f32_op_vertical(StdMath::sub, x, y)
-}
-
-#[cfg(feature = "nightly")]
-#[inline]
-/// Subtracts each the input mutable vector `x` by the elements provided by `y`
-/// element wise.
-///
-/// ```py
-/// D: int
-/// x: [f32; D]
-/// y: [f32; D]
-///
-/// for i in 0..D:
-///     x[i] = x[i] + y[i]
-/// ```
-///
-/// # Safety
-///
-/// Lengths of `x` and `y` **MUST** be equal.
-pub unsafe fn f32_xany_fallback_fma_sub_vertical(x: &mut [f32], y: &[f32]) {
-    f32_op_vertical(FastMath::sub, x, y)
+    f32_op_vertical(AutoMath::sub, x, y)
 }
 
 #[inline(always)]
@@ -275,70 +191,6 @@ mod tests {
             .collect::<Vec<f32>>();
 
         unsafe { f32_xany_fallback_nofma_sub_vertical(&mut x, &y) };
-
-        assert_is_close_vector(&x, &expected_res);
-    }
-
-    #[cfg(feature = "nightly")]
-    #[test]
-    fn test_xany_fma_div_vertical() {
-        let (mut x, y) = get_sample_vectors(537);
-
-        let expected_res = x
-            .iter()
-            .zip(y.iter())
-            .map(|(x, y)| x / y)
-            .collect::<Vec<f32>>();
-
-        unsafe { f32_xany_fallback_fma_div_vertical(&mut x, &y) };
-
-        assert_is_close_vector(&x, &expected_res);
-    }
-
-    #[cfg(feature = "nightly")]
-    #[test]
-    fn test_xany_fma_mul_vertical() {
-        let (mut x, y) = get_sample_vectors(537);
-
-        let expected_res = x
-            .iter()
-            .zip(y.iter())
-            .map(|(x, y)| x * y)
-            .collect::<Vec<f32>>();
-
-        unsafe { f32_xany_fallback_fma_mul_vertical(&mut x, &y) };
-
-        assert_is_close_vector(&x, &expected_res);
-    }
-
-    #[cfg(feature = "nightly")]
-    #[test]
-    fn test_xany_fma_add_vertical() {
-        let (mut x, y) = get_sample_vectors(537);
-
-        let expected_res = x
-            .iter()
-            .zip(y.iter())
-            .map(|(x, y)| x + y)
-            .collect::<Vec<f32>>();
-
-        unsafe { f32_xany_fallback_fma_add_vertical(&mut x, &y) };
-
-        assert_is_close_vector(&x, &expected_res);
-    }
-
-    #[cfg(feature = "nightly")]
-    #[test]
-    fn test_xany_fma_sub_vertical() {
-        let (mut x, y) = get_sample_vectors(537);
-
-        let expected_res = x
-            .iter()
-            .zip(y.iter())
-            .map(|(x, y)| x - y)
-            .collect::<Vec<f32>>();
-
-        unsafe { f32_xany_fallback_fma_sub_vertical(&mut x, &y) };
 
         assert_is_close_vector(&x, &expected_res);
     }

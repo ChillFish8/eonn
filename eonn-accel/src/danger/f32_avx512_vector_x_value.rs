@@ -89,7 +89,7 @@ pub unsafe fn f32_xany_avx512_nofma_mul_value(arr: &mut [f32], multiplier: f32) 
         execute_f32_x128_mul(arr.add(i), multiplier);
         i += 128;
     }
-        
+
     while i < len {
         let n = len - i;
         let arr = arr.add(i);
@@ -138,7 +138,7 @@ pub unsafe fn f32_xconst_avx512_nofma_add_value<const DIMS: usize>(
 ///
 /// This method assumes AVX512 instructions are available, if this method is executed
 /// on non-AVX512 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
-pub unsafe fn f32_xany_avx512_nofma_add_value(arr: &mut [f32], value: f32) {           
+pub unsafe fn f32_xany_avx512_nofma_add_value(arr: &mut [f32], value: f32) {
     let len = arr.len();
     let offset_from = len % 128;
 
@@ -150,7 +150,7 @@ pub unsafe fn f32_xany_avx512_nofma_add_value(arr: &mut [f32], value: f32) {
         execute_f32_x128_add(arr.add(i), value);
         i += 128;
     }
-    
+
     while i < len {
         let n = len - i;
         let arr = arr.add(i);
@@ -219,7 +219,7 @@ pub unsafe fn f32_xany_avx512_nofma_sub_value(arr: &mut [f32], value: f32) {
         execute_f32_x128_sub(arr.add(i), value);
         i += 128;
     }
-    
+
     while i < len {
         let n = len - i;
         let arr = arr.add(i);

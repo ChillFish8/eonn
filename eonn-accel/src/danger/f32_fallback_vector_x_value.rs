@@ -12,21 +12,6 @@ pub unsafe fn f32_xany_fallback_nofma_div_value(arr: &mut [f32], divider: f32) {
     f32_xany_fallback_nofma_mul_value(arr, 1.0 / divider)
 }
 
-#[cfg(feature = "nightly")]
-#[inline]
-/// Divides each element in the provided mutable `[f32; DIMS]` vector by `value`.
-///
-/// # Safety
-///
-/// Vectors **MUST** be `DIMS` elements in length and divisible by 128,
-/// otherwise this function becomes immediately UB due to out of bounds
-/// access.
-///
-/// All values must also be finite and not `NaN`
-pub unsafe fn f32_xany_fallback_fma_div_value(arr: &mut [f32], divider: f32) {
-    f32_xany_fallback_fma_mul_value(arr, 1.0 / divider)
-}
-
 #[inline]
 /// Multiplies each element in the provided mutable `[f32; DIMS]` vector by `value`.
 ///
@@ -36,22 +21,7 @@ pub unsafe fn f32_xany_fallback_fma_div_value(arr: &mut [f32], divider: f32) {
 /// otherwise this function becomes immediately UB due to out of bounds
 /// access.
 pub unsafe fn f32_xany_fallback_nofma_mul_value(arr: &mut [f32], multiplier: f32) {
-    f32_xany_fallback_mul_impl::<StdMath>(arr, multiplier)
-}
-
-#[cfg(feature = "nightly")]
-#[inline]
-/// Multiplies each element in the provided mutable `[f32; DIMS]` vector by `value`.
-///
-/// # Safety
-///
-/// Vectors **MUST** be `DIMS` elements in length and divisible by 128,
-/// otherwise this function becomes immediately UB due to out of bounds
-/// access.
-///
-/// All values must also be finite and not `NaN`
-pub unsafe fn f32_xany_fallback_fma_mul_value(arr: &mut [f32], multiplier: f32) {
-    f32_xany_fallback_mul_impl::<FastMath>(arr, multiplier)
+    f32_xany_fallback_mul_impl::<AutoMath>(arr, multiplier)
 }
 
 #[inline]
@@ -63,22 +33,7 @@ pub unsafe fn f32_xany_fallback_fma_mul_value(arr: &mut [f32], multiplier: f32) 
 /// otherwise this function becomes immediately UB due to out of bounds
 /// access.
 pub unsafe fn f32_xany_fallback_nofma_add_value(arr: &mut [f32], value: f32) {
-    f32_xany_fallback_add_impl::<StdMath>(arr, value)
-}
-
-#[cfg(feature = "nightly")]
-#[inline]
-/// Multiplies each element in the provided mutable `[f32; DIMS]` vector by `value`.
-///
-/// # Safety
-///
-/// Vectors **MUST** be `DIMS` elements in length and divisible by 128,
-/// otherwise this function becomes immediately UB due to out of bounds
-/// access.
-///
-/// All values must also be finite and not `NaN`
-pub unsafe fn f32_xany_fallback_fma_add_value(arr: &mut [f32], value: f32) {
-    f32_xany_fallback_add_impl::<FastMath>(arr, value)
+    f32_xany_fallback_add_impl::<AutoMath>(arr, value)
 }
 
 #[inline]
@@ -90,24 +45,10 @@ pub unsafe fn f32_xany_fallback_fma_add_value(arr: &mut [f32], value: f32) {
 /// otherwise this function becomes immediately UB due to out of bounds
 /// access.
 pub unsafe fn f32_xany_fallback_nofma_sub_value(arr: &mut [f32], value: f32) {
-    f32_xany_fallback_sub_impl::<StdMath>(arr, value)
+    f32_xany_fallback_sub_impl::<AutoMath>(arr, value)
 }
 
-#[cfg(feature = "nightly")]
-#[inline]
-/// Multiplies each element in the provided mutable `[f32; DIMS]` vector by `value`.
-///
-/// # Safety
-///
-/// Vectors **MUST** be `DIMS` elements in length and divisible by 128,
-/// otherwise this function becomes immediately UB due to out of bounds
-/// access.
-///
-/// All values must also be finite and not `NaN`
-pub unsafe fn f32_xany_fallback_fma_sub_value(arr: &mut [f32], value: f32) {
-    f32_xany_fallback_sub_impl::<FastMath>(arr, value)
-}
-
+#[inline(always)]
 unsafe fn f32_xany_fallback_mul_impl<M: Math>(arr: &mut [f32], multiplier: f32) {
     let mut offset_from = arr.len() % 8;
 
@@ -141,6 +82,7 @@ unsafe fn f32_xany_fallback_mul_impl<M: Math>(arr: &mut [f32], multiplier: f32) 
     }
 }
 
+#[inline(always)]
 unsafe fn f32_xany_fallback_add_impl<M: Math>(arr: &mut [f32], value: f32) {
     let mut offset_from = arr.len() % 8;
 
@@ -174,6 +116,7 @@ unsafe fn f32_xany_fallback_add_impl<M: Math>(arr: &mut [f32], value: f32) {
     }
 }
 
+#[inline(always)]
 unsafe fn f32_xany_fallback_sub_impl<M: Math>(arr: &mut [f32], value: f32) {
     let mut offset_from = arr.len() % 8;
 
@@ -245,46 +188,6 @@ mod tests {
         let (mut x, _) = get_sample_vectors(557);
         let expected = x.iter().copied().map(|v| v - value).collect::<Vec<_>>();
         unsafe { f32_xany_fallback_nofma_sub_value(&mut x, value) };
-        assert_is_close_vector(&x, &expected);
-    }
-
-    #[cfg(feature = "nightly")]
-    #[test]
-    fn test_f32_xany_fma_div() {
-        let value = 2.0;
-        let (mut x, _) = get_sample_vectors(557);
-        let expected = x.iter().copied().map(|v| v / value).collect::<Vec<_>>();
-        unsafe { f32_xany_fallback_fma_div_value(&mut x, value) };
-        assert_is_close_vector(&x, &expected);
-    }
-
-    #[cfg(feature = "nightly")]
-    #[test]
-    fn test_f32_xany_fma_mul() {
-        let value = 2.0;
-        let (mut x, _) = get_sample_vectors(557);
-        let expected = x.iter().copied().map(|v| v * value).collect::<Vec<_>>();
-        unsafe { f32_xany_fallback_fma_mul_value(&mut x, value) };
-        assert_is_close_vector(&x, &expected);
-    }
-
-    #[cfg(feature = "nightly")]
-    #[test]
-    fn test_f32_xany_fma_add() {
-        let value = 2.0;
-        let (mut x, _) = get_sample_vectors(557);
-        let expected = x.iter().copied().map(|v| v + value).collect::<Vec<_>>();
-        unsafe { f32_xany_fallback_fma_add_value(&mut x, value) };
-        assert_is_close_vector(&x, &expected);
-    }
-
-    #[cfg(feature = "nightly")]
-    #[test]
-    fn test_f32_xany_fma_sub() {
-        let value = 2.0;
-        let (mut x, _) = get_sample_vectors(557);
-        let expected = x.iter().copied().map(|v| v - value).collect::<Vec<_>>();
-        unsafe { f32_xany_fallback_fma_sub_value(&mut x, value) };
         assert_is_close_vector(&x, &expected);
     }
 }

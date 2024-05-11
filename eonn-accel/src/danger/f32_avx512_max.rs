@@ -176,7 +176,7 @@ pub unsafe fn f32_xany_avx512_nofma_max_horizontal(arr: &[f32]) -> f32 {
 
         i += 16;
     }
-    
+
     rollup_max_acc(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
 }
 
@@ -244,7 +244,7 @@ pub unsafe fn f32_xany_avx512_nofma_max_vertical(matrix: &[&[f32]]) -> Vec<f32> 
 
         i += 128;
     }
-    
+
     while i < len {
         let n = len - i;
 
@@ -263,7 +263,7 @@ pub unsafe fn f32_xany_avx512_nofma_max_vertical(matrix: &[&[f32]]) -> Vec<f32> 
 
         i += 16;
     }
-    
+
     max_values
 }
 

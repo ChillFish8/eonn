@@ -88,7 +88,7 @@ pub unsafe fn f32_xany_avx512_fma_norm(x: &[f32]) -> f32 {
 
         i += 128;
     }
-    
+
     while i < len {
         let n = len - i;
         let addr = x.add(i);
@@ -104,7 +104,7 @@ pub unsafe fn f32_xany_avx512_fma_norm(x: &[f32]) -> f32 {
 
         i += 16
     }
-    
+
     sum_avx512_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
 }
 

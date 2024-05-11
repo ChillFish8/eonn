@@ -38,7 +38,7 @@ pub unsafe fn f32_xconst_avx2_nofma_cosine<const DIMS: usize>(
     let norm_y = f32_xconst_avx2_nofma_norm::<DIMS>(y);
     let dot_product = f32_xconst_avx2_nofma_dot::<DIMS>(x, y);
 
-    cosine::<StdMath>(dot_product, norm_x, norm_y)
+    cosine::<AutoMath>(dot_product, norm_x, norm_y)
 }
 
 #[target_feature(enable = "avx2")]
@@ -60,10 +60,9 @@ pub unsafe fn f32_xany_avx2_nofma_cosine(x: &[f32], y: &[f32]) -> f32 {
     let norm_y = f32_xany_avx2_nofma_norm(y);
     let dot_product = f32_xany_avx2_nofma_dot(x, y);
 
-    cosine::<StdMath>(dot_product, norm_x, norm_y)
+    cosine::<AutoMath>(dot_product, norm_x, norm_y)
 }
 
-#[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
 /// Computes the cosine distance of two `[f32; DIMS]` vectors.
@@ -86,10 +85,9 @@ pub unsafe fn f32_xconst_avx2_fma_cosine<const DIMS: usize>(
     let norm_y = f32_xconst_avx2_fma_norm::<DIMS>(y);
     let dot_product = f32_xconst_avx2_fma_dot::<DIMS>(x, y);
 
-    cosine::<FastMath>(dot_product, norm_x, norm_y)
+    cosine::<AutoMath>(dot_product, norm_x, norm_y)
 }
 
-#[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
 /// Computes the cosine distance of two `f32` vectors.
@@ -109,7 +107,7 @@ pub unsafe fn f32_xany_avx2_fma_cosine(x: &[f32], y: &[f32]) -> f32 {
     let norm_y = f32_xany_avx2_fma_norm(y);
     let dot_product = f32_xany_avx2_fma_dot(x, y);
 
-    cosine::<FastMath>(dot_product, norm_x, norm_y)
+    cosine::<AutoMath>(dot_product, norm_x, norm_y)
 }
 
 #[cfg(test)]
@@ -117,7 +115,6 @@ mod tests {
     use super::*;
     use crate::test_utils::{get_sample_vectors, is_close, simple_cosine};
 
-    #[cfg(feature = "nightly")]
     #[test]
     fn test_xany_fma_cosine() {
         let (x, y) = get_sample_vectors(127);
@@ -132,7 +129,6 @@ mod tests {
         assert!(is_close(dist, simple_cosine(&x, &y)))
     }
 
-    #[cfg(feature = "nightly")]
     #[test]
     fn test_xconst_fma_cosine() {
         let (x, y) = get_sample_vectors(1024);

@@ -292,40 +292,6 @@ define_vector_op_test_suite!(
     tp = f32,
 );
 
-// Fallback routines w/ffast-math
-#[cfg(feature = "nightly")]
-define_vector_op_test_suite!(
-    suite_name = f32_x1024_fallback_fma,
-    dim = X1024,
-    len = 1024,
-    arch = FallbackFma,
-    tp = f32,
-);
-#[cfg(feature = "nightly")]
-define_vector_op_test_suite!(
-    suite_name = f32_x768_fallback_fma,
-    dim = X768,
-    len = 768,
-    arch = FallbackFma,
-    tp = f32,
-);
-#[cfg(feature = "nightly")]
-define_vector_op_test_suite!(
-    suite_name = f32_x512_fallback_fma,
-    dim = X512,
-    len = 512,
-    arch = FallbackFma,
-    tp = f32,
-);
-#[cfg(feature = "nightly")]
-define_vector_op_test_suite!(
-    suite_name = f32_xany_fallback_fma,
-    dim = XAny,
-    len = 537,
-    arch = FallbackFma,
-    tp = f32,
-);
-
 // AVX2 routines wo/fma
 define_vector_op_test_suite!(
     suite_name = f32_x1024_avx2_nofma,
@@ -651,40 +617,6 @@ define_vector_op_auto_arch_test_suite!(
     dim = XAny,
     len = 537,
     variant = Fallback,
-    tp = f32,
-);
-
-// Auto select routines w/ FallbackFma enabled
-#[cfg(feature = "nightly")]
-define_vector_op_auto_arch_test_suite!(
-    suite_name = f32_x1024_auto_fallbackfma_variant,
-    dim = X1024,
-    len = 1024,
-    variant = FallbackFma,
-    tp = f32,
-);
-#[cfg(feature = "nightly")]
-define_vector_op_auto_arch_test_suite!(
-    suite_name = f32_x768_auto_fallbackfma_variant,
-    dim = X768,
-    len = 768,
-    variant = FallbackFma,
-    tp = f32,
-);
-#[cfg(feature = "nightly")]
-define_vector_op_auto_arch_test_suite!(
-    suite_name = f32_x512_auto_fallbackfma_variant,
-    dim = X512,
-    len = 512,
-    variant = FallbackFma,
-    tp = f32,
-);
-#[cfg(feature = "nightly")]
-define_vector_op_auto_arch_test_suite!(
-    suite_name = f32_xauto_auto_fallbackfma_variant,
-    dim = XAny,
-    len = 537,
-    variant = FallbackFma,
     tp = f32,
 );
 

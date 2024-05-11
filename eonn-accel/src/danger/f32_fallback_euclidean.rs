@@ -12,32 +12,8 @@ use crate::math::*;
 ///
 /// Vectors **MUST** be equal length, otherwise this routine
 /// will become immediately UB due to out of bounds pointer accesses.
-///
-/// NOTE:
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
 pub unsafe fn f32_xany_fallback_nofma_euclidean(x: &[f32], y: &[f32]) -> f32 {
-    fallback_euclidean::<StdMath>(x, y)
-}
-
-#[cfg(feature = "nightly")]
-#[inline]
-/// Computes the squared Euclidean distance of two `f32` vectors.
-///
-/// These are fallback routines, they are designed to be optimized
-/// by the compiler only, in areas where manually optimized routines
-/// are unable to run due to lack of CPU features.
-///
-/// # Safety
-///
-/// Vectors **MUST** be equal length, otherwise this routine
-/// will become immediately UB due to out of bounds pointer accesses.
-///
-/// NOTE:
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_xany_fallback_fma_euclidean(x: &[f32], y: &[f32]) -> f32 {
-    fallback_euclidean::<FastMath>(x, y)
+    fallback_euclidean::<AutoMath>(x, y)
 }
 
 #[inline]
@@ -124,14 +100,6 @@ mod tests {
     fn test_xany_nofma_euclidean() {
         let (x, y) = get_sample_vectors(127);
         let dist = unsafe { f32_xany_fallback_nofma_euclidean(&x, &y) };
-        assert_is_close(dist, simple_euclidean(&x, &y));
-    }
-
-    #[cfg(feature = "nightly")]
-    #[test]
-    fn test_xany_fma_euclidean() {
-        let (x, y) = get_sample_vectors(127);
-        let dist = unsafe { f32_xany_fallback_fma_euclidean(&x, &y) };
         assert_is_close(dist, simple_euclidean(&x, &y));
     }
 }

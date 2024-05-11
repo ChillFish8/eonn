@@ -13,42 +13,12 @@ use crate::math::*;
 ///
 /// Vectors **MUST** be equal length, otherwise this routine
 /// will become immediately UB due to out of bounds pointer accesses.
-///
-/// NOTE:
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
 pub unsafe fn f32_xany_fallback_nofma_euclidean_hyperplane(
     x: &[f32],
     y: &[f32],
 ) -> (Vec<f32>, f32) {
     let mut hyperplane = vec![0.0; x.len()];
-    let offset = fallback_euclidean_hyperplane::<StdMath>(x, y, &mut hyperplane);
-    (hyperplane, offset)
-}
-
-#[cfg(feature = "nightly")]
-#[inline]
-/// Computes the Euclidean hyperplane of two `f32` vectors
-/// and the offset from origin.
-///
-/// These are fallback routines, they are designed to be optimized
-/// by the compiler only, in areas where manually optimized routines
-/// are unable to run due to lack of CPU features.
-///
-/// # Safety
-///
-/// Vectors **MUST** be equal length, otherwise this routine
-/// will become immediately UB due to out of bounds pointer accesses.
-///
-/// NOTE:
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
-pub unsafe fn f32_xany_fallback_fma_euclidean_hyperplane(
-    x: &[f32],
-    y: &[f32],
-) -> (Vec<f32>, f32) {
-    let mut hyperplane = vec![0.0; x.len()];
-    let offset = fallback_euclidean_hyperplane::<FastMath>(x, y, &mut hyperplane);
+    let offset = fallback_euclidean_hyperplane::<AutoMath>(x, y, &mut hyperplane);
     (hyperplane, offset)
 }
 
@@ -162,17 +132,6 @@ mod tests {
         get_sample_vectors,
         simple_euclidean_hyperplane,
     };
-
-    #[cfg(feature = "nightly")]
-    #[test]
-    fn test_xany_fma_euclidean_hyperplane() {
-        let (x, y) = get_sample_vectors(514);
-        let (hyperplane, offset) =
-            unsafe { f32_xany_fallback_fma_euclidean_hyperplane(&x, &y) };
-        let (expected, expected_offset) = simple_euclidean_hyperplane(&x, &y);
-        assert_is_close(offset, expected_offset);
-        assert_is_close_vector(&hyperplane, &expected);
-    }
 
     #[test]
     fn test_xany_nofma_euclidean_hyperplane() {

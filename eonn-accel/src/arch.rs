@@ -34,26 +34,12 @@ impl Default for Avx512 {
 /// No specialised features detected, fallback impls.
 pub struct Fallback(());
 
-#[cfg(feature = "nightly")]
-#[derive(Debug, Copy, Clone)]
-/// Enables FMA instructions
-pub struct Fma(());
-
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-pub struct Avx2Fma(Avx2, Fma);
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+pub struct Avx2Fma(());
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 impl Default for Avx2Fma {
     fn default() -> Self {
-        Self(Avx2(()), Fma(()))
-    }
-}
-
-#[cfg(feature = "nightly")]
-pub struct FallbackFma(Fallback, Fma);
-#[cfg(feature = "nightly")]
-impl Default for FallbackFma {
-    fn default() -> Self {
-        Self(Fallback(()), Fma(()))
+        Self(())
     }
 }
 
@@ -67,14 +53,11 @@ pub struct Auto(pub(crate) SelectedArch);
 pub(crate) enum SelectedArch {
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
     Avx2,
-    #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
     Avx2Fma,
     #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
     Avx512,
-    #[allow(unused)]
     Fallback,
-    #[cfg(feature = "nightly")]
-    FallbackFma,
 }
 
 impl Default for SelectedArch {
@@ -88,10 +71,7 @@ impl Default for SelectedArch {
             return Self::Avx512;
         }
 
-        #[cfg(all(
-            any(target_arch = "x86", target_arch = "x86_64"),
-            feature = "nightly"
-        ))]
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if is_x86_feature_detected!("avx2") && is_x86_feature_detected!("fma") {
             return Self::Avx2Fma;
         }
@@ -108,40 +88,24 @@ impl Default for SelectedArch {
             return Self::Avx2;
         }
 
-        #[cfg(not(feature = "nightly"))]
-        {
-            Self::Fallback
-        }
-        #[cfg(feature = "nightly")]
-        {
-            Self::FallbackFma
-        }
+        Self::Fallback
     }
 
     #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
     fn default() -> Self {
-        #[cfg(not(feature = "nightly"))]
-        {
-            Self::Fallback
-        }
-        #[cfg(feature = "nightly")]
-        {
-            Self::FallbackFma
-        }
+        Self::Fallback
     }
 }
 
 pub trait Arch: Default {}
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 impl Arch for Avx2 {}
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 impl Arch for Avx2Fma {}
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 impl Arch for Avx512 {}
 impl Arch for Auto {}
 impl Arch for Fallback {}
-#[cfg(feature = "nightly")]
-impl Arch for FallbackFma {}
 
 #[cfg(test)]
 mod tests {

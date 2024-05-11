@@ -17,28 +17,7 @@ use crate::math::*;
 /// This method in theory is safe, but like the rest of the dangerous API, makes
 /// no guarantee that it will always remain safe with no strings attached.
 pub unsafe fn f32_xany_fallback_nofma_sum_horizontal(x: &[f32]) -> f32 {
-    sum::<StdMath>(x)
-}
-
-#[cfg(feature = "nightly")]
-#[inline]
-/// Sums all elements of the vector.
-///
-/// ```py
-/// D: int
-/// total: f32
-/// x: [f32; D]
-///
-/// for i in 0..D:
-///     total = total + x[i]
-/// ```
-///
-/// # Safety
-///
-/// All values within the array must be finite and not `NaN` otherwise this
-/// function can be UB.
-pub unsafe fn f32_xany_fallback_fma_sum_horizontal(x: &[f32]) -> f32 {
-    sum::<FastMath>(x)
+    sum::<AutoMath>(x)
 }
 
 #[allow(unused)]
@@ -59,31 +38,7 @@ pub unsafe fn f32_xany_fallback_fma_sum_horizontal(x: &[f32]) -> f32 {
 ///
 /// All vectors within the matrix **MUST** be the same length.
 pub unsafe fn f32_xany_fallback_nofma_sum_vertical(matrix: &[&[f32]]) -> Vec<f32> {
-    sum_vertical::<StdMath>(matrix)
-}
-
-#[cfg(feature = "nightly")]
-#[allow(unused)]
-#[inline]
-/// Vertical sum of the given matrix returning the individual sums.
-///
-/// ```py
-/// D: int
-/// total: [f32; D]
-/// matrix: [[f32; D]; N]
-///
-/// for i in 0..N:
-///     for j in 0..D:
-///         total[j] += matrix[i, j]   
-/// ```
-///
-/// # Safety
-///
-/// All vectors within the matrix **MUST** be the same length.
-///
-/// All values in the matrix must also be finite and not `NaN`.
-pub unsafe fn f32_xany_fallback_fma_sum_vertical(matrix: &[&[f32]]) -> Vec<f32> {
-    sum_vertical::<FastMath>(matrix)
+    sum_vertical::<AutoMath>(matrix)
 }
 
 #[inline(always)]
@@ -219,14 +174,6 @@ mod tests {
         assert_is_close(sum, x.iter().sum::<f32>());
     }
 
-    #[cfg(feature = "nightly")]
-    #[test]
-    fn test_xany_fma_sum() {
-        let (x, _) = get_sample_vectors(131);
-        let sum = unsafe { f32_xany_fallback_fma_sum_horizontal(&x) };
-        assert_is_close(sum, x.iter().sum::<f32>());
-    }
-
     #[test]
     fn test_xany_nofma_sum_vertical() {
         let mut matrix = Vec::new();
@@ -247,30 +194,6 @@ mod tests {
         }
 
         let sum = unsafe { f32_xany_fallback_nofma_sum_vertical(&matrix_view) };
-        assert_eq!(sum, expected_vertical_sum);
-    }
-
-    #[cfg(feature = "nightly")]
-    #[test]
-    fn test_xany_fma_sum_vertical() {
-        let mut matrix = Vec::new();
-        for _ in 0..25 {
-            let (x, _) = get_sample_vectors(537);
-            matrix.push(x);
-        }
-
-        let matrix_view = matrix.iter().map(|v| v.as_ref()).collect::<Vec<&[f32]>>();
-
-        let mut expected_vertical_sum = vec![0.0; 537];
-        for i in 0..537 {
-            let mut sum = 0.0;
-            for arr in matrix.iter() {
-                sum += arr[i];
-            }
-            expected_vertical_sum[i] = sum;
-        }
-
-        let sum = unsafe { f32_xany_fallback_fma_sum_vertical(&matrix_view) };
         assert_eq!(sum, expected_vertical_sum);
     }
 }
