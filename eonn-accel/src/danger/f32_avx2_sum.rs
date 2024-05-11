@@ -230,42 +230,14 @@ pub unsafe fn f32_xconst_avx2_nofma_sum_vertical<const DIMS: usize>(
 /// This method assumes AVX2 instructions are available, if this method is executed
 /// on non-AVX2 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
 pub unsafe fn f32_xany_avx2_nofma_sum_vertical(matrix: &[&[f32]]) -> Vec<f32> {
-    let dims = matrix[0].len();
-    let mut offset_from = dims % 64;
+    let len = matrix[0].len();
+    let offset_from = len % 64;
 
-    let mut results = vec![0.0; dims];
+    let mut results = vec![0.0; len];
     let results_ptr = results.as_mut_ptr();
 
-    if offset_from != 0 {
-        let mut i = offset_from % 8;
-        for n in 0..i {
-            for m in 0..matrix.len() {
-                let arr = *matrix.get_unchecked(m);
-                debug_assert_eq!(arr.len(), dims);
-
-                *results.get_unchecked_mut(n) += *arr.get_unchecked(n);
-            }
-        }
-
-        while i < offset_from {
-            let mut acc = _mm256_setzero_ps();
-
-            for m in 0..matrix.len() {
-                let arr = *matrix.get_unchecked(m);
-                debug_assert_eq!(arr.len(), dims);
-                let arr = arr.as_ptr();
-
-                let x = _mm256_loadu_ps(arr.add(i));
-                acc = _mm256_add_ps(acc, x);
-            }
-
-            copy_avx2_register_to(results_ptr.add(i), acc);
-
-            i += 8;
-        }
-    }
-
-    while offset_from < dims {
+    let mut i = 0;
+    while i < (len - offset_from) {
         let mut acc1 = _mm256_setzero_ps();
         let mut acc2 = _mm256_setzero_ps();
         let mut acc3 = _mm256_setzero_ps();
@@ -277,11 +249,11 @@ pub unsafe fn f32_xany_avx2_nofma_sum_vertical(matrix: &[&[f32]]) -> Vec<f32> {
 
         for m in 0..matrix.len() {
             let arr = *matrix.get_unchecked(m);
-            debug_assert_eq!(arr.len(), dims);
+            debug_assert_eq!(arr.len(), len);
             let arr = arr.as_ptr();
 
             sum_x64_block(
-                arr.add(offset_from),
+                arr.add(i),
                 &mut acc1,
                 &mut acc2,
                 &mut acc3,
@@ -298,13 +270,45 @@ pub unsafe fn f32_xany_avx2_nofma_sum_vertical(matrix: &[&[f32]]) -> Vec<f32> {
         let result = mem::transmute::<[__m256; 8], [f32; 64]>(merged);
         ptr::copy_nonoverlapping(
             result.as_ptr(),
-            results_ptr.add(offset_from),
+            results_ptr.add(i),
             result.len(),
         );
 
-        offset_from += 64;
+        i += 64;
     }
 
+    if offset_from != 0 {
+        let tail = offset_from % 8;
+
+        while i < (len - tail) {
+            let mut acc = _mm256_setzero_ps();
+
+            for m in 0..matrix.len() {
+                let arr = *matrix.get_unchecked(m);
+                debug_assert_eq!(arr.len(), len);
+                let arr = arr.as_ptr();
+
+                let x = _mm256_loadu_ps(arr.add(i));
+                acc = _mm256_add_ps(acc, x);
+            }
+
+            copy_avx2_register_to(results_ptr.add(i), acc);
+
+            i += 8;
+        }
+        
+        while i < len {
+            for m in 0..matrix.len() {
+                let arr = *matrix.get_unchecked(m);
+                debug_assert_eq!(arr.len(), len);
+
+                *results.get_unchecked_mut(i) += *arr.get_unchecked(i);
+            }
+            
+            i += 1;
+        }
+    }
+    
     results
 }
 
