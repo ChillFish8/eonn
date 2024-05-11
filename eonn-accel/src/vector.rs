@@ -99,10 +99,6 @@ where
             }
         }
 
-        if data.iter().any(|v| !v.is_finite() || v.is_nan()) {
-            return Err(VectorCreateError::NonFinite);
-        }
-
         Ok(unsafe { Self::from_vec_unchecked(data) })
     }
 
@@ -110,24 +106,20 @@ where
     /// Creates a new vector from the given data without checking any values or dimensions.
     ///
     /// # Safety
-    /// You **must** ensure all values within the provided data are both finite and not nan,
-    /// along with ensuring the dimensions/length of the data matches the dimensions specified
+    /// You **must** ensure the provided data matches the dimensions/length specified
     /// by `D`.
     ///
     /// If any of these checks are not performed or invalid, this creates immediate UB.
     pub unsafe fn from_vec_unchecked(data: Vec<T>) -> Self {
-        if cfg!(debug_assertions) {
-            if let Some(expected_dim) = D::const_size() {
-                assert_eq!(
-                    data.len(),
-                    expected_dim,
-                    "Dimensions of const size must match"
-                );
-            }
+        #[cfg(debug_assertions)]
+        if let Some(expected_dim) = D::const_size() {
+            assert_eq!(
+                data.len(),
+                expected_dim,
+                "Dimensions of const size must match"
+            );
         }
-
-        debug_assert!(!data.iter().any(|v| !v.is_finite() || v.is_nan()));
-
+        
         Self {
             buffer: data,
             ops: <(D, A) as Default>::default(),
