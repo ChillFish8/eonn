@@ -381,11 +381,11 @@ impl_dangerous_avx2_nofma_fixed_ops!(X768);
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 impl_dangerous_avx2_nofma_fixed_ops!(X512);
 
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 impl_dangerous_avx2_fma_fixed_ops!(X1024);
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 impl_dangerous_avx2_fma_fixed_ops!(X768);
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 impl_dangerous_avx2_fma_fixed_ops!(X512);
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
@@ -492,7 +492,7 @@ impl DangerousOps for (XAny, Avx2) {
     }
 }
 
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 impl DangerousOps for (XAny, Avx2Fma) {
     #[inline]
     unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {

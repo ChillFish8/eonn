@@ -131,7 +131,6 @@ pub unsafe fn f32_xany_avx2_nofma_euclidean(x: &[f32], y: &[f32]) -> f32 {
     total + sum_avx2(acc)
 }
 
-#[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
 /// Computes the squared Euclidean distance of two `[f32; DIMS]` vectors.
@@ -186,7 +185,6 @@ pub unsafe fn f32_xconst_avx2_fma_euclidean<const DIMS: usize>(
     sum_avx2(acc)
 }
 
-#[cfg(feature = "nightly")]
 #[target_feature(enable = "avx2", enable = "fma")]
 #[inline]
 /// Computes the squared Euclidean distance of two `f32` vectors.
@@ -327,7 +325,6 @@ unsafe fn execute_f32_x64_nofma_block_euclidean(
     *acc8 = _mm256_add_ps(*acc8, r8);
 }
 
-#[cfg(feature = "nightly")]
 #[allow(clippy::too_many_arguments)]
 #[inline(always)]
 unsafe fn execute_f32_x64_fma_block_euclidean(
@@ -390,7 +387,6 @@ mod tests {
     use super::*;
     use crate::test_utils::{assert_is_close, get_sample_vectors, simple_euclidean};
 
-    #[cfg(feature = "nightly")]
     #[test]
     fn test_xany_fma_euclidean() {
         let (x, y) = get_sample_vectors(127);
@@ -405,7 +401,6 @@ mod tests {
         assert_is_close(dist, simple_euclidean(&x, &y));
     }
 
-    #[cfg(feature = "nightly")]
     #[test]
     fn test_xconst_fma_euclidean() {
         let (x, y) = get_sample_vectors(1024);

@@ -241,7 +241,7 @@ pub unsafe fn f32_xany_avx512_nofma_min_vertical(matrix: &[&[f32]]) -> Vec<f32> 
     }
 
     while i < len {
-        let n = offset_from - i;
+        let n = len - i;
 
         let mut acc = _mm512_set1_ps(f32::INFINITY);
 

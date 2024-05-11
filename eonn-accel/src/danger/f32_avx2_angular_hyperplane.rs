@@ -1,7 +1,6 @@
 use std::arch::x86_64::*;
 use std::{mem, ptr};
 
-#[cfg(feature = "nightly")]
 use crate::danger::{f32_xany_avx2_fma_norm, f32_xconst_avx2_fma_norm};
 use crate::danger::{
     f32_xany_avx2_nofma_norm,

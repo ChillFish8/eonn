@@ -323,7 +323,7 @@ define_vector_op_test_suite!(
 );
 
 // AVX2 routines w/fma
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 define_vector_op_test_suite!(
     suite_name = f32_x1024_avx2_fma,
     dim = X1024,
@@ -331,7 +331,7 @@ define_vector_op_test_suite!(
     arch = Avx2Fma,
     tp = f32,
 );
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 define_vector_op_test_suite!(
     suite_name = f32_x768_avx2fma,
     dim = X768,
@@ -339,7 +339,7 @@ define_vector_op_test_suite!(
     arch = Avx2Fma,
     tp = f32,
 );
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 define_vector_op_test_suite!(
     suite_name = f32_x512_avx2_fma,
     dim = X512,
@@ -347,7 +347,7 @@ define_vector_op_test_suite!(
     arch = Avx2Fma,
     tp = f32,
 );
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 define_vector_op_test_suite!(
     suite_name = f32_xany_avx2_fma,
     dim = XAny,
@@ -655,7 +655,7 @@ define_vector_op_auto_arch_test_suite!(
 );
 
 // Auto select routines w/ AVX2Fma enabled
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 define_vector_op_auto_arch_test_suite!(
     suite_name = f32_x1024_auto_avx2fma_variant,
     dim = X1024,
@@ -663,7 +663,7 @@ define_vector_op_auto_arch_test_suite!(
     variant = Avx2Fma,
     tp = f32,
 );
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 define_vector_op_auto_arch_test_suite!(
     suite_name = f32_x768_auto_avx2fma_variant,
     dim = X768,
@@ -671,7 +671,7 @@ define_vector_op_auto_arch_test_suite!(
     variant = Avx2Fma,
     tp = f32,
 );
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 define_vector_op_auto_arch_test_suite!(
     suite_name = f32_x512_auto_avx2fma_variant,
     dim = X512,
@@ -679,7 +679,7 @@ define_vector_op_auto_arch_test_suite!(
     variant = Avx2Fma,
     tp = f32,
 );
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 define_vector_op_auto_arch_test_suite!(
     suite_name = f32_xauto_auto_avx2fma_variant,
     dim = XAny,

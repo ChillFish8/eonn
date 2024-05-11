@@ -238,7 +238,7 @@ pub unsafe fn f32_xany_avx512_nofma_max_vertical(matrix: &[&[f32]]) -> Vec<f32> 
         let result = mem::transmute::<[__m512; 8], [f32; 128]>(merged);
         ptr::copy_nonoverlapping(
             result.as_ptr(),
-            max_values_ptr.add(offset_from),
+            max_values_ptr.add(i),
             result.len(),
         );
 

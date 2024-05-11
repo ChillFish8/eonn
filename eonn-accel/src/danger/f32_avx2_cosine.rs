@@ -1,5 +1,4 @@
 use crate::danger::utils::cosine;
-#[cfg(feature = "nightly")]
 use crate::danger::{
     f32_xany_avx2_fma_dot,
     f32_xany_avx2_fma_norm,
