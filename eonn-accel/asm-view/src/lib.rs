@@ -38,6 +38,12 @@ macro_rules! define_distance_exports {
             pub unsafe fn [< xconst_avx512_fma_ $op >](x: &[f32], y: &[f32]) -> f32 {
                 eonn_accel::danger::[< f32_xconst_avx512_fma_ $op >]::<1024>(x, y)
             }
+
+            #[no_mangle]
+            #[inline(never)]
+            pub unsafe fn [< xany_fallback_nofma_ $op >](x: &[f32], y: &[f32]) -> f32 {
+                eonn_accel::danger::[< f32_xany_fallback_nofma_ $op >](x, y)
+            }
         }
     };
 }

@@ -123,7 +123,7 @@ pub(crate) unsafe fn fallback_euclidean_hyperplane<M: Math>(
         offset_acc7,
         offset_acc8,
     );
-    
+
     hyperplane_offset -= extra;
 
     hyperplane_offset

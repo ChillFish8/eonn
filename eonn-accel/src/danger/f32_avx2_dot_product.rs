@@ -234,7 +234,7 @@ pub unsafe fn f32_xany_avx2_fma_dot(x: &[f32], y: &[f32]) -> f32 {
             let x = *x.get_unchecked(i);
             let y = *y.get_unchecked(i);
             total = AutoMath::add(total, AutoMath::mul(x, y));
-            
+
             i += 1;
         }
     }

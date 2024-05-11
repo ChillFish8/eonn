@@ -19,7 +19,14 @@ pub unsafe fn f32_xany_fallback_nofma_min_horizontal(arr: &[f32]) -> f32 {
     let mut acc8 = f32::INFINITY;
 
     let mut i = 0;
-    while i < (len - offset_from) {
+    while i < offset_from {
+        let x = *arr.get_unchecked(i);
+        acc1 = acc1.min(x);
+
+        i += 1;
+    }
+
+    while i < len {
         let x1 = *arr.get_unchecked(i);
         let x2 = *arr.get_unchecked(i + 1);
         let x3 = *arr.get_unchecked(i + 2);
@@ -39,13 +46,6 @@ pub unsafe fn f32_xany_fallback_nofma_min_horizontal(arr: &[f32]) -> f32 {
         acc8 = acc8.min(x8);
 
         i += 8;
-    }
-
-    while i < len {
-        let x = *arr.get_unchecked(i);
-        acc1 = acc1.min(x);
-
-        i += 1;
     }
 
     acc1 = acc1.min(acc2);

@@ -41,7 +41,17 @@ unsafe fn fallback_euclidean<M: Math>(x: &[f32], y: &[f32]) -> f32 {
     let mut acc8 = 0.0;
 
     let mut i = 0;
-    while i < (len - offset_from) {
+    while i < offset_from {
+        let x = *x.get_unchecked(i);
+        let y = *y.get_unchecked(i);
+
+        let diff = M::sub(x, y);
+        extra = M::add(extra, M::mul(diff, diff));
+
+        i += 1;
+    }
+
+    while i < len {
         let x1 = *x.get_unchecked(i);
         let x2 = *x.get_unchecked(i + 1);
         let x3 = *x.get_unchecked(i + 2);
@@ -81,16 +91,6 @@ unsafe fn fallback_euclidean<M: Math>(x: &[f32], y: &[f32]) -> f32 {
         i += 8;
     }
 
-    while i < len {
-        let x = *x.get_unchecked(i);
-        let y = *y.get_unchecked(i);
-
-        let diff = M::sub(x, y);
-        extra = M::add(extra, M::mul(diff, diff));
-
-        i += 1;
-    }
-
     rollup_scalar_x8::<M>(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8) + extra
 }
 
@@ -105,7 +105,7 @@ mod tests {
         let dist = unsafe { f32_xany_fallback_nofma_euclidean(&x, &y) };
         assert_is_close(dist, simple_euclidean(&x, &y));
     }
-    
+
     #[test]
     fn test_xany_nofma_euclidean() {
         let (x, y) = get_sample_vectors(127);

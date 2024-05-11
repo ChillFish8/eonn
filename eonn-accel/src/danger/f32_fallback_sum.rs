@@ -105,7 +105,20 @@ unsafe fn sum_vertical<M: Math>(matrix: &[&[f32]]) -> Vec<f32> {
     let mut results = vec![0.0; len];
 
     let mut i = 0;
-    while i < (len - offset_from) {
+    while i < offset_from {
+        for m in 0..matrix.len() {
+            let arr = *matrix.get_unchecked(m);
+            debug_assert_eq!(arr.len(), len);
+
+            let x = *arr.get_unchecked(i);
+            let acc = *results.get_unchecked_mut(i);
+            *results.get_unchecked_mut(i) = M::add(acc, x);
+        }
+
+        i += 1;
+    }
+
+    while i < len {
         let mut acc1 = 0.0;
         let mut acc2 = 0.0;
         let mut acc3 = 0.0;
@@ -148,19 +161,6 @@ unsafe fn sum_vertical<M: Math>(matrix: &[&[f32]]) -> Vec<f32> {
         *results.get_unchecked_mut(i + 7) = acc8;
 
         i += 8;
-    }
-
-    while i < len {
-        for m in 0..matrix.len() {
-            let arr = *matrix.get_unchecked(m);
-            debug_assert_eq!(arr.len(), len);
-
-            let x = *arr.get_unchecked(i);
-            let acc = *results.get_unchecked_mut(i);
-            *results.get_unchecked_mut(i) = M::add(acc, x);
-        }
-
-        i += 1;
     }
 
     results
