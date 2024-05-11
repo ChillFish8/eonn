@@ -43,6 +43,9 @@ pub unsafe fn f32_xany_fallback_nofma_sum_vertical(matrix: &[&[f32]]) -> Vec<f32
 
 #[inline(always)]
 unsafe fn sum<M: Math>(arr: &[f32]) -> f32 {
+    let len = arr.len();
+    let offset_from = len % 8;
+
     let mut acc1 = 0.0;
     let mut acc2 = 0.0;
     let mut acc3 = 0.0;
@@ -52,24 +55,16 @@ unsafe fn sum<M: Math>(arr: &[f32]) -> f32 {
     let mut acc7 = 0.0;
     let mut acc8 = 0.0;
 
-    let mut offset_from = arr.len() % 8;
-
-    if offset_from != 0 {
-        for i in 0..offset_from {
-            let x = *arr.get_unchecked(i);
-            acc1 = M::add(acc1, x);
-        }
-    }
-
-    while offset_from < arr.len() {
-        let x1 = *arr.get_unchecked(offset_from);
-        let x2 = *arr.get_unchecked(offset_from + 1);
-        let x3 = *arr.get_unchecked(offset_from + 2);
-        let x4 = *arr.get_unchecked(offset_from + 3);
-        let x5 = *arr.get_unchecked(offset_from + 4);
-        let x6 = *arr.get_unchecked(offset_from + 5);
-        let x7 = *arr.get_unchecked(offset_from + 6);
-        let x8 = *arr.get_unchecked(offset_from + 7);
+    let mut i = 0;
+    while i < (len - offset_from) {
+        let x1 = *arr.get_unchecked(i);
+        let x2 = *arr.get_unchecked(i + 1);
+        let x3 = *arr.get_unchecked(i + 2);
+        let x4 = *arr.get_unchecked(i + 3);
+        let x5 = *arr.get_unchecked(i + 4);
+        let x6 = *arr.get_unchecked(i + 5);
+        let x7 = *arr.get_unchecked(i + 6);
+        let x8 = *arr.get_unchecked(i + 7);
 
         acc1 = M::add(acc1, x1);
         acc2 = M::add(acc2, x2);
@@ -80,7 +75,14 @@ unsafe fn sum<M: Math>(arr: &[f32]) -> f32 {
         acc7 = M::add(acc7, x7);
         acc8 = M::add(acc8, x8);
 
-        offset_from += 8;
+        i += 8;
+    }
+
+    while i < len {
+        let x = *arr.get_unchecked(i);
+        acc1 = M::add(acc1, x);
+
+        i += 1;
     }
 
     acc1 = M::add(acc1, acc2);
@@ -96,25 +98,13 @@ unsafe fn sum<M: Math>(arr: &[f32]) -> f32 {
 
 #[inline(always)]
 unsafe fn sum_vertical<M: Math>(matrix: &[&[f32]]) -> Vec<f32> {
-    let dims = matrix[0].len();
-    let mut offset_from = dims % 8;
+    let len = matrix[0].len();
+    let offset_from = len % 8;
 
-    let mut results = vec![0.0; dims];
+    let mut results = vec![0.0; len];
 
-    if offset_from != 0 {
-        for i in 0..offset_from {
-            for m in 0..matrix.len() {
-                let arr = *matrix.get_unchecked(m);
-                debug_assert_eq!(arr.len(), dims);
-
-                let x = *arr.get_unchecked(i);
-                let acc = *results.get_unchecked_mut(i);
-                *results.get_unchecked_mut(i) = M::add(acc, x);
-            }
-        }
-    }
-
-    while offset_from < dims {
+    let mut i = 0;
+    while i < (len - offset_from) {
         let mut acc1 = 0.0;
         let mut acc2 = 0.0;
         let mut acc3 = 0.0;
@@ -126,16 +116,16 @@ unsafe fn sum_vertical<M: Math>(matrix: &[&[f32]]) -> Vec<f32> {
 
         for m in 0..matrix.len() {
             let arr = *matrix.get_unchecked(m);
-            debug_assert_eq!(arr.len(), dims);
+            debug_assert_eq!(arr.len(), len);
 
-            let x1 = *arr.get_unchecked(offset_from);
-            let x2 = *arr.get_unchecked(offset_from + 1);
-            let x3 = *arr.get_unchecked(offset_from + 2);
-            let x4 = *arr.get_unchecked(offset_from + 3);
-            let x5 = *arr.get_unchecked(offset_from + 4);
-            let x6 = *arr.get_unchecked(offset_from + 5);
-            let x7 = *arr.get_unchecked(offset_from + 6);
-            let x8 = *arr.get_unchecked(offset_from + 7);
+            let x1 = *arr.get_unchecked(i);
+            let x2 = *arr.get_unchecked(i + 1);
+            let x3 = *arr.get_unchecked(i + 2);
+            let x4 = *arr.get_unchecked(i + 3);
+            let x5 = *arr.get_unchecked(i + 4);
+            let x6 = *arr.get_unchecked(i + 5);
+            let x7 = *arr.get_unchecked(i + 6);
+            let x8 = *arr.get_unchecked(i + 7);
 
             acc1 = M::add(acc1, x1);
             acc2 = M::add(acc2, x2);
@@ -147,16 +137,29 @@ unsafe fn sum_vertical<M: Math>(matrix: &[&[f32]]) -> Vec<f32> {
             acc8 = M::add(acc8, x8);
         }
 
-        *results.get_unchecked_mut(offset_from) = acc1;
-        *results.get_unchecked_mut(offset_from + 1) = acc2;
-        *results.get_unchecked_mut(offset_from + 2) = acc3;
-        *results.get_unchecked_mut(offset_from + 3) = acc4;
-        *results.get_unchecked_mut(offset_from + 4) = acc5;
-        *results.get_unchecked_mut(offset_from + 5) = acc6;
-        *results.get_unchecked_mut(offset_from + 6) = acc7;
-        *results.get_unchecked_mut(offset_from + 7) = acc8;
+        *results.get_unchecked_mut(i) = acc1;
+        *results.get_unchecked_mut(i + 1) = acc2;
+        *results.get_unchecked_mut(i + 2) = acc3;
+        *results.get_unchecked_mut(i + 3) = acc4;
+        *results.get_unchecked_mut(i + 4) = acc5;
+        *results.get_unchecked_mut(i + 5) = acc6;
+        *results.get_unchecked_mut(i + 6) = acc7;
+        *results.get_unchecked_mut(i + 7) = acc8;
 
-        offset_from += 8;
+        i += 8;
+    }
+
+    while i < len {
+        for m in 0..matrix.len() {
+            let arr = *matrix.get_unchecked(m);
+            debug_assert_eq!(arr.len(), len);
+
+            let x = *arr.get_unchecked(i);
+            let acc = *results.get_unchecked_mut(i);
+            *results.get_unchecked_mut(i) = M::add(acc, x);
+        }
+
+        i += 1;
     }
 
     results

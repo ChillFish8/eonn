@@ -20,7 +20,8 @@ pub(super) unsafe fn fallback_dot<M: Math>(x: &[f32], y: &[f32]) -> f32 {
         "Improper implementation detected, vectors must be equal length"
     );
 
-    let mut offset_from = x.len() % 8;
+    let len = x.len();
+    let offset_from = len % 8;
 
     // We do this manual unrolling to allow the compiler to vectorize
     // the loop and avoid some branching even if we're not doing it explicitly.
@@ -34,32 +35,25 @@ pub(super) unsafe fn fallback_dot<M: Math>(x: &[f32], y: &[f32]) -> f32 {
     let mut acc7 = 0.0;
     let mut acc8 = 0.0;
 
-    if offset_from != 0 {
-        for i in 0..offset_from {
-            let x = *x.get_unchecked(i);
-            let y = *y.get_unchecked(i);
-            acc1 = M::add(acc1, M::mul(x, y));
-        }
-    }
+    let mut i = 0;
+    while i < (len - offset_from) {
+        let x1 = *x.get_unchecked(i);
+        let x2 = *x.get_unchecked(i + 1);
+        let x3 = *x.get_unchecked(i + 2);
+        let x4 = *x.get_unchecked(i + 3);
+        let x5 = *x.get_unchecked(i + 4);
+        let x6 = *x.get_unchecked(i + 5);
+        let x7 = *x.get_unchecked(i + 6);
+        let x8 = *x.get_unchecked(i + 7);
 
-    while offset_from < x.len() {
-        let x1 = *x.get_unchecked(offset_from);
-        let x2 = *x.get_unchecked(offset_from + 1);
-        let x3 = *x.get_unchecked(offset_from + 2);
-        let x4 = *x.get_unchecked(offset_from + 3);
-        let x5 = *x.get_unchecked(offset_from + 4);
-        let x6 = *x.get_unchecked(offset_from + 5);
-        let x7 = *x.get_unchecked(offset_from + 6);
-        let x8 = *x.get_unchecked(offset_from + 7);
-
-        let y1 = *y.get_unchecked(offset_from);
-        let y2 = *y.get_unchecked(offset_from + 1);
-        let y3 = *y.get_unchecked(offset_from + 2);
-        let y4 = *y.get_unchecked(offset_from + 3);
-        let y5 = *y.get_unchecked(offset_from + 4);
-        let y6 = *y.get_unchecked(offset_from + 5);
-        let y7 = *y.get_unchecked(offset_from + 6);
-        let y8 = *y.get_unchecked(offset_from + 7);
+        let y1 = *y.get_unchecked(i);
+        let y2 = *y.get_unchecked(i + 1);
+        let y3 = *y.get_unchecked(i + 2);
+        let y4 = *y.get_unchecked(i + 3);
+        let y5 = *y.get_unchecked(i + 4);
+        let y6 = *y.get_unchecked(i + 5);
+        let y7 = *y.get_unchecked(i + 6);
+        let y8 = *y.get_unchecked(i + 7);
 
         acc1 = M::add(acc1, M::mul(x1, y1));
         acc2 = M::add(acc2, M::mul(x2, y2));
@@ -70,7 +64,15 @@ pub(super) unsafe fn fallback_dot<M: Math>(x: &[f32], y: &[f32]) -> f32 {
         acc7 = M::add(acc7, M::mul(x7, y7));
         acc8 = M::add(acc8, M::mul(x8, y8));
 
-        offset_from += 8;
+        i += 8;
+    }
+
+    while i < len {
+        let x = *x.get_unchecked(i);
+        let y = *y.get_unchecked(i);
+        acc1 = M::add(acc1, M::mul(x, y));
+
+        i += 1;
     }
 
     rollup_scalar_x8::<M>(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
@@ -80,6 +82,14 @@ pub(super) unsafe fn fallback_dot<M: Math>(x: &[f32], y: &[f32]) -> f32 {
 mod tests {
     use super::*;
     use crate::test_utils::{assert_is_close, get_sample_vectors, simple_dot};
+
+    #[test]
+    fn test_f32_x1024_nofma_dot() {
+        let (x, y) = get_sample_vectors(1024);
+        let dist = unsafe { f32_xany_fallback_nofma_dot(&x, &y) };
+        let expected = simple_dot(&x, &y);
+        assert_is_close(dist, expected);
+    }
 
     #[test]
     fn test_f32_xany_nofma_dot() {

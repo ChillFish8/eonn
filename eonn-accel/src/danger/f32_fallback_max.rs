@@ -6,6 +6,9 @@
 /// This method in theory is safe, but like the rest of the dangerous API, makes
 /// no guarantee that it will always remain safe with no strings attached.
 pub unsafe fn f32_xany_fallback_nofma_max_horizontal(arr: &[f32]) -> f32 {
+    let len = arr.len();
+    let offset_from = len % 8;
+
     let mut acc1 = f32::NEG_INFINITY;
     let mut acc2 = f32::NEG_INFINITY;
     let mut acc3 = f32::NEG_INFINITY;
@@ -15,24 +18,16 @@ pub unsafe fn f32_xany_fallback_nofma_max_horizontal(arr: &[f32]) -> f32 {
     let mut acc7 = f32::NEG_INFINITY;
     let mut acc8 = f32::NEG_INFINITY;
 
-    let mut offset_from = arr.len() % 8;
-
-    if offset_from != 0 {
-        for i in 0..offset_from {
-            let x = *arr.get_unchecked(i);
-            acc1 = acc1.max(x);
-        }
-    }
-
-    while offset_from < arr.len() {
-        let x1 = *arr.get_unchecked(offset_from);
-        let x2 = *arr.get_unchecked(offset_from + 1);
-        let x3 = *arr.get_unchecked(offset_from + 2);
-        let x4 = *arr.get_unchecked(offset_from + 3);
-        let x5 = *arr.get_unchecked(offset_from + 4);
-        let x6 = *arr.get_unchecked(offset_from + 5);
-        let x7 = *arr.get_unchecked(offset_from + 6);
-        let x8 = *arr.get_unchecked(offset_from + 7);
+    let mut i = 0;
+    while i < (len - offset_from) {
+        let x1 = *arr.get_unchecked(i);
+        let x2 = *arr.get_unchecked(i + 1);
+        let x3 = *arr.get_unchecked(i + 2);
+        let x4 = *arr.get_unchecked(i + 3);
+        let x5 = *arr.get_unchecked(i + 4);
+        let x6 = *arr.get_unchecked(i + 5);
+        let x7 = *arr.get_unchecked(i + 6);
+        let x8 = *arr.get_unchecked(i + 7);
 
         acc1 = acc1.max(x1);
         acc2 = acc2.max(x2);
@@ -43,7 +38,14 @@ pub unsafe fn f32_xany_fallback_nofma_max_horizontal(arr: &[f32]) -> f32 {
         acc7 = acc7.max(x7);
         acc8 = acc8.max(x8);
 
-        offset_from += 8;
+        i += 8;
+    }
+
+    while i < len {
+        let x = *arr.get_unchecked(i);
+        acc1 = acc1.max(x);
+
+        i += 1;
     }
 
     acc1 = acc1.max(acc2);
@@ -67,29 +69,15 @@ pub unsafe fn f32_xany_fallback_nofma_max_horizontal(arr: &[f32]) -> f32 {
 /// of all vectors in the matrix are equal to the dimensions of the first vector in
 /// the matrix.
 pub unsafe fn f32_xany_fallback_nofma_max_vertical(matrix: &[&[f32]]) -> Vec<f32> {
-    let dims = matrix[0].len();
+    let len = matrix[0].len();
+    let offset_from = len % 8;
 
-    let mut max_values = vec![0.0; dims];
-    let mut offset_from = dims % 8;
-
-    if offset_from != 0 {
-        for i in 0..offset_from {
-            let mut acc = f32::NEG_INFINITY;
-            for m in 0..matrix.len() {
-                let arr = *matrix.get_unchecked(m);
-                debug_assert_eq!(arr.len(), dims);
-
-                let x = *arr.get_unchecked(i);
-                acc = acc.max(x);
-            }
-
-            *max_values.get_unchecked_mut(i) = acc;
-        }
-    }
+    let mut max_values = vec![0.0; len];
 
     // We work our way horizontally by taking steps of 8 and finding
     // the max of for each of the lanes vertically through the matrix.
-    while offset_from < dims {
+    let mut i = 0;
+    while i < (len - offset_from) {
         let mut acc1 = f32::NEG_INFINITY;
         let mut acc2 = f32::NEG_INFINITY;
         let mut acc3 = f32::NEG_INFINITY;
@@ -102,16 +90,16 @@ pub unsafe fn f32_xany_fallback_nofma_max_vertical(matrix: &[&[f32]]) -> Vec<f32
         // Vertical max of the 8 elements.
         for m in 0..matrix.len() {
             let arr = *matrix.get_unchecked(m);
-            debug_assert_eq!(arr.len(), dims);
+            debug_assert_eq!(arr.len(), len);
 
-            let x1 = *arr.get_unchecked(offset_from);
-            let x2 = *arr.get_unchecked(offset_from + 1);
-            let x3 = *arr.get_unchecked(offset_from + 2);
-            let x4 = *arr.get_unchecked(offset_from + 3);
-            let x5 = *arr.get_unchecked(offset_from + 4);
-            let x6 = *arr.get_unchecked(offset_from + 5);
-            let x7 = *arr.get_unchecked(offset_from + 6);
-            let x8 = *arr.get_unchecked(offset_from + 7);
+            let x1 = *arr.get_unchecked(i);
+            let x2 = *arr.get_unchecked(i + 1);
+            let x3 = *arr.get_unchecked(i + 2);
+            let x4 = *arr.get_unchecked(i + 3);
+            let x5 = *arr.get_unchecked(i + 4);
+            let x6 = *arr.get_unchecked(i + 5);
+            let x7 = *arr.get_unchecked(i + 6);
+            let x8 = *arr.get_unchecked(i + 7);
 
             acc1 = acc1.max(x1);
             acc2 = acc2.max(x2);
@@ -123,16 +111,31 @@ pub unsafe fn f32_xany_fallback_nofma_max_vertical(matrix: &[&[f32]]) -> Vec<f32
             acc8 = acc8.max(x8);
         }
 
-        *max_values.get_unchecked_mut(offset_from) = acc1;
-        *max_values.get_unchecked_mut(offset_from + 1) = acc2;
-        *max_values.get_unchecked_mut(offset_from + 2) = acc3;
-        *max_values.get_unchecked_mut(offset_from + 3) = acc4;
-        *max_values.get_unchecked_mut(offset_from + 4) = acc5;
-        *max_values.get_unchecked_mut(offset_from + 5) = acc6;
-        *max_values.get_unchecked_mut(offset_from + 6) = acc7;
-        *max_values.get_unchecked_mut(offset_from + 7) = acc8;
+        *max_values.get_unchecked_mut(i) = acc1;
+        *max_values.get_unchecked_mut(i + 1) = acc2;
+        *max_values.get_unchecked_mut(i + 2) = acc3;
+        *max_values.get_unchecked_mut(i + 3) = acc4;
+        *max_values.get_unchecked_mut(i + 4) = acc5;
+        *max_values.get_unchecked_mut(i + 5) = acc6;
+        *max_values.get_unchecked_mut(i + 6) = acc7;
+        *max_values.get_unchecked_mut(i + 7) = acc8;
 
-        offset_from += 8;
+        i += 8;
+    }
+
+    while i < len {
+        let mut acc = f32::NEG_INFINITY;
+        for m in 0..matrix.len() {
+            let arr = *matrix.get_unchecked(m);
+            debug_assert_eq!(arr.len(), len);
+
+            let x = *arr.get_unchecked(i);
+            acc = acc.max(x);
+        }
+
+        *max_values.get_unchecked_mut(i) = acc;
+
+        i += 1;
     }
 
     max_values

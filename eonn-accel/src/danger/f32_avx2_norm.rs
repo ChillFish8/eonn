@@ -103,9 +103,11 @@ pub unsafe fn f32_xany_avx2_nofma_norm(x: &[f32]) -> f32 {
             i += 8;
         }
 
-        for n in i..len {
-            let x = *x.get_unchecked(n);
+        while i < len {
+            let x = *x.get_unchecked(i);
             total = AutoMath::add(total, AutoMath::mul(x, x));
+
+            i += 1;
         }
     }
 
@@ -210,9 +212,11 @@ pub unsafe fn f32_xany_avx2_fma_norm(x: &[f32]) -> f32 {
             i += 8;
         }
 
-        for n in i..len {
-            let x = *x.get_unchecked(n);
+        while i < len {
+            let x = *x.get_unchecked(i);
             total = AutoMath::add(total, AutoMath::mul(x, x));
+
+            i += 1;
         }
     }
 

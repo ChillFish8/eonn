@@ -87,46 +87,48 @@ where
 {
     debug_assert_eq!(x.len(), y.len());
 
-    let mut offset_from = x.len() % 8;
+    let len = x.len();
+    let offset_from = x.len() % 8;
 
-    if offset_from != 0 {
-        for i in 0..offset_from {
-            let x = x.get_unchecked_mut(i);
-            let y = *y.get_unchecked(i);
+    let mut i = 0;
+    while i < (len - offset_from) {
+        let x1 = *x.get_unchecked(i);
+        let x2 = *x.get_unchecked(i + 1);
+        let x3 = *x.get_unchecked(i + 2);
+        let x4 = *x.get_unchecked(i + 3);
+        let x5 = *x.get_unchecked(i + 4);
+        let x6 = *x.get_unchecked(i + 5);
+        let x7 = *x.get_unchecked(i + 6);
+        let x8 = *x.get_unchecked(i + 7);
 
-            *x = op(*x, y);
-        }
+        let y1 = *y.get_unchecked(i);
+        let y2 = *y.get_unchecked(i + 1);
+        let y3 = *y.get_unchecked(i + 2);
+        let y4 = *y.get_unchecked(i + 3);
+        let y5 = *y.get_unchecked(i + 4);
+        let y6 = *y.get_unchecked(i + 5);
+        let y7 = *y.get_unchecked(i + 6);
+        let y8 = *y.get_unchecked(i + 7);
+
+        *x.get_unchecked_mut(i) = op(x1, y1);
+        *x.get_unchecked_mut(i + 1) = op(x2, y2);
+        *x.get_unchecked_mut(i + 2) = op(x3, y3);
+        *x.get_unchecked_mut(i + 3) = op(x4, y4);
+        *x.get_unchecked_mut(i + 4) = op(x5, y5);
+        *x.get_unchecked_mut(i + 5) = op(x6, y6);
+        *x.get_unchecked_mut(i + 6) = op(x7, y7);
+        *x.get_unchecked_mut(i + 7) = op(x8, y8);
+
+        i += 8;
     }
 
-    while offset_from < x.len() {
-        let x1 = *x.get_unchecked(offset_from);
-        let x2 = *x.get_unchecked(offset_from + 1);
-        let x3 = *x.get_unchecked(offset_from + 2);
-        let x4 = *x.get_unchecked(offset_from + 3);
-        let x5 = *x.get_unchecked(offset_from + 4);
-        let x6 = *x.get_unchecked(offset_from + 5);
-        let x7 = *x.get_unchecked(offset_from + 6);
-        let x8 = *x.get_unchecked(offset_from + 7);
+    while i < len {
+        let x = x.get_unchecked_mut(i);
+        let y = *y.get_unchecked(i);
 
-        let y1 = *y.get_unchecked(offset_from);
-        let y2 = *y.get_unchecked(offset_from + 1);
-        let y3 = *y.get_unchecked(offset_from + 2);
-        let y4 = *y.get_unchecked(offset_from + 3);
-        let y5 = *y.get_unchecked(offset_from + 4);
-        let y6 = *y.get_unchecked(offset_from + 5);
-        let y7 = *y.get_unchecked(offset_from + 6);
-        let y8 = *y.get_unchecked(offset_from + 7);
+        *x = op(*x, y);
 
-        *x.get_unchecked_mut(offset_from) = op(x1, y1);
-        *x.get_unchecked_mut(offset_from + 1) = op(x2, y2);
-        *x.get_unchecked_mut(offset_from + 2) = op(x3, y3);
-        *x.get_unchecked_mut(offset_from + 3) = op(x4, y4);
-        *x.get_unchecked_mut(offset_from + 4) = op(x5, y5);
-        *x.get_unchecked_mut(offset_from + 5) = op(x6, y6);
-        *x.get_unchecked_mut(offset_from + 6) = op(x7, y7);
-        *x.get_unchecked_mut(offset_from + 7) = op(x8, y8);
-
-        offset_from += 8;
+        i += 1;
     }
 }
 

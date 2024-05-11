@@ -126,9 +126,11 @@ pub unsafe fn f32_xany_avx2_nofma_sum_horizontal(x: &[f32]) -> f32 {
             i += 8;
         }
 
-        for n in i..len {
-            let x = *x.get_unchecked(n);
+        while i < len {
+            let x = *x.get_unchecked(i);
             extra += x;
+
+            i += 1;
         }
     }
 

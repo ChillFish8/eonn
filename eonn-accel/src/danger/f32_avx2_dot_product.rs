@@ -1,5 +1,6 @@
 use std::arch::x86_64::*;
 
+use crate::danger::prefetch::f32_prefetch_x64;
 use crate::danger::utils::{CHUNK_0, CHUNK_1};
 use crate::danger::{offsets_avx2, rollup_x8, sum_avx2};
 use crate::math::*;
@@ -35,6 +36,9 @@ pub unsafe fn f32_xconst_avx2_nofma_dot<const DIMS: usize>(x: &[f32], y: &[f32])
 
     let mut i = 0;
     while i < DIMS {
+        f32_prefetch_x64(x.add(i + 64));
+        f32_prefetch_x64(y.add(i + 64));
+
         execute_f32_x64_nofma_block_dot_product(
             x.add(i),
             y.add(i),
@@ -151,6 +155,9 @@ pub unsafe fn f32_xconst_avx2_fma_dot<const DIMS: usize>(x: &[f32], y: &[f32]) -
 
     let mut i = 0;
     while i < DIMS {
+        f32_prefetch_x64(x.add(i + 64));
+        f32_prefetch_x64(y.add(i + 64));
+
         execute_f32_x64_fma_block_dot_product(
             x.add(i),
             y.add(i),

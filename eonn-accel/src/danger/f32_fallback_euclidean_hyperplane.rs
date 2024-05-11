@@ -37,6 +37,9 @@ pub(crate) unsafe fn fallback_euclidean_hyperplane<M: Math>(
         "Input hyperplane must match length of input vectors"
     );
 
+    let len = x.len();
+    let offset_from = len % 8;
+
     let mut offset_acc1 = 0.0;
     let mut offset_acc2 = 0.0;
     let mut offset_acc3 = 0.0;
@@ -46,38 +49,25 @@ pub(crate) unsafe fn fallback_euclidean_hyperplane<M: Math>(
     let mut offset_acc7 = 0.0;
     let mut offset_acc8 = 0.0;
 
-    let mut offset_from = x.len() % 8;
-    if offset_from != 0 {
-        for i in 0..offset_from {
-            let x = *x.get_unchecked(i);
-            let y = *y.get_unchecked(i);
+    let mut i = 0;
+    while i < (len - offset_from) {
+        let x1 = *x.get_unchecked(i);
+        let x2 = *x.get_unchecked(i + 1);
+        let x3 = *x.get_unchecked(i + 2);
+        let x4 = *x.get_unchecked(i + 3);
+        let x5 = *x.get_unchecked(i + 4);
+        let x6 = *x.get_unchecked(i + 5);
+        let x7 = *x.get_unchecked(i + 6);
+        let x8 = *x.get_unchecked(i + 7);
 
-            let diff = M::sub(x, y);
-            let mean = M::mul(M::add(x, y), 0.5);
-
-            offset_acc1 = M::add(offset_acc1, M::mul(diff, mean));
-            *hyperplane.get_unchecked_mut(i) = diff;
-        }
-    }
-
-    while offset_from < x.len() {
-        let x1 = *x.get_unchecked(offset_from);
-        let x2 = *x.get_unchecked(offset_from + 1);
-        let x3 = *x.get_unchecked(offset_from + 2);
-        let x4 = *x.get_unchecked(offset_from + 3);
-        let x5 = *x.get_unchecked(offset_from + 4);
-        let x6 = *x.get_unchecked(offset_from + 5);
-        let x7 = *x.get_unchecked(offset_from + 6);
-        let x8 = *x.get_unchecked(offset_from + 7);
-
-        let y1 = *y.get_unchecked(offset_from);
-        let y2 = *y.get_unchecked(offset_from + 1);
-        let y3 = *y.get_unchecked(offset_from + 2);
-        let y4 = *y.get_unchecked(offset_from + 3);
-        let y5 = *y.get_unchecked(offset_from + 4);
-        let y6 = *y.get_unchecked(offset_from + 5);
-        let y7 = *y.get_unchecked(offset_from + 6);
-        let y8 = *y.get_unchecked(offset_from + 7);
+        let y1 = *y.get_unchecked(i);
+        let y2 = *y.get_unchecked(i + 1);
+        let y3 = *y.get_unchecked(i + 2);
+        let y4 = *y.get_unchecked(i + 3);
+        let y5 = *y.get_unchecked(i + 4);
+        let y6 = *y.get_unchecked(i + 5);
+        let y7 = *y.get_unchecked(i + 6);
+        let y8 = *y.get_unchecked(i + 7);
 
         let diff1 = M::sub(x1, y1);
         let diff2 = M::sub(x2, y2);
@@ -97,16 +87,29 @@ pub(crate) unsafe fn fallback_euclidean_hyperplane<M: Math>(
         offset_acc7 = M::add(offset_acc7, M::mul(diff7, M::mul(M::add(x7, y7), 0.5)));
         offset_acc8 = M::add(offset_acc8, M::mul(diff8, M::mul(M::add(x8, y8), 0.5)));
 
-        *hyperplane.get_unchecked_mut(offset_from) = diff1;
-        *hyperplane.get_unchecked_mut(offset_from + 1) = diff2;
-        *hyperplane.get_unchecked_mut(offset_from + 2) = diff3;
-        *hyperplane.get_unchecked_mut(offset_from + 3) = diff4;
-        *hyperplane.get_unchecked_mut(offset_from + 4) = diff5;
-        *hyperplane.get_unchecked_mut(offset_from + 5) = diff6;
-        *hyperplane.get_unchecked_mut(offset_from + 6) = diff7;
-        *hyperplane.get_unchecked_mut(offset_from + 7) = diff8;
+        *hyperplane.get_unchecked_mut(i) = diff1;
+        *hyperplane.get_unchecked_mut(i + 1) = diff2;
+        *hyperplane.get_unchecked_mut(i + 2) = diff3;
+        *hyperplane.get_unchecked_mut(i + 3) = diff4;
+        *hyperplane.get_unchecked_mut(i + 4) = diff5;
+        *hyperplane.get_unchecked_mut(i + 5) = diff6;
+        *hyperplane.get_unchecked_mut(i + 6) = diff7;
+        *hyperplane.get_unchecked_mut(i + 7) = diff8;
 
-        offset_from += 8;
+        i += 8;
+    }
+
+    while i < len {
+        let x = *x.get_unchecked(i);
+        let y = *y.get_unchecked(i);
+
+        let diff = M::sub(x, y);
+        let mean = M::mul(M::add(x, y), 0.5);
+
+        offset_acc1 = M::add(offset_acc1, M::mul(diff, mean));
+        *hyperplane.get_unchecked_mut(i) = diff;
+
+        i += 1;
     }
 
     let hyperplane_offset = -rollup_scalar_x8::<M>(
