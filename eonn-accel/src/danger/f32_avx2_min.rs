@@ -1,7 +1,7 @@
 use std::arch::x86_64::*;
 use std::{mem, ptr};
 
-use crate::danger::{copy_avx2_register_to, offsets_avx2, CHUNK_0, CHUNK_1};
+use crate::danger::{copy_avx2_ps_register_to, offsets_avx2_ps, CHUNK_0, CHUNK_1};
 
 #[target_feature(enable = "avx2")]
 #[inline]
@@ -33,8 +33,8 @@ pub unsafe fn f32_xconst_avx2_nofma_min_horizontal<const DIMS: usize>(
 
     let mut i = 0;
     while i < DIMS {
-        let [x1, x2, x3, x4] = offsets_avx2::<CHUNK_0>(arr.add(i));
-        let [x5, x6, x7, x8] = offsets_avx2::<CHUNK_1>(arr.add(i));
+        let [x1, x2, x3, x4] = offsets_avx2_ps::<CHUNK_0>(arr.add(i));
+        let [x5, x6, x7, x8] = offsets_avx2_ps::<CHUNK_1>(arr.add(i));
 
         let x1 = _mm256_loadu_ps(x1);
         let x2 = _mm256_loadu_ps(x2);
@@ -120,8 +120,8 @@ pub unsafe fn f32_xconst_avx2_nofma_min_vertical<const DIMS: usize>(
             let arr = *matrix.get_unchecked(m);
             let arr = arr.as_ptr();
 
-            let [x1, x2, x3, x4] = offsets_avx2::<CHUNK_0>(arr.add(i));
-            let [x5, x6, x7, x8] = offsets_avx2::<CHUNK_1>(arr.add(i));
+            let [x1, x2, x3, x4] = offsets_avx2_ps::<CHUNK_0>(arr.add(i));
+            let [x5, x6, x7, x8] = offsets_avx2_ps::<CHUNK_1>(arr.add(i));
 
             let x1 = _mm256_loadu_ps(x1);
             let x2 = _mm256_loadu_ps(x2);
@@ -180,8 +180,8 @@ pub unsafe fn f32_xany_avx2_nofma_min_horizontal(arr: &[f32]) -> f32 {
 
     let mut i = 0;
     while i < (len - offset_from) {
-        let [x1, x2, x3, x4] = offsets_avx2::<CHUNK_0>(arr_ptr.add(i));
-        let [x5, x6, x7, x8] = offsets_avx2::<CHUNK_1>(arr_ptr.add(i));
+        let [x1, x2, x3, x4] = offsets_avx2_ps::<CHUNK_0>(arr_ptr.add(i));
+        let [x5, x6, x7, x8] = offsets_avx2_ps::<CHUNK_1>(arr_ptr.add(i));
 
         let x1 = _mm256_loadu_ps(x1);
         let x2 = _mm256_loadu_ps(x2);
@@ -283,8 +283,8 @@ pub unsafe fn f32_xany_avx2_nofma_min_vertical(matrix: &[&[f32]]) -> Vec<f32> {
 
             let arr_ptr = arr.as_ptr();
 
-            let [x1, x2, x3, x4] = offsets_avx2::<CHUNK_0>(arr_ptr.add(i));
-            let [x5, x6, x7, x8] = offsets_avx2::<CHUNK_1>(arr_ptr.add(i));
+            let [x1, x2, x3, x4] = offsets_avx2_ps::<CHUNK_0>(arr_ptr.add(i));
+            let [x5, x6, x7, x8] = offsets_avx2_ps::<CHUNK_1>(arr_ptr.add(i));
 
             let x1 = _mm256_loadu_ps(x1);
             let x2 = _mm256_loadu_ps(x2);
@@ -325,7 +325,7 @@ pub unsafe fn f32_xany_avx2_nofma_min_vertical(matrix: &[&[f32]]) -> Vec<f32> {
                 let x = _mm256_loadu_ps(arr_ptr.add(i));
                 acc = _mm256_min_ps(acc, x);
             }
-            copy_avx2_register_to(min_values_ptr.add(i), acc);
+            copy_avx2_ps_register_to(min_values_ptr.add(i), acc);
 
             i += 8;
         }

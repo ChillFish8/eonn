@@ -3,9 +3,9 @@ use std::{mem, ptr};
 
 use crate::danger::{
     fallback_euclidean_hyperplane,
-    offsets_avx2,
-    rollup_x8,
-    sum_avx2,
+    offsets_avx2_ps,
+    rollup_x8_ps,
+    sum_avx2_ps,
     CHUNK_0,
     CHUNK_1,
 };
@@ -331,11 +331,11 @@ unsafe fn execute_f32_x64_block_nofma_hyperplane(
     //       double check that we don't reset the register each time.
     let div_by_2 = _mm256_set1_ps(0.5);
 
-    let [x1, x2, x3, x4] = offsets_avx2::<CHUNK_0>(x);
-    let [x5, x6, x7, x8] = offsets_avx2::<CHUNK_1>(x);
+    let [x1, x2, x3, x4] = offsets_avx2_ps::<CHUNK_0>(x);
+    let [x5, x6, x7, x8] = offsets_avx2_ps::<CHUNK_1>(x);
 
-    let [y1, y2, y3, y4] = offsets_avx2::<CHUNK_0>(y);
-    let [y5, y6, y7, y8] = offsets_avx2::<CHUNK_1>(y);
+    let [y1, y2, y3, y4] = offsets_avx2_ps::<CHUNK_0>(y);
+    let [y5, y6, y7, y8] = offsets_avx2_ps::<CHUNK_1>(y);
 
     let x1 = _mm256_loadu_ps(x1);
     let x2 = _mm256_loadu_ps(x2);
@@ -423,11 +423,11 @@ unsafe fn execute_f32_x64_block_fma_hyperplane(
     //       double check that we don't reset the register each time.
     let div_by_2 = _mm256_set1_ps(0.5);
 
-    let [x1, x2, x3, x4] = offsets_avx2::<CHUNK_0>(x);
-    let [x5, x6, x7, x8] = offsets_avx2::<CHUNK_1>(x);
+    let [x1, x2, x3, x4] = offsets_avx2_ps::<CHUNK_0>(x);
+    let [x5, x6, x7, x8] = offsets_avx2_ps::<CHUNK_1>(x);
 
-    let [y1, y2, y3, y4] = offsets_avx2::<CHUNK_0>(y);
-    let [y5, y6, y7, y8] = offsets_avx2::<CHUNK_1>(y);
+    let [y1, y2, y3, y4] = offsets_avx2_ps::<CHUNK_0>(y);
+    let [y5, y6, y7, y8] = offsets_avx2_ps::<CHUNK_1>(y);
 
     let x1 = _mm256_loadu_ps(x1);
     let x2 = _mm256_loadu_ps(x2);
@@ -500,8 +500,8 @@ unsafe fn sub_reduce_x8(
     acc7: __m256,
     acc8: __m256,
 ) -> f32 {
-    acc1 = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
-    -sum_avx2(acc1)
+    acc1 = rollup_x8_ps(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
+    -sum_avx2_ps(acc1)
 }
 
 #[cfg(test)]

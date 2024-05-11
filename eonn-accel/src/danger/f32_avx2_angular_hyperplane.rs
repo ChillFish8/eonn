@@ -6,7 +6,7 @@ use crate::danger::{
     f32_xany_avx2_nofma_norm,
     f32_xconst_avx2_fma_norm,
     f32_xconst_avx2_nofma_norm,
-    offsets_avx2,
+    offsets_avx2_ps,
     CHUNK_0,
     CHUNK_1,
 };
@@ -420,11 +420,11 @@ unsafe fn execute_f32_x64_block_normal_vector(
     inverse_norm_x: __m256,
     inverse_norm_y: __m256,
 ) -> [f32; 64] {
-    let [x1, x2, x3, x4] = offsets_avx2::<CHUNK_0>(x);
-    let [x5, x6, x7, x8] = offsets_avx2::<CHUNK_1>(x);
+    let [x1, x2, x3, x4] = offsets_avx2_ps::<CHUNK_0>(x);
+    let [x5, x6, x7, x8] = offsets_avx2_ps::<CHUNK_1>(x);
 
-    let [y1, y2, y3, y4] = offsets_avx2::<CHUNK_0>(y);
-    let [y5, y6, y7, y8] = offsets_avx2::<CHUNK_1>(y);
+    let [y1, y2, y3, y4] = offsets_avx2_ps::<CHUNK_0>(y);
+    let [y5, y6, y7, y8] = offsets_avx2_ps::<CHUNK_1>(y);
 
     let x1 = _mm256_loadu_ps(x1);
     let x2 = _mm256_loadu_ps(x2);
@@ -481,8 +481,8 @@ unsafe fn execute_f32_x64_block_apply_norm(
     x: *const f32,
     inverse_norm_x: __m256,
 ) -> [f32; 64] {
-    let [x1, x2, x3, x4] = offsets_avx2::<CHUNK_0>(x);
-    let [x5, x6, x7, x8] = offsets_avx2::<CHUNK_1>(x);
+    let [x1, x2, x3, x4] = offsets_avx2_ps::<CHUNK_0>(x);
+    let [x5, x6, x7, x8] = offsets_avx2_ps::<CHUNK_1>(x);
 
     let x1 = _mm256_loadu_ps(x1);
     let x2 = _mm256_loadu_ps(x2);

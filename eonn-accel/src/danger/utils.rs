@@ -21,7 +21,7 @@ pub fn cosine<M: Math>(dot_product: f32, norm_x: f32, norm_y: f32) -> f32 {
 #[inline(always)]
 /// Performs a sum of all packed values in the provided [__m256] register
 /// returning the resulting f32 value.
-pub(crate) unsafe fn sum_avx2(v: __m256) -> f32 {
+pub(crate) unsafe fn sum_avx2_ps(v: __m256) -> f32 {
     let left_half = _mm256_extractf128_ps::<1>(v);
     let right_half = _mm256_castps256_ps128(v);
     let sum_quad = _mm_add_ps(left_half, right_half);
@@ -41,7 +41,7 @@ pub(crate) unsafe fn sum_avx2(v: __m256) -> f32 {
 #[allow(clippy::too_many_arguments)]
 #[inline(always)]
 /// Rolls up 8 [__m256] registers into 1 summing them together.
-pub(crate) unsafe fn rollup_x8(
+pub(crate) unsafe fn rollup_x8_ps(
     mut acc1: __m256,
     acc2: __m256,
     mut acc3: __m256,
@@ -66,7 +66,7 @@ pub(crate) unsafe fn rollup_x8(
 #[allow(clippy::too_many_arguments)]
 #[inline(always)]
 /// Rolls up 8 [__m256] registers into 1 summing them together.
-pub(crate) unsafe fn sum_avx512_x8(
+pub(crate) unsafe fn sum_avx512_x8_ps(
     mut acc1: __m512,
     acc2: __m512,
     mut acc3: __m512,
@@ -89,7 +89,7 @@ pub(crate) unsafe fn sum_avx512_x8(
 }
 
 #[inline(always)]
-pub(crate) unsafe fn offsets_avx2<const CHUNK: usize>(
+pub(crate) unsafe fn offsets_avx2_ps<const CHUNK: usize>(
     ptr: *const f32,
 ) -> [*const f32; 4] {
     [
@@ -102,7 +102,7 @@ pub(crate) unsafe fn offsets_avx2<const CHUNK: usize>(
 
 #[allow(unused)]
 #[inline(always)]
-pub(crate) unsafe fn offsets_avx512<const CHUNK: usize>(
+pub(crate) unsafe fn offsets_avx512_ps<const CHUNK: usize>(
     ptr: *const f32,
 ) -> [*const f32; 4] {
     [
@@ -116,7 +116,7 @@ pub(crate) unsafe fn offsets_avx512<const CHUNK: usize>(
 #[allow(clippy::too_many_arguments)]
 #[inline(always)]
 /// Sums 8 scalar accumulators into one f32 value.
-pub fn rollup_scalar_x8<M: Math>(
+pub fn rollup_scalar_x8_ps<M: Math>(
     mut acc1: f32,
     acc2: f32,
     mut acc3: f32,
@@ -138,7 +138,7 @@ pub fn rollup_scalar_x8<M: Math>(
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-pub(crate) unsafe fn load_two_variable_size_avx512(
+pub(crate) unsafe fn load_two_variable_size_avx512_ps(
     x: *const f32,
     y: *const f32,
     n: usize,
@@ -156,7 +156,10 @@ pub(crate) unsafe fn load_two_variable_size_avx512(
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
-pub(crate) unsafe fn load_one_variable_size_avx512(x: *const f32, n: usize) -> __m512 {
+pub(crate) unsafe fn load_one_variable_size_avx512_ps(
+    x: *const f32,
+    n: usize,
+) -> __m512 {
     if n < 16 {
         let mask = _bzhi_u32(0xFFFFFFFF, n as u32) as _;
         _mm512_maskz_loadu_ps(mask, x)
@@ -172,7 +175,7 @@ pub(crate) unsafe fn load_one_variable_size_avx512(x: *const f32, n: usize) -> _
 /// NOTE:
 /// This will implicitly cap the number of elements to `min(len, 16)` to prevent
 /// going out of bounds on the register.
-pub(crate) unsafe fn copy_masked_avx512_register_to(
+pub(crate) unsafe fn copy_masked_avx512_ps_register_to(
     arr: *mut f32,
     reg: __m512,
     len: usize,
@@ -188,7 +191,7 @@ pub(crate) unsafe fn copy_masked_avx512_register_to(
 /// NOTE:
 /// This will implicitly cap the number of elements to `min(len, 16)` to prevent
 /// going out of bounds on the register.
-pub(crate) unsafe fn copy_avx2_register_to(arr: *mut f32, reg: __m256) {
+pub(crate) unsafe fn copy_avx2_ps_register_to(arr: *mut f32, reg: __m256) {
     let result = mem::transmute::<__m256, [f32; 8]>(reg);
     ptr::copy_nonoverlapping(result.as_ptr(), arr, result.len());
 }
@@ -203,7 +206,7 @@ mod tests {
     #[test]
     fn test_avx2_offsets() {
         let x: [f32; 32] = array::from_fn(|i| i as f32);
-        let [p1, p2, p3, p4] = unsafe { offsets_avx2::<CHUNK_0>(x.as_ptr()) };
+        let [p1, p2, p3, p4] = unsafe { offsets_avx2_ps::<CHUNK_0>(x.as_ptr()) };
         assert_eq!(x[0..].as_ptr(), p1);
         assert_eq!(x[8..].as_ptr(), p2);
         assert_eq!(x[16..].as_ptr(), p3);
@@ -213,7 +216,7 @@ mod tests {
     #[test]
     fn test_avx512_offsets() {
         let x: [f32; 64] = array::from_fn(|i| i as f32);
-        let [p1, p2, p3, p4] = unsafe { offsets_avx512::<CHUNK_0>(x.as_ptr()) };
+        let [p1, p2, p3, p4] = unsafe { offsets_avx512_ps::<CHUNK_0>(x.as_ptr()) };
         assert_eq!(x[0..].as_ptr(), p1);
         assert_eq!(x[16..].as_ptr(), p2);
         assert_eq!(x[32..].as_ptr(), p3);
@@ -222,10 +225,12 @@ mod tests {
 
     #[test]
     fn test_rollup_scalar_x8() {
-        let res = rollup_scalar_x8::<AutoMath>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+        let res =
+            rollup_scalar_x8_ps::<AutoMath>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
         assert_eq!(res, 0.0);
 
-        let res = rollup_scalar_x8::<AutoMath>(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0);
+        let res =
+            rollup_scalar_x8_ps::<AutoMath>(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0);
         assert_eq!(res, 8.0);
     }
 
@@ -234,11 +239,11 @@ mod tests {
     fn test_sum_avx2() {
         unsafe {
             let acc = _mm256_setzero_ps();
-            let res = sum_avx2(acc);
+            let res = sum_avx2_ps(acc);
             assert_eq!(res, 0.0);
 
             let acc = _mm256_set1_ps(1.0);
-            let res = sum_avx2(acc);
+            let res = sum_avx2_ps(acc);
             assert_eq!(res, 8.0);
         }
     }
@@ -255,8 +260,8 @@ mod tests {
             let acc6 = _mm256_setzero_ps();
             let acc7 = _mm256_setzero_ps();
             let acc8 = _mm256_setzero_ps();
-            let res = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
-            let res = sum_avx2(res);
+            let res = rollup_x8_ps(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
+            let res = sum_avx2_ps(res);
             assert_eq!(res, 0.0);
 
             let acc1 = _mm256_set1_ps(1.0);
@@ -267,8 +272,8 @@ mod tests {
             let acc6 = _mm256_set1_ps(1.0);
             let acc7 = _mm256_set1_ps(1.0);
             let acc8 = _mm256_set1_ps(1.0);
-            let res = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
-            let res = sum_avx2(res);
+            let res = rollup_x8_ps(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
+            let res = sum_avx2_ps(res);
             assert_eq!(res, 64.0);
         }
     }

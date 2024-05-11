@@ -2,10 +2,10 @@ use std::arch::x86_64::*;
 use std::{mem, ptr};
 
 use crate::danger::{
-    copy_masked_avx512_register_to,
-    load_two_variable_size_avx512,
-    offsets_avx512,
-    sum_avx512_x8,
+    copy_masked_avx512_ps_register_to,
+    load_two_variable_size_avx512_ps,
+    offsets_avx512_ps,
+    sum_avx512_x8_ps,
     CHUNK_0,
     CHUNK_1,
 };
@@ -66,7 +66,7 @@ pub unsafe fn f32_xconst_avx512_fma_euclidean_hyperplane<const DIMS: usize>(
         i += 128;
     }
 
-    let hyperplane_offset = -sum_avx512_x8(
+    let hyperplane_offset = -sum_avx512_x8_ps(
         offset_acc1,
         offset_acc2,
         offset_acc3,
@@ -139,7 +139,7 @@ pub unsafe fn f32_xany_avx512_fma_euclidean_hyperplane(
 
     while i < len {
         let n = len - i;
-        let (x, y) = load_two_variable_size_avx512(x.add(i), y.add(i), n);
+        let (x, y) = load_two_variable_size_avx512_ps(x.add(i), y.add(i), n);
 
         let diff = _mm512_sub_ps(x, y);
         let sum = _mm512_add_ps(x, y);
@@ -147,12 +147,12 @@ pub unsafe fn f32_xany_avx512_fma_euclidean_hyperplane(
 
         offset_acc1 = _mm512_fmadd_ps(diff, mean, offset_acc1);
 
-        copy_masked_avx512_register_to(hyperplane_ptr.add(i), diff, n);
+        copy_masked_avx512_ps_register_to(hyperplane_ptr.add(i), diff, n);
 
         i += 16;
     }
 
-    let hyperplane_offset = -sum_avx512_x8(
+    let hyperplane_offset = -sum_avx512_x8_ps(
         offset_acc1,
         offset_acc2,
         offset_acc3,
@@ -184,11 +184,11 @@ unsafe fn execute_f32_x128_block_fma_hyperplane(
     //       double check that we don't reset the register each time.
     let div_by_2 = _mm512_set1_ps(0.5);
 
-    let [x1, x2, x3, x4] = offsets_avx512::<CHUNK_0>(x);
-    let [x5, x6, x7, x8] = offsets_avx512::<CHUNK_1>(x);
+    let [x1, x2, x3, x4] = offsets_avx512_ps::<CHUNK_0>(x);
+    let [x5, x6, x7, x8] = offsets_avx512_ps::<CHUNK_1>(x);
 
-    let [y1, y2, y3, y4] = offsets_avx512::<CHUNK_0>(y);
-    let [y5, y6, y7, y8] = offsets_avx512::<CHUNK_1>(y);
+    let [y1, y2, y3, y4] = offsets_avx512_ps::<CHUNK_0>(y);
+    let [y5, y6, y7, y8] = offsets_avx512_ps::<CHUNK_1>(y);
 
     let x1 = _mm512_loadu_ps(x1);
     let x2 = _mm512_loadu_ps(x2);

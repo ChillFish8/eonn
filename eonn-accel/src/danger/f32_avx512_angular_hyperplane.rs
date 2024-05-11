@@ -2,13 +2,13 @@ use std::arch::x86_64::*;
 use std::{mem, ptr};
 
 use crate::danger::{
-    copy_masked_avx512_register_to,
+    copy_masked_avx512_ps_register_to,
     f32_xany_avx512_fma_norm,
     f32_xany_avx512_nofma_div_value,
     f32_xconst_avx512_fma_norm,
     f32_xconst_avx512_nofma_div_value,
-    load_two_variable_size_avx512,
-    offsets_avx512,
+    load_two_variable_size_avx512_ps,
+    offsets_avx512_ps,
     CHUNK_0,
     CHUNK_1,
 };
@@ -146,13 +146,13 @@ unsafe fn any_size_f32_hyperplane(
     while i < len {
         let n = len - i;
 
-        let (x, y) = load_two_variable_size_avx512(x.add(i), y.add(i), n);
+        let (x, y) = load_two_variable_size_avx512_ps(x.add(i), y.add(i), n);
 
         let normalized_x = _mm512_mul_ps(x, inverse_norm_x);
         let normalized_y = _mm512_mul_ps(y, inverse_norm_y);
         let diff = _mm512_sub_ps(normalized_x, normalized_y);
 
-        copy_masked_avx512_register_to(hyperplane_ptr.add(i), diff, n);
+        copy_masked_avx512_ps_register_to(hyperplane_ptr.add(i), diff, n);
 
         i += 16;
     }
@@ -165,11 +165,11 @@ unsafe fn execute_f32_x128_block_normal_vector(
     inverse_norm_x: __m512,
     inverse_norm_y: __m512,
 ) -> [f32; 128] {
-    let [x1, x2, x3, x4] = offsets_avx512::<CHUNK_0>(x);
-    let [x5, x6, x7, x8] = offsets_avx512::<CHUNK_1>(x);
+    let [x1, x2, x3, x4] = offsets_avx512_ps::<CHUNK_0>(x);
+    let [x5, x6, x7, x8] = offsets_avx512_ps::<CHUNK_1>(x);
 
-    let [y1, y2, y3, y4] = offsets_avx512::<CHUNK_0>(y);
-    let [y5, y6, y7, y8] = offsets_avx512::<CHUNK_1>(y);
+    let [y1, y2, y3, y4] = offsets_avx512_ps::<CHUNK_0>(y);
+    let [y5, y6, y7, y8] = offsets_avx512_ps::<CHUNK_1>(y);
 
     let x1 = _mm512_loadu_ps(x1);
     let x2 = _mm512_loadu_ps(x2);

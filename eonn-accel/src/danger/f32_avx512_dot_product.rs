@@ -1,9 +1,9 @@
 use std::arch::x86_64::*;
 
 use crate::danger::{
-    load_two_variable_size_avx512,
-    offsets_avx512,
-    sum_avx512_x8,
+    load_two_variable_size_avx512_ps,
+    offsets_avx512_ps,
+    sum_avx512_x8_ps,
     CHUNK_0,
     CHUNK_1,
 };
@@ -55,7 +55,7 @@ pub unsafe fn f32_xconst_avx512_fma_dot<const DIMS: usize>(x: &[f32], y: &[f32])
         i += 128;
     }
 
-    sum_avx512_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
+    sum_avx512_x8_ps(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
 }
 
 #[target_feature(enable = "avx512f")]
@@ -107,14 +107,14 @@ pub unsafe fn f32_xany_avx512_fma_dot(x: &[f32], y: &[f32]) -> f32 {
     }
 
     while i < len {
-        let (x, y) = load_two_variable_size_avx512(x.add(i), y.add(i), len - i);
+        let (x, y) = load_two_variable_size_avx512_ps(x.add(i), y.add(i), len - i);
 
         acc1 = _mm512_fmadd_ps(x, y, acc1);
 
         i += 16;
     }
 
-    sum_avx512_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
+    sum_avx512_x8_ps(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -131,11 +131,11 @@ unsafe fn execute_f32_x128_fma_block_dot_product(
     acc7: &mut __m512,
     acc8: &mut __m512,
 ) {
-    let [x1, x2, x3, x4] = offsets_avx512::<CHUNK_0>(x);
-    let [x5, x6, x7, x8] = offsets_avx512::<CHUNK_1>(x);
+    let [x1, x2, x3, x4] = offsets_avx512_ps::<CHUNK_0>(x);
+    let [x5, x6, x7, x8] = offsets_avx512_ps::<CHUNK_1>(x);
 
-    let [y1, y2, y3, y4] = offsets_avx512::<CHUNK_0>(y);
-    let [y5, y6, y7, y8] = offsets_avx512::<CHUNK_1>(y);
+    let [y1, y2, y3, y4] = offsets_avx512_ps::<CHUNK_0>(y);
+    let [y5, y6, y7, y8] = offsets_avx512_ps::<CHUNK_1>(y);
 
     let x1 = _mm512_loadu_ps(x1);
     let x2 = _mm512_loadu_ps(x2);

@@ -2,20 +2,20 @@ use std::arch::x86_64::*;
 use std::{mem, ptr};
 
 use crate::danger::{
-    copy_masked_avx512_register_to,
-    load_two_variable_size_avx512,
-    offsets_avx512,
+    copy_masked_avx512_ps_register_to,
+    load_two_variable_size_avx512_ps,
+    offsets_avx512_ps,
     CHUNK_0,
     CHUNK_1,
 };
 
 macro_rules! x128_op_inplace {
     ($x:expr, $y:expr, $op:ident) => {{
-        let [x1, x2, x3, x4] = offsets_avx512::<CHUNK_0>($x);
-        let [x5, x6, x7, x8] = offsets_avx512::<CHUNK_1>($x);
+        let [x1, x2, x3, x4] = offsets_avx512_ps::<CHUNK_0>($x);
+        let [x5, x6, x7, x8] = offsets_avx512_ps::<CHUNK_1>($x);
 
-        let [y1, y2, y3, y4] = offsets_avx512::<CHUNK_0>($y);
-        let [y5, y6, y7, y8] = offsets_avx512::<CHUNK_1>($y);
+        let [y1, y2, y3, y4] = offsets_avx512_ps::<CHUNK_0>($y);
+        let [y5, y6, y7, y8] = offsets_avx512_ps::<CHUNK_1>($y);
 
         let x1 = _mm512_loadu_ps(x1);
         let x2 = _mm512_loadu_ps(x2);
@@ -54,11 +54,11 @@ macro_rules! execute_tail_op_inplace {
             let n = $len - $i;
 
             let (x, y) =
-                load_two_variable_size_avx512($x_ptr.add($i), $y_ptr.add($i), n);
+                load_two_variable_size_avx512_ps($x_ptr.add($i), $y_ptr.add($i), n);
 
             let reg = $op(x, y);
 
-            copy_masked_avx512_register_to($x_ptr.add($i), reg, n);
+            copy_masked_avx512_ps_register_to($x_ptr.add($i), reg, n);
 
             $i += 16;
         }

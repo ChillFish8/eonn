@@ -2,10 +2,10 @@ use std::arch::x86_64::*;
 use std::{mem, ptr};
 
 use crate::danger::{
-    copy_masked_avx512_register_to,
-    load_one_variable_size_avx512,
-    offsets_avx512,
-    sum_avx512_x8,
+    copy_masked_avx512_ps_register_to,
+    load_one_variable_size_avx512_ps,
+    offsets_avx512_ps,
+    sum_avx512_x8_ps,
     CHUNK_0,
     CHUNK_1,
 };
@@ -64,7 +64,7 @@ pub unsafe fn f32_xconst_avx512_nofma_sum_horizontal<const DIMS: usize>(
         i += 128;
     }
 
-    sum_avx512_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
+    sum_avx512_x8_ps(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
 }
 
 #[target_feature(enable = "avx512f")]
@@ -119,13 +119,13 @@ pub unsafe fn f32_xany_avx512_nofma_sum_horizontal(x: &[f32]) -> f32 {
     while i < len {
         let n = len - i;
 
-        let x = load_one_variable_size_avx512(x.add(i), n);
+        let x = load_one_variable_size_avx512_ps(x.add(i), n);
         acc1 = _mm512_add_ps(acc1, x);
 
         i += 16;
     }
 
-    sum_avx512_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
+    sum_avx512_x8_ps(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
 }
 
 #[allow(unused)]
@@ -275,11 +275,11 @@ pub unsafe fn f32_xany_avx512_nofma_sum_vertical(matrix: &[&[f32]]) -> Vec<f32> 
             debug_assert_eq!(arr.len(), len);
 
             let arr = arr.as_ptr();
-            let x = load_one_variable_size_avx512(arr.add(i), n);
+            let x = load_one_variable_size_avx512_ps(arr.add(i), n);
             acc = _mm512_add_ps(acc, x);
         }
 
-        copy_masked_avx512_register_to(results_ptr.add(i), acc, n);
+        copy_masked_avx512_ps_register_to(results_ptr.add(i), acc, n);
 
         i += 16;
     }
@@ -300,8 +300,8 @@ unsafe fn sum_x128_block(
     acc7: &mut __m512,
     acc8: &mut __m512,
 ) {
-    let [x1, x2, x3, x4] = offsets_avx512::<CHUNK_0>(x);
-    let [x5, x6, x7, x8] = offsets_avx512::<CHUNK_1>(x);
+    let [x1, x2, x3, x4] = offsets_avx512_ps::<CHUNK_0>(x);
+    let [x5, x6, x7, x8] = offsets_avx512_ps::<CHUNK_1>(x);
 
     let x1 = _mm512_loadu_ps(x1);
     let x2 = _mm512_loadu_ps(x2);

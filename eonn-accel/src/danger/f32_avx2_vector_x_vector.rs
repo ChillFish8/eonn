@@ -1,15 +1,15 @@
 use std::arch::x86_64::*;
 use std::{mem, ptr};
 
-use crate::danger::{copy_avx2_register_to, offsets_avx2, CHUNK_0, CHUNK_1};
+use crate::danger::{copy_avx2_ps_register_to, offsets_avx2_ps, CHUNK_0, CHUNK_1};
 
 macro_rules! x64_op_inplace {
     ($x:expr, $y:expr, $op:ident) => {{
-        let [x1, x2, x3, x4] = offsets_avx2::<CHUNK_0>($x);
-        let [x5, x6, x7, x8] = offsets_avx2::<CHUNK_1>($x);
+        let [x1, x2, x3, x4] = offsets_avx2_ps::<CHUNK_0>($x);
+        let [x5, x6, x7, x8] = offsets_avx2_ps::<CHUNK_1>($x);
 
-        let [y1, y2, y3, y4] = offsets_avx2::<CHUNK_0>($y);
-        let [y5, y6, y7, y8] = offsets_avx2::<CHUNK_1>($y);
+        let [y1, y2, y3, y4] = offsets_avx2_ps::<CHUNK_0>($y);
+        let [y5, y6, y7, y8] = offsets_avx2_ps::<CHUNK_1>($y);
 
         let x1 = _mm256_loadu_ps(x1);
         let x2 = _mm256_loadu_ps(x2);
@@ -53,7 +53,7 @@ macro_rules! execute_tail_op_inplace {
             let y = _mm256_loadu_ps(y_ptr.add($i));
 
             let reg = $op(x, y);
-            copy_avx2_register_to(x_ptr.add($i), reg);
+            copy_avx2_ps_register_to(x_ptr.add($i), reg);
 
             $i += 8;
         }

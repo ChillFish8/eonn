@@ -2,9 +2,9 @@ use std::arch::x86_64::*;
 use std::{mem, ptr};
 
 use crate::danger::{
-    copy_masked_avx512_register_to,
-    load_one_variable_size_avx512,
-    offsets_avx512,
+    copy_masked_avx512_ps_register_to,
+    load_one_variable_size_avx512_ps,
+    offsets_avx512_ps,
     CHUNK_0,
     CHUNK_1,
 };
@@ -93,9 +93,9 @@ pub unsafe fn f32_xany_avx512_nofma_mul_value(arr: &mut [f32], multiplier: f32) 
     while i < len {
         let n = len - i;
         let arr = arr.add(i);
-        let x = load_one_variable_size_avx512(arr, n);
+        let x = load_one_variable_size_avx512_ps(arr, n);
         let r = _mm512_mul_ps(x, multiplier);
-        copy_masked_avx512_register_to(arr, r, n);
+        copy_masked_avx512_ps_register_to(arr, r, n);
 
         i += 16;
     }
@@ -164,7 +164,7 @@ pub unsafe fn f32_xany_avx512_nofma_add_value(arr: &mut [f32], value: f32) {
             _mm512_add_ps(x, value)
         };
 
-        copy_masked_avx512_register_to(arr, r, n);
+        copy_masked_avx512_ps_register_to(arr, r, n);
 
         i += 16;
     }
@@ -233,7 +233,7 @@ pub unsafe fn f32_xany_avx512_nofma_sub_value(arr: &mut [f32], value: f32) {
             _mm512_sub_ps(x, value)
         };
 
-        copy_masked_avx512_register_to(arr, r, n);
+        copy_masked_avx512_ps_register_to(arr, r, n);
 
         i += 16;
     }
@@ -241,8 +241,8 @@ pub unsafe fn f32_xany_avx512_nofma_sub_value(arr: &mut [f32], value: f32) {
 
 #[inline(always)]
 unsafe fn execute_f32_x128_mul(x: *mut f32, multiplier: __m512) {
-    let [x1, x2, x3, x4] = offsets_avx512::<CHUNK_0>(x);
-    let [x5, x6, x7, x8] = offsets_avx512::<CHUNK_1>(x);
+    let [x1, x2, x3, x4] = offsets_avx512_ps::<CHUNK_0>(x);
+    let [x5, x6, x7, x8] = offsets_avx512_ps::<CHUNK_1>(x);
 
     let x1 = _mm512_loadu_ps(x1);
     let x2 = _mm512_loadu_ps(x2);
@@ -272,8 +272,8 @@ unsafe fn execute_f32_x128_mul(x: *mut f32, multiplier: __m512) {
 
 #[inline(always)]
 unsafe fn execute_f32_x128_add(x: *mut f32, value: __m512) {
-    let [x1, x2, x3, x4] = offsets_avx512::<CHUNK_0>(x);
-    let [x5, x6, x7, x8] = offsets_avx512::<CHUNK_1>(x);
+    let [x1, x2, x3, x4] = offsets_avx512_ps::<CHUNK_0>(x);
+    let [x5, x6, x7, x8] = offsets_avx512_ps::<CHUNK_1>(x);
 
     let x1 = _mm512_loadu_ps(x1);
     let x2 = _mm512_loadu_ps(x2);
@@ -303,8 +303,8 @@ unsafe fn execute_f32_x128_add(x: *mut f32, value: __m512) {
 
 #[inline(always)]
 unsafe fn execute_f32_x128_sub(x: *mut f32, value: __m512) {
-    let [x1, x2, x3, x4] = offsets_avx512::<CHUNK_0>(x);
-    let [x5, x6, x7, x8] = offsets_avx512::<CHUNK_1>(x);
+    let [x1, x2, x3, x4] = offsets_avx512_ps::<CHUNK_0>(x);
+    let [x5, x6, x7, x8] = offsets_avx512_ps::<CHUNK_1>(x);
 
     let x1 = _mm512_loadu_ps(x1);
     let x2 = _mm512_loadu_ps(x2);

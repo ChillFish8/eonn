@@ -2,10 +2,10 @@ use std::arch::x86_64::*;
 use std::{mem, ptr};
 
 use crate::danger::{
-    copy_avx2_register_to,
-    offsets_avx2,
-    rollup_x8,
-    sum_avx2,
+    copy_avx2_ps_register_to,
+    offsets_avx2_ps,
+    rollup_x8_ps,
+    sum_avx2_ps,
     CHUNK_0,
     CHUNK_1,
 };
@@ -62,8 +62,8 @@ pub unsafe fn f32_xconst_avx2_nofma_sum_horizontal<const DIMS: usize>(x: &[f32])
         i += 64;
     }
 
-    let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
-    sum_avx2(acc)
+    let acc = rollup_x8_ps(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
+    sum_avx2_ps(acc)
 }
 
 #[target_feature(enable = "avx2")]
@@ -134,8 +134,8 @@ pub unsafe fn f32_xany_avx2_nofma_sum_horizontal(x: &[f32]) -> f32 {
         }
     }
 
-    let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
-    extra + sum_avx2(acc)
+    let acc = rollup_x8_ps(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
+    extra + sum_avx2_ps(acc)
 }
 
 #[allow(unused)]
@@ -290,7 +290,7 @@ pub unsafe fn f32_xany_avx2_nofma_sum_vertical(matrix: &[&[f32]]) -> Vec<f32> {
                 acc = _mm256_add_ps(acc, x);
             }
 
-            copy_avx2_register_to(results_ptr.add(i), acc);
+            copy_avx2_ps_register_to(results_ptr.add(i), acc);
 
             i += 8;
         }
@@ -323,8 +323,8 @@ unsafe fn sum_x64_block(
     acc7: &mut __m256,
     acc8: &mut __m256,
 ) {
-    let [x1, x2, x3, x4] = offsets_avx2::<CHUNK_0>(x);
-    let [x5, x6, x7, x8] = offsets_avx2::<CHUNK_1>(x);
+    let [x1, x2, x3, x4] = offsets_avx2_ps::<CHUNK_0>(x);
+    let [x5, x6, x7, x8] = offsets_avx2_ps::<CHUNK_1>(x);
 
     let x1 = _mm256_loadu_ps(x1);
     let x2 = _mm256_loadu_ps(x2);

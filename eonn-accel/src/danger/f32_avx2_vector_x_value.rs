@@ -1,7 +1,7 @@
 use std::arch::x86_64::*;
 use std::{mem, ptr};
 
-use crate::danger::{copy_avx2_register_to, offsets_avx2, CHUNK_0, CHUNK_1};
+use crate::danger::{copy_avx2_ps_register_to, offsets_avx2_ps, CHUNK_0, CHUNK_1};
 
 macro_rules! complete_tail {
     ($offset_from:expr, $i:expr, $arr:ident, $value:expr, $value_reg:expr, $inst:ident, op = $op:tt) => {{
@@ -13,7 +13,7 @@ macro_rules! complete_tail {
             while $i < (len - remainder) {
                 let x = _mm256_loadu_ps(arr_ptr.add($i));
                 let r = $inst(x, $value_reg);
-                copy_avx2_register_to(arr_ptr.add($i), r);
+                copy_avx2_ps_register_to(arr_ptr.add($i), r);
 
                 $i += 8;
             }
@@ -219,8 +219,8 @@ pub unsafe fn f32_xany_avx2_nofma_sub_value(arr: &mut [f32], value: f32) {
 
 #[inline(always)]
 unsafe fn execute_f32_x64_mul(x: *mut f32, multiplier: __m256) {
-    let [x1, x2, x3, x4] = offsets_avx2::<CHUNK_0>(x);
-    let [x5, x6, x7, x8] = offsets_avx2::<CHUNK_1>(x);
+    let [x1, x2, x3, x4] = offsets_avx2_ps::<CHUNK_0>(x);
+    let [x5, x6, x7, x8] = offsets_avx2_ps::<CHUNK_1>(x);
 
     let x1 = _mm256_loadu_ps(x1);
     let x2 = _mm256_loadu_ps(x2);
@@ -250,8 +250,8 @@ unsafe fn execute_f32_x64_mul(x: *mut f32, multiplier: __m256) {
 
 #[inline(always)]
 unsafe fn execute_f32_x64_add(x: *mut f32, value: __m256) {
-    let [x1, x2, x3, x4] = offsets_avx2::<CHUNK_0>(x);
-    let [x5, x6, x7, x8] = offsets_avx2::<CHUNK_1>(x);
+    let [x1, x2, x3, x4] = offsets_avx2_ps::<CHUNK_0>(x);
+    let [x5, x6, x7, x8] = offsets_avx2_ps::<CHUNK_1>(x);
 
     let x1 = _mm256_loadu_ps(x1);
     let x2 = _mm256_loadu_ps(x2);
@@ -281,8 +281,8 @@ unsafe fn execute_f32_x64_add(x: *mut f32, value: __m256) {
 
 #[inline(always)]
 unsafe fn execute_f32_x64_sub(x: *mut f32, value: __m256) {
-    let [x1, x2, x3, x4] = offsets_avx2::<CHUNK_0>(x);
-    let [x5, x6, x7, x8] = offsets_avx2::<CHUNK_1>(x);
+    let [x1, x2, x3, x4] = offsets_avx2_ps::<CHUNK_0>(x);
+    let [x5, x6, x7, x8] = offsets_avx2_ps::<CHUNK_1>(x);
 
     let x1 = _mm256_loadu_ps(x1);
     let x2 = _mm256_loadu_ps(x2);

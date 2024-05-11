@@ -119,7 +119,7 @@ where
                 "Dimensions of const size must match"
             );
         }
-        
+
         Self {
             buffer: data,
             ops: <(D, A) as Default>::default(),

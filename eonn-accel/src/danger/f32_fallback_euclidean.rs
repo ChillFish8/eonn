@@ -1,4 +1,4 @@
-use crate::danger::utils::rollup_scalar_x8;
+use crate::danger::utils::rollup_scalar_x8_ps;
 use crate::math::*;
 
 #[inline]
@@ -91,7 +91,7 @@ unsafe fn fallback_euclidean<M: Math>(x: &[f32], y: &[f32]) -> f32 {
         i += 8;
     }
 
-    rollup_scalar_x8::<M>(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8) + extra
+    rollup_scalar_x8_ps::<M>(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8) + extra
 }
 
 #[cfg(test)]

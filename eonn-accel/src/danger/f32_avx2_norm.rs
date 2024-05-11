@@ -1,7 +1,7 @@
 use std::arch::x86_64::*;
 
 use crate::danger::utils::{CHUNK_0, CHUNK_1};
-use crate::danger::{offsets_avx2, rollup_x8, sum_avx2};
+use crate::danger::{offsets_avx2_ps, rollup_x8_ps, sum_avx2_ps};
 use crate::math::*;
 
 #[target_feature(enable = "avx2")]
@@ -44,8 +44,8 @@ pub unsafe fn f32_xconst_avx2_nofma_norm<const DIMS: usize>(x: &[f32]) -> f32 {
         i += 64;
     }
 
-    let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
-    sum_avx2(acc)
+    let acc = rollup_x8_ps(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
+    sum_avx2_ps(acc)
 }
 
 #[target_feature(enable = "avx2")]
@@ -111,8 +111,8 @@ pub unsafe fn f32_xany_avx2_nofma_norm(x: &[f32]) -> f32 {
         }
     }
 
-    let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
-    AutoMath::add(total, sum_avx2(acc))
+    let acc = rollup_x8_ps(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
+    AutoMath::add(total, sum_avx2_ps(acc))
 }
 
 #[target_feature(enable = "avx2", enable = "fma")]
@@ -155,8 +155,8 @@ pub unsafe fn f32_xconst_avx2_fma_norm<const DIMS: usize>(x: &[f32]) -> f32 {
         i += 64;
     }
 
-    let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
-    sum_avx2(acc)
+    let acc = rollup_x8_ps(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
+    sum_avx2_ps(acc)
 }
 
 #[target_feature(enable = "avx2", enable = "fma")]
@@ -220,8 +220,8 @@ pub unsafe fn f32_xany_avx2_fma_norm(x: &[f32]) -> f32 {
         }
     }
 
-    let acc = rollup_x8(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
-    AutoMath::add(total, sum_avx2(acc))
+    let acc = rollup_x8_ps(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8);
+    AutoMath::add(total, sum_avx2_ps(acc))
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -237,8 +237,8 @@ unsafe fn execute_f32_x64_nofma_block_norm(
     acc7: &mut __m256,
     acc8: &mut __m256,
 ) {
-    let [x1, x2, x3, x4] = offsets_avx2::<CHUNK_0>(x);
-    let [x5, x6, x7, x8] = offsets_avx2::<CHUNK_1>(x);
+    let [x1, x2, x3, x4] = offsets_avx2_ps::<CHUNK_0>(x);
+    let [x5, x6, x7, x8] = offsets_avx2_ps::<CHUNK_1>(x);
 
     let x1 = _mm256_loadu_ps(x1);
     let x2 = _mm256_loadu_ps(x2);
@@ -281,8 +281,8 @@ unsafe fn execute_f32_x64_fma_block_norm(
     acc7: &mut __m256,
     acc8: &mut __m256,
 ) {
-    let [x1, x2, x3, x4] = offsets_avx2::<CHUNK_0>(x);
-    let [x5, x6, x7, x8] = offsets_avx2::<CHUNK_1>(x);
+    let [x1, x2, x3, x4] = offsets_avx2_ps::<CHUNK_0>(x);
+    let [x5, x6, x7, x8] = offsets_avx2_ps::<CHUNK_1>(x);
 
     let x1 = _mm256_loadu_ps(x1);
     let x2 = _mm256_loadu_ps(x2);
