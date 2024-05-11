@@ -329,7 +329,7 @@ pub unsafe fn f32_xconst_avx2_nofma_sub_vertical<const DIMS: usize>(
     debug_assert_eq!(x.len(), y.len());
     debug_assert_eq!(x.len(), DIMS);
 
-    let x = x.as_mut_ptr();
+    let x = x.as_mut_ptr();    
     let y = y.as_ptr();
 
     let mut i = 0;
@@ -367,7 +367,7 @@ pub unsafe fn f32_xany_avx2_nofma_sub_vertical(x: &mut [f32], y: &[f32]) {
     let y_ptr = y.as_ptr();
 
     let mut i = 0;
-    while i < len {
+    while i < (len - offset_from) {
         x64_op_inplace!(x_ptr.add(i), y_ptr.add(i), _mm256_sub_ps);
 
         i += 64;
