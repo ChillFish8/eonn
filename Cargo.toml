@@ -38,7 +38,6 @@ opt-level = 3
 [workspace]
 members = [
     "eonn-accel",
-    "eonn-pq",
 
     # Used for profiling and debugging
     "eonn-demo",
