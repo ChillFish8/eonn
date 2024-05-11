@@ -30,6 +30,7 @@ unsafe fn fallback_euclidean<M: Math>(x: &[f32], y: &[f32]) -> f32 {
     // We do this manual unrolling to allow the compiler to vectorize
     // the loop and avoid some branching even if we're not doing it explicitly.
     // This made a significant difference in benchmarking ~4-8x
+    let mut extra = 0.0;
     let mut acc1 = 0.0;
     let mut acc2 = 0.0;
     let mut acc3 = 0.0;
@@ -85,12 +86,12 @@ unsafe fn fallback_euclidean<M: Math>(x: &[f32], y: &[f32]) -> f32 {
         let y = *y.get_unchecked(i);
 
         let diff = M::sub(x, y);
-        acc1 = M::add(acc1, M::mul(diff, diff));
+        extra = M::add(extra, M::mul(diff, diff));
 
         i += 1;
     }
 
-    rollup_scalar_x8::<M>(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
+    rollup_scalar_x8::<M>(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8) + extra
 }
 
 #[cfg(test)]
@@ -98,6 +99,13 @@ mod tests {
     use super::*;
     use crate::test_utils::{assert_is_close, get_sample_vectors, simple_euclidean};
 
+    #[test]
+    fn test_x1024_nofma_euclidean() {
+        let (x, y) = get_sample_vectors(1024);
+        let dist = unsafe { f32_xany_fallback_nofma_euclidean(&x, &y) };
+        assert_is_close(dist, simple_euclidean(&x, &y));
+    }
+    
     #[test]
     fn test_xany_nofma_euclidean() {
         let (x, y) = get_sample_vectors(127);

@@ -26,6 +26,7 @@ pub(super) unsafe fn fallback_dot<M: Math>(x: &[f32], y: &[f32]) -> f32 {
     // We do this manual unrolling to allow the compiler to vectorize
     // the loop and avoid some branching even if we're not doing it explicitly.
     // This made a significant difference in benchmarking ~8x
+    let mut extra = 0.0;
     let mut acc1 = 0.0;
     let mut acc2 = 0.0;
     let mut acc3 = 0.0;
@@ -66,16 +67,16 @@ pub(super) unsafe fn fallback_dot<M: Math>(x: &[f32], y: &[f32]) -> f32 {
 
         i += 8;
     }
-
+    
     while i < len {
         let x = *x.get_unchecked(i);
         let y = *y.get_unchecked(i);
-        acc1 = M::add(acc1, M::mul(x, y));
+        extra = M::add(extra, M::mul(x, y));
 
         i += 1;
     }
 
-    rollup_scalar_x8::<M>(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
+    rollup_scalar_x8::<M>(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8) + extra
 }
 
 #[cfg(test)]

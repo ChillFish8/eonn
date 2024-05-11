@@ -46,6 +46,7 @@ unsafe fn sum<M: Math>(arr: &[f32]) -> f32 {
     let len = arr.len();
     let offset_from = len % 8;
 
+    let mut extra = 0.0;
     let mut acc1 = 0.0;
     let mut acc2 = 0.0;
     let mut acc3 = 0.0;
@@ -80,7 +81,7 @@ unsafe fn sum<M: Math>(arr: &[f32]) -> f32 {
 
     while i < len {
         let x = *arr.get_unchecked(i);
-        acc1 = M::add(acc1, x);
+        extra = M::add(extra, x);
 
         i += 1;
     }
@@ -93,7 +94,7 @@ unsafe fn sum<M: Math>(arr: &[f32]) -> f32 {
     acc1 = M::add(acc1, acc3);
     acc5 = M::add(acc5, acc7);
 
-    M::add(acc1, acc5)
+    M::add(acc1, acc5) + extra
 }
 
 #[inline(always)]

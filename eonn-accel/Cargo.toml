@@ -38,14 +38,14 @@ nightly = []
 # Enables algined memory with benchmarks
 benchmark-aligned = []
 
-[[bench]]
-name = "bench_3rd_parties"
-harness = false
+# [[bench]]
+# name = "bench_3rd_parties"
+# harness = false
 
 [[bench]]
 name = "bench_distance_measures"
 harness = false
 
-[[bench]]
-name = "bench_metrics"
-harness = false
+# [[bench]]
+# name = "bench_metrics"
+# harness = false

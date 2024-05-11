@@ -52,7 +52,6 @@ mod f32_fallback_min;
 mod f32_fallback_sum;
 mod f32_fallback_vector_x_value;
 mod f32_fallback_vector_x_vector;
-mod prefetch;
 mod utils;
 
 pub(crate) use utils::*;

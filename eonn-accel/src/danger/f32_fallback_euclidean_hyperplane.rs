@@ -40,6 +40,7 @@ pub(crate) unsafe fn fallback_euclidean_hyperplane<M: Math>(
     let len = x.len();
     let offset_from = len % 8;
 
+    let mut extra = 0.0;
     let mut offset_acc1 = 0.0;
     let mut offset_acc2 = 0.0;
     let mut offset_acc3 = 0.0;
@@ -106,13 +107,13 @@ pub(crate) unsafe fn fallback_euclidean_hyperplane<M: Math>(
         let diff = M::sub(x, y);
         let mean = M::mul(M::add(x, y), 0.5);
 
-        offset_acc1 = M::add(offset_acc1, M::mul(diff, mean));
+        extra = M::add(extra, M::mul(diff, mean));
         *hyperplane.get_unchecked_mut(i) = diff;
 
         i += 1;
     }
 
-    let hyperplane_offset = -rollup_scalar_x8::<M>(
+    let mut hyperplane_offset = -rollup_scalar_x8::<M>(
         offset_acc1,
         offset_acc2,
         offset_acc3,
@@ -122,6 +123,8 @@ pub(crate) unsafe fn fallback_euclidean_hyperplane<M: Math>(
         offset_acc7,
         offset_acc8,
     );
+    
+    hyperplane_offset -= extra;
 
     hyperplane_offset
 }
