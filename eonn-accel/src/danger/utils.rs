@@ -6,6 +6,11 @@ use crate::math::Math;
 pub const CHUNK_0: usize = 0;
 pub const CHUNK_1: usize = 1;
 
+#[allow(non_snake_case)]
+pub const fn _MM_SHUFFLE(z: u32, y: u32, x: u32, w: u32) -> i32 {
+    ((z << 6) | (y << 4) | (x << 2) | w) as i32
+}
+
 #[inline(always)]
 pub fn cosine<M: Math>(dot_product: f32, norm_x: f32, norm_y: f32) -> f32 {
     if norm_x == 0.0 && norm_y == 0.0 {
@@ -62,6 +67,31 @@ pub(crate) unsafe fn rollup_x8_ps(
     _mm256_add_ps(acc1, acc5)
 }
 
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[allow(clippy::too_many_arguments)]
+#[inline(always)]
+/// Rolls up 8 [__m256i] registers into 1 summing them together.
+pub(crate) unsafe fn rollup_x8_epi32(
+    mut acc1: __m256i,
+    acc2: __m256i,
+    mut acc3: __m256i,
+    acc4: __m256i,
+    mut acc5: __m256i,
+    acc6: __m256i,
+    mut acc7: __m256i,
+    acc8: __m256i,
+) -> __m256i {
+    acc1 = _mm256_add_epi32(acc1, acc2);
+    acc3 = _mm256_add_epi32(acc3, acc4);
+    acc5 = _mm256_add_epi32(acc5, acc6);
+    acc7 = _mm256_add_epi32(acc7, acc8);
+
+    acc1 = _mm256_add_epi32(acc1, acc3);
+    acc5 = _mm256_add_epi32(acc5, acc7);
+
+    _mm256_add_epi32(acc1, acc5)
+}
+
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 #[allow(clippy::too_many_arguments)]
 #[inline(always)]
@@ -100,11 +130,36 @@ pub(crate) unsafe fn offsets_avx2_ps<const CHUNK: usize>(
     ]
 }
 
-#[allow(unused)]
+#[inline(always)]
+pub(crate) unsafe fn offsets_avx2_epi32<const CHUNK: usize>(
+    ptr: *const i32,
+) -> [*const i32; 4] {
+    [
+        ptr.add(CHUNK * 32),
+        ptr.add((CHUNK * 32) + 8),
+        ptr.add((CHUNK * 32) + 16),
+        ptr.add((CHUNK * 32) + 24),
+    ]
+}
+
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 #[inline(always)]
 pub(crate) unsafe fn offsets_avx512_ps<const CHUNK: usize>(
     ptr: *const f32,
 ) -> [*const f32; 4] {
+    [
+        ptr.add(CHUNK * 64),
+        ptr.add((CHUNK * 64) + 16),
+        ptr.add((CHUNK * 64) + 32),
+        ptr.add((CHUNK * 64) + 48),
+    ]
+}
+
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+#[inline(always)]
+pub(crate) unsafe fn offsets_avx512_epi32<const CHUNK: usize>(
+    ptr: *const i32,
+) -> [*const i32; 4] {
     [
         ptr.add(CHUNK * 64),
         ptr.add((CHUNK * 64) + 16),
@@ -193,6 +248,18 @@ pub(crate) unsafe fn copy_masked_avx512_ps_register_to(
 /// going out of bounds on the register.
 pub(crate) unsafe fn copy_avx2_ps_register_to(arr: *mut f32, reg: __m256) {
     let result = mem::transmute::<__m256, [f32; 8]>(reg);
+    ptr::copy_nonoverlapping(result.as_ptr(), arr, result.len());
+}
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[inline(always)]
+/// Copies the data from the given `reg` into `arr` for upto `len` elements.
+///
+/// NOTE:
+/// This will implicitly cap the number of elements to `min(len, 16)` to prevent
+/// going out of bounds on the register.
+pub(crate) unsafe fn copy_avx2_epi32_register_to(arr: *mut i32, reg: __m256i) {
+    let result = mem::transmute::<__m256i, [i32; 8]>(reg);
     ptr::copy_nonoverlapping(result.as_ptr(), arr, result.len());
 }
 

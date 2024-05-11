@@ -14,24 +14,6 @@ use crate::test_utils::{
 use crate::vector::{Vector, VectorCreateError};
 
 #[test]
-fn test_vector_f32_non_finite() {
-    let (mut x, _) = get_sample_vectors(1024);
-    x[0] = f32::INFINITY;
-    let x = Vector::<X1024, Fallback, f32>::try_from_vec(x)
-        .expect_err("Should reject non-finite value");
-    assert!(matches!(x, VectorCreateError::NonFinite));
-}
-
-#[test]
-fn test_vector_f32_nan() {
-    let (mut x, _) = get_sample_vectors(1024);
-    x[0] = f32::NAN;
-    let x =
-        Vector::<X1024, Fallback, f32>::try_from_vec(x).expect_err("Should reject Nan");
-    assert!(matches!(x, VectorCreateError::NonFinite));
-}
-
-#[test]
 fn test_vector_construct_ok() {
     let (x, y) = get_sample_vectors(1024);
     let x = Vector::<X1024, Fallback, f32>::try_from_vec(x).expect("Create vector");

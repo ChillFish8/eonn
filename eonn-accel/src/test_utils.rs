@@ -1,3 +1,4 @@
+use rand::distributions::{Distribution, Standard};
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 
@@ -6,7 +7,10 @@ use crate::math::AutoMath;
 
 const SEED: u64 = 34535345353;
 
-pub fn get_sample_vectors(size: usize) -> (Vec<f32>, Vec<f32>) {
+pub fn get_sample_vectors<T>(size: usize) -> (Vec<T>, Vec<T>)
+where
+    Standard: Distribution<T>,
+{
     let mut rng = ChaCha8Rng::seed_from_u64(SEED);
 
     let mut x = Vec::new();

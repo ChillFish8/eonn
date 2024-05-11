@@ -13,8 +13,8 @@ use crate::math::*;
 /// DIMS **MUST** be a multiple of `64` and vector must be `DIMS` in length,
 /// otherwise this routine will become immediately UB due to out of bounds pointer accesses.
 ///
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
+/// This method assumes avx2 instructions are available, if this method is executed
+/// on non-avx2 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
 pub unsafe fn f32_xconst_avx2_nofma_norm<const DIMS: usize>(x: &[f32]) -> f32 {
     let x = x.as_ptr();
 
@@ -57,8 +57,8 @@ pub unsafe fn f32_xconst_avx2_nofma_norm<const DIMS: usize>(x: &[f32]) -> f32 {
 ///
 /// # Safety
 ///
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
+/// This method assumes avx2 instructions are available, if this method is executed
+/// on non-avx2 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
 pub unsafe fn f32_xany_avx2_nofma_norm(x: &[f32]) -> f32 {
     let len = x.len();
     let offset_from = len % 64;
@@ -124,8 +124,8 @@ pub unsafe fn f32_xany_avx2_nofma_norm(x: &[f32]) -> f32 {
 /// DIMS **MUST** be a multiple of `64` and vector must be `DIMS` in length,
 /// otherwise this routine will become immediately UB due to out of bounds pointer accesses.
 ///
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
+/// This method assumes avx2 instructions are available, if this method is executed
+/// on non-avx2 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
 pub unsafe fn f32_xconst_avx2_fma_norm<const DIMS: usize>(x: &[f32]) -> f32 {
     let x = x.as_ptr();
 
@@ -168,8 +168,8 @@ pub unsafe fn f32_xconst_avx2_fma_norm<const DIMS: usize>(x: &[f32]) -> f32 {
 ///
 /// # Safety
 ///
-/// Values within the vector should also be finite, although it is not
-/// going to crash the program, it is going to produce insane numbers.
+/// This method assumes avx2 instructions are available, if this method is executed
+/// on non-avx2 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
 pub unsafe fn f32_xany_avx2_fma_norm(x: &[f32]) -> f32 {
     let len = x.len();
     let offset_from = len % 64;

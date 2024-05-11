@@ -255,10 +255,10 @@ pub unsafe fn f32_xany_avx2_nofma_max_horizontal(arr: &[f32]) -> f32 {
 /// This method assumes AVX2 instructions are available, if this method is executed
 /// on non-AVX2 enabled systems, it will lead to an `ILLEGAL_INSTRUCTION` error.
 pub unsafe fn f32_xany_avx2_nofma_max_vertical(matrix: &[&[f32]]) -> Vec<f32> {
-    let dims = matrix[0].len();
-    let offset_from = dims % 64;
+    let len = matrix[0].len();
+    let offset_from = len % 64;
 
-    let mut max_values = vec![0.0; dims];
+    let mut max_values = vec![0.0; len];
     let max_values_ptr = max_values.as_mut_ptr();
 
     // We work our way horizontally by taking steps of 64 and finding
@@ -266,7 +266,7 @@ pub unsafe fn f32_xany_avx2_nofma_max_vertical(matrix: &[&[f32]]) -> Vec<f32> {
     // TODO: I am unsure how hard this is on the cache or if there is a smarter
     //       way to write this.
     let mut i = 0;
-    while i < (dims - offset_from) {
+    while i < (len - offset_from) {
         let mut acc1 = _mm256_set1_ps(f32::NEG_INFINITY);
         let mut acc2 = _mm256_set1_ps(f32::NEG_INFINITY);
         let mut acc3 = _mm256_set1_ps(f32::NEG_INFINITY);
@@ -279,7 +279,7 @@ pub unsafe fn f32_xany_avx2_nofma_max_vertical(matrix: &[&[f32]]) -> Vec<f32> {
         // Vertical max of the 64 elements.
         for m in 0..matrix.len() {
             let arr = *matrix.get_unchecked(m);
-            debug_assert_eq!(arr.len(), dims);
+            debug_assert_eq!(arr.len(), len);
 
             let arr = arr.as_ptr();
 
@@ -316,11 +316,11 @@ pub unsafe fn f32_xany_avx2_nofma_max_vertical(matrix: &[&[f32]]) -> Vec<f32> {
     if offset_from != 0 {
         let tail = offset_from % 8;
 
-        while i < (dims - tail) {
+        while i < (len - tail) {
             let mut acc = _mm256_set1_ps(f32::NEG_INFINITY);
             for m in 0..matrix.len() {
                 let arr = *matrix.get_unchecked(m);
-                debug_assert_eq!(arr.len(), dims);
+                debug_assert_eq!(arr.len(), len);
                 let arr_ptr = arr.as_ptr();
                 let x = _mm256_loadu_ps(arr_ptr.add(i));
                 acc = _mm256_max_ps(acc, x);
@@ -330,11 +330,11 @@ pub unsafe fn f32_xany_avx2_nofma_max_vertical(matrix: &[&[f32]]) -> Vec<f32> {
             i += 8;
         }
 
-        for n in i..dims {
+        for n in i..len {
             let mut max = f32::NEG_INFINITY;
             for m in 0..matrix.len() {
                 let arr = *matrix.get_unchecked(m);
-                debug_assert_eq!(arr.len(), dims);
+                debug_assert_eq!(arr.len(), len);
                 let x = *arr.get_unchecked(n);
                 max = max.max(x);
             }
