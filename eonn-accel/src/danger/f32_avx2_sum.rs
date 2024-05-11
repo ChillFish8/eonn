@@ -268,11 +268,7 @@ pub unsafe fn f32_xany_avx2_nofma_sum_vertical(matrix: &[&[f32]]) -> Vec<f32> {
         let merged = [acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8];
 
         let result = mem::transmute::<[__m256; 8], [f32; 64]>(merged);
-        ptr::copy_nonoverlapping(
-            result.as_ptr(),
-            results_ptr.add(i),
-            result.len(),
-        );
+        ptr::copy_nonoverlapping(result.as_ptr(), results_ptr.add(i), result.len());
 
         i += 64;
     }
@@ -296,7 +292,7 @@ pub unsafe fn f32_xany_avx2_nofma_sum_vertical(matrix: &[&[f32]]) -> Vec<f32> {
 
             i += 8;
         }
-        
+
         while i < len {
             for m in 0..matrix.len() {
                 let arr = *matrix.get_unchecked(m);
@@ -304,11 +300,11 @@ pub unsafe fn f32_xany_avx2_nofma_sum_vertical(matrix: &[&[f32]]) -> Vec<f32> {
 
                 *results.get_unchecked_mut(i) += *arr.get_unchecked(i);
             }
-            
+
             i += 1;
         }
     }
-    
+
     results
 }
 

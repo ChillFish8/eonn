@@ -1,9 +1,10 @@
 use std::arch::x86_64::*;
 use std::{mem, ptr};
 
-use crate::danger::{f32_xany_avx2_fma_norm, f32_xconst_avx2_fma_norm};
 use crate::danger::{
+    f32_xany_avx2_fma_norm,
     f32_xany_avx2_nofma_norm,
+    f32_xconst_avx2_fma_norm,
     f32_xconst_avx2_nofma_norm,
     offsets_avx2,
     CHUNK_0,

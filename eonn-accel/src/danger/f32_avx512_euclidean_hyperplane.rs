@@ -1,7 +1,14 @@
 use std::arch::x86_64::*;
 use std::{mem, ptr};
 
-use crate::danger::{load_two_variable_size_avx512, offsets_avx512, sum_avx512_x8, CHUNK_0, CHUNK_1, copy_masked_avx512_register_to};
+use crate::danger::{
+    copy_masked_avx512_register_to,
+    load_two_variable_size_avx512,
+    offsets_avx512,
+    sum_avx512_x8,
+    CHUNK_0,
+    CHUNK_1,
+};
 
 #[target_feature(enable = "avx512f")]
 #[inline]
@@ -139,7 +146,7 @@ pub unsafe fn f32_xany_avx512_fma_euclidean_hyperplane(
         let mean = _mm512_mul_ps(sum, div_by_2);
 
         offset_acc1 = _mm512_fmadd_ps(diff, mean, offset_acc1);
-        
+
         copy_masked_avx512_register_to(hyperplane_ptr.add(i), diff, n);
 
         i += 16;

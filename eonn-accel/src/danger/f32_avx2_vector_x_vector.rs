@@ -329,7 +329,7 @@ pub unsafe fn f32_xconst_avx2_nofma_sub_vertical<const DIMS: usize>(
     debug_assert_eq!(x.len(), y.len());
     debug_assert_eq!(x.len(), DIMS);
 
-    let x = x.as_mut_ptr();    
+    let x = x.as_mut_ptr();
     let y = y.as_ptr();
 
     let mut i = 0;

@@ -2,12 +2,10 @@ use crate::danger::utils::cosine;
 use crate::danger::{
     f32_xany_avx2_fma_dot,
     f32_xany_avx2_fma_norm,
-    f32_xconst_avx2_fma_dot,
-    f32_xconst_avx2_fma_norm,
-};
-use crate::danger::{
     f32_xany_avx2_nofma_dot,
     f32_xany_avx2_nofma_norm,
+    f32_xconst_avx2_fma_dot,
+    f32_xconst_avx2_fma_norm,
     f32_xconst_avx2_nofma_dot,
     f32_xconst_avx2_nofma_norm,
 };
