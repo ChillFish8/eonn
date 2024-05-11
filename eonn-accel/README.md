@@ -44,22 +44,11 @@ naming scheme to indicate their specialization.
 <dtype>_x<dims>_<arch>_<(no)fma>_<op_name>
 ```
 
-#### Notes on what `nofma` and `fma` mean
-
-`FMA` in this system indicated _both_ the `fma` CPU feature flag is available _and_ to use `fast-math`
-intrinsics in the compiler.
-
-Note that the fallback implementations will only use the intrinsics and will let the compiler
-optimize for those intrinsics, however, it is likely that you do not want to use `_fma_op` 
-type functions on any platform that does not support the `fma` CPU feature except maybe for
-ARM, but this is untested.
-
 ### Features
 
 - `dangerous-access` Exposes access to the unsafe specialized functions, it is entirely on you to 
   ensure the data passed to these functions are correct and safe to call. USE AT YOUR OWN RISK.
-- `nightly` Enables optimizations available only on nightly platforms, for best performance
-  I recommend using this feature.
-  * This is required for FMA due to their compiler intrinsics calls.
+- `nightly` Enables optimizations available only on nightly platforms.
+  * Fallback implementations may see much better performance.
   * This is required for AVX512 support due to it currently being unstable.
 
