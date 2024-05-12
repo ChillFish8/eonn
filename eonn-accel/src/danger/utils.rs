@@ -12,13 +12,13 @@ pub const fn _MM_SHUFFLE(z: u32, y: u32, x: u32, w: u32) -> i32 {
 }
 
 #[inline(always)]
-pub fn cosine<M: Math>(dot_product: f32, norm_x: f32, norm_y: f32) -> f32 {
-    if norm_x == 0.0 && norm_y == 0.0 {
-        0.0
-    } else if norm_x == 0.0 || norm_y == 0.0 {
-        1.0
+pub fn cosine<T: Copy, M: Math<T>>(dot_product: T, norm_x: T, norm_y: T) -> T {
+    if M::eq(norm_x, M::zero()) && M::eq(norm_y, M::zero()) {
+        M::zero()
+    } else if M::eq(norm_x, M::zero()) || M::eq(norm_y, M::zero()) {
+        M::zero()
     } else {
-        M::sub(1.0, M::div(dot_product, M::mul(norm_x, norm_y).sqrt()))
+        M::sub(M::one(), M::div(dot_product, M::sqrt(M::mul(norm_x, norm_y))))
     }
 }
 
@@ -211,17 +211,17 @@ pub(crate) unsafe fn offsets_avx512_pd<const CHUNK: usize>(
 
 #[allow(clippy::too_many_arguments)]
 #[inline(always)]
-/// Sums 8 scalar accumulators into one f32 value.
-pub fn rollup_scalar_x8_ps<M: Math>(
-    mut acc1: f32,
-    acc2: f32,
-    mut acc3: f32,
-    acc4: f32,
-    mut acc5: f32,
-    acc6: f32,
-    mut acc7: f32,
-    acc8: f32,
-) -> f32 {
+/// Sums 8 scalar accumulators into one `T` value.
+pub fn rollup_scalar_x8<T: Copy, M: Math<T>>(
+    mut acc1: T,
+    acc2: T,
+    mut acc3: T,
+    acc4: T,
+    mut acc5: T,
+    acc6: T,
+    mut acc7: T,
+    acc8: T,
+) -> T {
     acc1 = M::add(acc1, acc2);
     acc3 = M::add(acc3, acc4);
     acc5 = M::add(acc5, acc6);
@@ -373,11 +373,11 @@ mod tests {
     #[test]
     fn test_rollup_scalar_x8() {
         let res =
-            rollup_scalar_x8_ps::<AutoMath>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+            rollup_scalar_x8::<f32, AutoMath>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
         assert_eq!(res, 0.0);
 
         let res =
-            rollup_scalar_x8_ps::<AutoMath>(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0);
+            rollup_scalar_x8::<f32, AutoMath>(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0);
         assert_eq!(res, 8.0);
     }
 

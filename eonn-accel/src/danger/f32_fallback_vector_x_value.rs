@@ -49,7 +49,7 @@ pub unsafe fn f32_xany_fallback_nofma_sub_value(arr: &mut [f32], value: f32) {
 }
 
 #[inline(always)]
-unsafe fn f32_xany_fallback_mul_impl<M: Math>(arr: &mut [f32], multiplier: f32) {
+unsafe fn f32_xany_fallback_mul_impl<M: Math<f32>>(arr: &mut [f32], multiplier: f32) {
     let len = arr.len();
     let offset_from = arr.len() % 8;
 
@@ -85,7 +85,7 @@ unsafe fn f32_xany_fallback_mul_impl<M: Math>(arr: &mut [f32], multiplier: f32) 
 }
 
 #[inline(always)]
-unsafe fn f32_xany_fallback_add_impl<M: Math>(arr: &mut [f32], value: f32) {
+unsafe fn f32_xany_fallback_add_impl<M: Math<f32>>(arr: &mut [f32], value: f32) {
     let len = arr.len();
     let offset_from = arr.len() % 8;
 
@@ -121,7 +121,7 @@ unsafe fn f32_xany_fallback_add_impl<M: Math>(arr: &mut [f32], value: f32) {
 }
 
 #[inline(always)]
-unsafe fn f32_xany_fallback_sub_impl<M: Math>(arr: &mut [f32], value: f32) {
+unsafe fn f32_xany_fallback_sub_impl<M: Math<f32>>(arr: &mut [f32], value: f32) {
     let len = arr.len();
     let offset_from = arr.len() % 8;
 

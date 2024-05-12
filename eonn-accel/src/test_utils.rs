@@ -3,7 +3,7 @@ use rand::{Rng, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 
 use crate::danger::cosine;
-use crate::math::AutoMath;
+use crate::math::{AutoMath, Math};
 
 const SEED: u64 = 34535345353;
 
@@ -31,11 +31,15 @@ pub fn is_close(x: f32, y: f32) -> bool {
     diff <= 0.00015
 }
 
-pub fn simple_dot(x: &[f32], y: &[f32]) -> f32 {
-    let mut dot_product = 0.0;
+pub fn simple_dot<T>(x: &[T], y: &[T]) -> T
+where 
+    T: Copy,
+    AutoMath: Math<T>,
+{
+    let mut dot_product = AutoMath::zero();
 
     for i in 0..x.len() {
-        dot_product += x[i] * y[i];
+        dot_product = AutoMath::add(dot_product, AutoMath::mul(x[i], y[i]));
     }
 
     dot_product
@@ -52,7 +56,7 @@ pub fn simple_cosine(x: &[f32], y: &[f32]) -> f32 {
         norm_y += y[i] * y[i];
     }
 
-    cosine::<AutoMath>(dot_product, norm_x, norm_y)
+    cosine::<f32, AutoMath>(dot_product, norm_x, norm_y)
 }
 
 pub fn simple_euclidean(x: &[f32], y: &[f32]) -> f32 {

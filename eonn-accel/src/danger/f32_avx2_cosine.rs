@@ -35,7 +35,7 @@ pub unsafe fn f32_xconst_avx2_nofma_cosine<const DIMS: usize>(
     let norm_y = f32_xconst_avx2_nofma_norm::<DIMS>(y);
     let dot_product = f32_xconst_avx2_nofma_dot::<DIMS>(x, y);
 
-    cosine::<AutoMath>(dot_product, norm_x, norm_y)
+    cosine::<f32, AutoMath>(dot_product, norm_x, norm_y)
 }
 
 #[target_feature(enable = "avx2")]
@@ -57,7 +57,7 @@ pub unsafe fn f32_xany_avx2_nofma_cosine(x: &[f32], y: &[f32]) -> f32 {
     let norm_y = f32_xany_avx2_nofma_norm(y);
     let dot_product = f32_xany_avx2_nofma_dot(x, y);
 
-    cosine::<AutoMath>(dot_product, norm_x, norm_y)
+    cosine::<f32, AutoMath>(dot_product, norm_x, norm_y)
 }
 
 #[target_feature(enable = "avx2", enable = "fma")]
@@ -82,7 +82,7 @@ pub unsafe fn f32_xconst_avx2_fma_cosine<const DIMS: usize>(
     let norm_y = f32_xconst_avx2_fma_norm::<DIMS>(y);
     let dot_product = f32_xconst_avx2_fma_dot::<DIMS>(x, y);
 
-    cosine::<AutoMath>(dot_product, norm_x, norm_y)
+    cosine::<f32, AutoMath>(dot_product, norm_x, norm_y)
 }
 
 #[target_feature(enable = "avx2", enable = "fma")]
@@ -104,7 +104,7 @@ pub unsafe fn f32_xany_avx2_fma_cosine(x: &[f32], y: &[f32]) -> f32 {
     let norm_y = f32_xany_avx2_fma_norm(y);
     let dot_product = f32_xany_avx2_fma_dot(x, y);
 
-    cosine::<AutoMath>(dot_product, norm_x, norm_y)
+    cosine::<f32, AutoMath>(dot_product, norm_x, norm_y)
 }
 
 #[cfg(test)]

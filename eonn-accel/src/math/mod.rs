@@ -13,19 +13,28 @@ pub type AutoMath = FastMath;
 
 /// Core simple math operations that can be adjusted for certain features
 /// or architectures.
-///
-/// NOTE:
-/// All operations assume floating point values are finite.
-pub trait Math {
+pub trait Math<T> {
+    /// Returns the equivalent zero value.
+    fn zero() -> T;
+    
+    /// Returns the equivalent 1.0 value.
+    fn one() -> T;
+
+    /// Returns the equivalent 1.0 value.
+    fn sqrt(a: T) -> T;
+    
+    /// Returns if the two values are equal.
+    fn eq(a: T, b: T) -> bool;
+    
     /// `a + b`
-    fn add(a: f32, b: f32) -> f32;
+    fn add(a: T, b: T) -> T;
 
     /// `a - b`
-    fn sub(a: f32, b: f32) -> f32;
+    fn sub(a: T, b: T) -> T;
 
     /// `a * b`
-    fn mul(a: f32, b: f32) -> f32;
+    fn mul(a: T, b: T) -> T;
 
     /// `a / b`
-    fn div(a: f32, b: f32) -> f32;
+    fn div(a: T, b: T) -> T;
 }

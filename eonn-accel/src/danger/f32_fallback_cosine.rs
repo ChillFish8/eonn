@@ -20,7 +20,7 @@ pub unsafe fn f32_xany_fallback_nofma_cosine(x: &[f32], y: &[f32]) -> f32 {
     let norm_x = f32_xany_fallback_nofma_dot(x, x);
     let norm_y = f32_xany_fallback_nofma_dot(y, y);
     let dot_product = f32_xany_fallback_nofma_dot(x, y);
-    cosine::<AutoMath>(dot_product, norm_x, norm_y)
+    cosine::<f32, AutoMath>(dot_product, norm_x, norm_y)
 }
 
 #[cfg(test)]

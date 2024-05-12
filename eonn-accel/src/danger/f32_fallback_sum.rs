@@ -42,7 +42,7 @@ pub unsafe fn f32_xany_fallback_nofma_sum_vertical(matrix: &[&[f32]]) -> Vec<f32
 }
 
 #[inline(always)]
-unsafe fn sum<M: Math>(arr: &[f32]) -> f32 {
+unsafe fn sum<M: Math<f32>>(arr: &[f32]) -> f32 {
     let len = arr.len();
     let offset_from = len % 8;
 
@@ -98,7 +98,7 @@ unsafe fn sum<M: Math>(arr: &[f32]) -> f32 {
 }
 
 #[inline(always)]
-unsafe fn sum_vertical<M: Math>(matrix: &[&[f32]]) -> Vec<f32> {
+unsafe fn sum_vertical<M: Math<f32>>(matrix: &[&[f32]]) -> Vec<f32> {
     let len = matrix[0].len();
     let offset_from = len % 8;
 

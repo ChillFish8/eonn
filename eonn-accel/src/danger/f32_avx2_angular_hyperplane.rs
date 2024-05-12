@@ -380,7 +380,7 @@ pub unsafe fn f32_xany_avx2_fma_angular_hyperplane(x: &[f32], y: &[f32]) -> Vec<
 }
 
 #[inline]
-unsafe fn linear_apply_normal_vector<M: Math>(
+unsafe fn linear_apply_normal_vector<M: Math<f32>>(
     x: &[f32],
     y: &[f32],
     start: usize,
@@ -401,7 +401,7 @@ unsafe fn linear_apply_normal_vector<M: Math>(
 }
 
 #[inline]
-unsafe fn linear_apply_norm<M: Math>(
+unsafe fn linear_apply_norm<M: Math<f32>>(
     hyperplane: &mut [f32],
     start: usize,
     stop: usize,

@@ -31,7 +31,7 @@ pub unsafe fn f32_xconst_avx512_fma_cosine<const DIMS: usize>(
     let norm_y = f32_xconst_avx512_fma_norm::<DIMS>(y);
     let dot_product = f32_xconst_avx512_fma_dot::<DIMS>(x, y);
 
-    cosine::<AutoMath>(dot_product, norm_x, norm_y)
+    cosine::<f32, AutoMath>(dot_product, norm_x, norm_y)
 }
 
 #[target_feature(enable = "avx512f")]
@@ -53,7 +53,7 @@ pub unsafe fn f32_xany_avx512_fma_cosine(x: &[f32], y: &[f32]) -> f32 {
     let norm_y = f32_xany_avx512_fma_norm(y);
     let dot_product = f32_xany_avx512_fma_dot(x, y);
 
-    cosine::<AutoMath>(dot_product, norm_x, norm_y)
+    cosine::<f32, AutoMath>(dot_product, norm_x, norm_y)
 }
 
 #[cfg(all(test, target_feature = "avx512f"))]

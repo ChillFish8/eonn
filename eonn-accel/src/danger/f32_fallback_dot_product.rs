@@ -1,4 +1,4 @@
-use crate::danger::utils::rollup_scalar_x8_ps;
+use crate::danger::utils::rollup_scalar_x8;
 use crate::math::*;
 
 #[inline]
@@ -13,7 +13,7 @@ pub unsafe fn f32_xany_fallback_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
 }
 
 #[inline]
-pub(super) unsafe fn fallback_dot<M: Math>(x: &[f32], y: &[f32]) -> f32 {
+pub(super) unsafe fn fallback_dot<M: Math<f32>>(x: &[f32], y: &[f32]) -> f32 {
     debug_assert_eq!(
         y.len(),
         x.len(),
@@ -75,7 +75,7 @@ pub(super) unsafe fn fallback_dot<M: Math>(x: &[f32], y: &[f32]) -> f32 {
         i += 8;
     }
 
-    rollup_scalar_x8_ps::<M>(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
+    rollup_scalar_x8::<f32, M>(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
 }
 
 #[cfg(test)]

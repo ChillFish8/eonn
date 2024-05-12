@@ -1,4 +1,4 @@
-use crate::danger::rollup_scalar_x8_ps;
+use crate::danger::rollup_scalar_x8;
 use crate::math::*;
 
 #[inline]
@@ -22,7 +22,7 @@ pub unsafe fn f32_xany_fallback_nofma_euclidean_hyperplane(
     (hyperplane, offset)
 }
 
-pub(crate) unsafe fn fallback_euclidean_hyperplane<M: Math>(
+pub(crate) unsafe fn fallback_euclidean_hyperplane<M: Math<f32>>(
     x: &[f32],
     y: &[f32],
     hyperplane: &mut [f32],
@@ -113,7 +113,7 @@ pub(crate) unsafe fn fallback_euclidean_hyperplane<M: Math>(
         i += 1;
     }
 
-    let mut hyperplane_offset = -rollup_scalar_x8_ps::<M>(
+    let mut hyperplane_offset = -rollup_scalar_x8::<f32, M>(
         offset_acc1,
         offset_acc2,
         offset_acc3,
