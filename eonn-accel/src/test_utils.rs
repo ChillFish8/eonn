@@ -116,3 +116,14 @@ pub fn assert_is_close_vector(x: &[f32], y: &[f32]) {
         assert!(is_close(x[i], y[i]), "x[{i}]={} vs y[{i}]={}", x[i], y[i]);
     }
 }
+
+pub fn assert_is_close_vector_f64(x: &[f64], y: &[f64]) {
+    for i in 0..x.len() {
+        assert!(
+            is_close(x[i] as f32, y[i] as f32),
+            "x[{i}]={} vs y[{i}]={}",
+            x[i],
+            y[i]
+        );
+    }
+}

@@ -43,6 +43,21 @@ pub(crate) unsafe fn sum_avx2_ps(v: __m256) -> f32 {
 }
 
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[inline(always)]
+/// Performs a sum of all packed values in the provided [__m256d] register
+/// returning the resulting f32 value.
+pub(crate) unsafe fn sum_avx2_pd(v: __m256d) -> f64 {
+    let left_half = _mm256_extractf128_pd::<1>(v);
+    let right_half = _mm256_castpd256_pd128(v);
+    let sum_duo = _mm_add_pd(left_half, right_half);
+
+    let undef = _mm_undefined_ps();
+    let shuffle_tmp = _mm_movehl_ps(undef, _mm_castpd_ps(sum_duo));
+    let shuffle = _mm_castps_pd(shuffle_tmp);
+    _mm_cvtsd_f64(_mm_add_sd(sum_duo, shuffle))
+}
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 #[allow(clippy::too_many_arguments)]
 #[inline(always)]
 /// Rolls up 8 [__m256] registers into 1 summing them together.
@@ -65,31 +80,6 @@ pub(crate) unsafe fn rollup_x8_ps(
     acc5 = _mm256_add_ps(acc5, acc7);
 
     _mm256_add_ps(acc1, acc5)
-}
-
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-#[allow(clippy::too_many_arguments)]
-#[inline(always)]
-/// Rolls up 8 [__m256i] registers into 1 summing them together.
-pub(crate) unsafe fn rollup_x8_epi32(
-    mut acc1: __m256i,
-    acc2: __m256i,
-    mut acc3: __m256i,
-    acc4: __m256i,
-    mut acc5: __m256i,
-    acc6: __m256i,
-    mut acc7: __m256i,
-    acc8: __m256i,
-) -> __m256i {
-    acc1 = _mm256_add_epi32(acc1, acc2);
-    acc3 = _mm256_add_epi32(acc3, acc4);
-    acc5 = _mm256_add_epi32(acc5, acc6);
-    acc7 = _mm256_add_epi32(acc7, acc8);
-
-    acc1 = _mm256_add_epi32(acc1, acc3);
-    acc5 = _mm256_add_epi32(acc5, acc7);
-
-    _mm256_add_epi32(acc1, acc5)
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
@@ -118,6 +108,57 @@ pub(crate) unsafe fn sum_avx512_x8_ps(
     _mm512_reduce_add_ps(acc1)
 }
 
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+#[allow(clippy::too_many_arguments)]
+#[inline(always)]
+/// Rolls up 8 [__m256d] registers into 1 summing them together.
+pub(crate) unsafe fn sum_avx512_x8_pd(
+    mut acc1: __m512d,
+    acc2: __m512d,
+    mut acc3: __m512d,
+    acc4: __m512d,
+    mut acc5: __m512d,
+    acc6: __m512d,
+    mut acc7: __m512d,
+    acc8: __m512d,
+) -> f64 {
+    acc1 = _mm512_add_pd(acc1, acc2);
+    acc3 = _mm512_add_pd(acc3, acc4);
+    acc5 = _mm512_add_pd(acc5, acc6);
+    acc7 = _mm512_add_pd(acc7, acc8);
+
+    acc1 = _mm512_add_pd(acc1, acc3);
+    acc5 = _mm512_add_pd(acc5, acc7);
+
+    acc1 = _mm512_add_pd(acc1, acc5);
+    _mm512_reduce_add_pd(acc1)
+}
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[allow(clippy::too_many_arguments)]
+#[inline(always)]
+/// Rolls up 3 [__m256d] registers into 1 summing them together.
+pub(crate) unsafe fn rollup_x8_pd(
+    mut acc1: __m256d,
+    acc2: __m256d,
+    mut acc3: __m256d,
+    acc4: __m256d,
+    mut acc5: __m256d,
+    acc6: __m256d,
+    mut acc7: __m256d,
+    acc8: __m256d,
+) -> __m256d {
+    acc1 = _mm256_add_pd(acc1, acc2);
+    acc3 = _mm256_add_pd(acc3, acc4);
+    acc5 = _mm256_add_pd(acc5, acc6);
+    acc7 = _mm256_add_pd(acc7, acc8);
+
+    acc1 = _mm256_add_pd(acc1, acc3);
+    acc5 = _mm256_add_pd(acc5, acc7);
+
+    _mm256_add_pd(acc1, acc5)
+}
+
 #[inline(always)]
 pub(crate) unsafe fn offsets_avx2_ps<const CHUNK: usize>(
     ptr: *const f32,
@@ -131,14 +172,14 @@ pub(crate) unsafe fn offsets_avx2_ps<const CHUNK: usize>(
 }
 
 #[inline(always)]
-pub(crate) unsafe fn offsets_avx2_epi32<const CHUNK: usize>(
-    ptr: *const i32,
-) -> [*const i32; 4] {
+pub(crate) unsafe fn offsets_avx2_pd<const CHUNK: usize>(
+    ptr: *const f64,
+) -> [*const f64; 4] {
     [
-        ptr.add(CHUNK * 32),
-        ptr.add((CHUNK * 32) + 8),
-        ptr.add((CHUNK * 32) + 16),
-        ptr.add((CHUNK * 32) + 24),
+        ptr.add(CHUNK * 16),
+        ptr.add((CHUNK * 16) + 4),
+        ptr.add((CHUNK * 16) + 8),
+        ptr.add((CHUNK * 16) + 12),
     ]
 }
 
@@ -157,14 +198,14 @@ pub(crate) unsafe fn offsets_avx512_ps<const CHUNK: usize>(
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 #[inline(always)]
-pub(crate) unsafe fn offsets_avx512_epi32<const CHUNK: usize>(
-    ptr: *const i32,
-) -> [*const i32; 4] {
+pub(crate) unsafe fn offsets_avx512_pd<const CHUNK: usize>(
+    ptr: *const f64,
+) -> [*const f64; 4] {
     [
-        ptr.add(CHUNK * 64),
-        ptr.add((CHUNK * 64) + 16),
-        ptr.add((CHUNK * 64) + 32),
-        ptr.add((CHUNK * 64) + 48),
+        ptr.add(CHUNK * 32),
+        ptr.add((CHUNK * 32) + 8),
+        ptr.add((CHUNK * 32) + 16),
+        ptr.add((CHUNK * 32) + 24),
     ]
 }
 
@@ -211,6 +252,24 @@ pub(crate) unsafe fn load_two_variable_size_avx512_ps(
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+pub(crate) unsafe fn load_two_variable_size_avx512_pd(
+    x: *const f64,
+    y: *const f64,
+    n: usize,
+) -> (__m512d, __m512d) {
+    if n < 8 {
+        let mask = _bzhi_u32(0xFFFFFFFF, n as u32) as _;
+        let x = _mm512_maskz_loadu_pd(mask, x);
+        let y = _mm512_maskz_loadu_pd(mask, y);
+        (x, y)
+    } else {
+        let x = _mm512_loadu_pd(x);
+        let y = _mm512_loadu_pd(y);
+        (x, y)
+    }
+}
+
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 pub(crate) unsafe fn load_one_variable_size_avx512_ps(
     x: *const f32,
     n: usize,
@@ -220,6 +279,19 @@ pub(crate) unsafe fn load_one_variable_size_avx512_ps(
         _mm512_maskz_loadu_ps(mask, x)
     } else {
         _mm512_loadu_ps(x)
+    }
+}
+
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
+pub(crate) unsafe fn load_one_variable_size_avx512_pd(
+    x: *const f64,
+    n: usize,
+) -> __m512d {
+    if n < 16 {
+        let mask = _bzhi_u32(0xFFFFFFFF, n as u32) as _;
+        _mm512_maskz_loadu_pd(mask, x)
+    } else {
+        _mm512_loadu_pd(x)
     }
 }
 
@@ -239,13 +311,25 @@ pub(crate) unsafe fn copy_masked_avx512_ps_register_to(
     ptr::copy_nonoverlapping(result.as_ptr(), arr, std::cmp::min(16, len));
 }
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 #[inline(always)]
 /// Copies the data from the given `reg` into `arr` for upto `len` elements.
 ///
 /// NOTE:
-/// This will implicitly cap the number of elements to `min(len, 16)` to prevent
+/// This will implicitly cap the number of elements to `min(len, 8)` to prevent
 /// going out of bounds on the register.
+pub(crate) unsafe fn copy_masked_avx512_pd_register_to(
+    arr: *mut f64,
+    reg: __m512d,
+    len: usize,
+) {
+    let result = mem::transmute::<__m512d, [f64; 8]>(reg);
+    ptr::copy_nonoverlapping(result.as_ptr(), arr, std::cmp::min(8, len));
+}
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[inline(always)]
+/// Copies the data from the given `reg` into `arr`.
 pub(crate) unsafe fn copy_avx2_ps_register_to(arr: *mut f32, reg: __m256) {
     let result = mem::transmute::<__m256, [f32; 8]>(reg);
     ptr::copy_nonoverlapping(result.as_ptr(), arr, result.len());
@@ -253,13 +337,9 @@ pub(crate) unsafe fn copy_avx2_ps_register_to(arr: *mut f32, reg: __m256) {
 
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 #[inline(always)]
-/// Copies the data from the given `reg` into `arr` for upto `len` elements.
-///
-/// NOTE:
-/// This will implicitly cap the number of elements to `min(len, 16)` to prevent
-/// going out of bounds on the register.
-pub(crate) unsafe fn copy_avx2_epi32_register_to(arr: *mut i32, reg: __m256i) {
-    let result = mem::transmute::<__m256i, [i32; 8]>(reg);
+/// Copies the data from the given `reg` into `arr`.
+pub(crate) unsafe fn copy_avx2_pd_register_to(arr: *mut f64, reg: __m256d) {
+    let result = mem::transmute::<__m256d, [f64; 4]>(reg);
     ptr::copy_nonoverlapping(result.as_ptr(), arr, result.len());
 }
 
@@ -312,6 +392,14 @@ mod tests {
             let acc = _mm256_set1_ps(1.0);
             let res = sum_avx2_ps(acc);
             assert_eq!(res, 8.0);
+
+            let acc = _mm256_setzero_pd();
+            let res = sum_avx2_pd(acc);
+            assert_eq!(res, 0.0);
+
+            let acc = _mm256_set1_pd(1.0);
+            let res = sum_avx2_pd(acc);
+            assert_eq!(res, 4.0);
         }
     }
 
