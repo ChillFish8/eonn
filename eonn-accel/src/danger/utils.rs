@@ -18,7 +18,10 @@ pub fn cosine<T: Copy, M: Math<T>>(dot_product: T, norm_x: T, norm_y: T) -> T {
     } else if M::eq(norm_x, M::zero()) || M::eq(norm_y, M::zero()) {
         M::zero()
     } else {
-        M::sub(M::one(), M::div(dot_product, M::sqrt(M::mul(norm_x, norm_y))))
+        M::sub(
+            M::one(),
+            M::div(dot_product, M::sqrt(M::mul(norm_x, norm_y))),
+        )
     }
 }
 

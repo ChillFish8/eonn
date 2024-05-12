@@ -53,17 +53,23 @@ mod f32_fallback_sum;
 mod f32_fallback_vector_x_value;
 mod f32_fallback_vector_x_vector;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+mod f64_avx2_cosine;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+mod f64_avx2_dot_product;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+mod f64_avx2_euclidean;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 mod f64_avx2_max;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 mod f64_avx2_min;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+mod f64_avx2_norm;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 mod f64_avx2_sum;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 mod f64_avx2_vector_x_value;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 mod f64_avx2_vector_x_vector;
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-mod f64_avx2_norm;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 mod f64_avx512_max;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
@@ -133,17 +139,23 @@ pub use self::f32_fallback_sum::*;
 pub use self::f32_fallback_vector_x_value::*;
 pub use self::f32_fallback_vector_x_vector::*;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+pub use self::f64_avx2_cosine::*;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+pub use self::f64_avx2_dot_product::*;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+pub use self::f64_avx2_euclidean::*;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub use self::f64_avx2_max::*;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub use self::f64_avx2_min::*;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+pub use self::f64_avx2_norm::*;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub use self::f64_avx2_sum::*;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub use self::f64_avx2_vector_x_value::*;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub use self::f64_avx2_vector_x_vector::*;
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-pub use self::f64_avx2_norm::*;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]
 pub use self::f64_avx512_max::*;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), feature = "nightly"))]

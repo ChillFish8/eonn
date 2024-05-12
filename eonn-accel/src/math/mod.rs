@@ -16,16 +16,16 @@ pub type AutoMath = FastMath;
 pub trait Math<T> {
     /// Returns the equivalent zero value.
     fn zero() -> T;
-    
+
     /// Returns the equivalent 1.0 value.
     fn one() -> T;
 
     /// Returns the equivalent 1.0 value.
     fn sqrt(a: T) -> T;
-    
+
     /// Returns if the two values are equal.
     fn eq(a: T, b: T) -> bool;
-    
+
     /// `a + b`
     fn add(a: T, b: T) -> T;
 
