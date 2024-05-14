@@ -17,7 +17,7 @@ macro_rules! impl_dangerous_auto_ops {
                         feature = "nightly"
                     ))]
                     SelectedArch::Avx512 => crate::danger::f32_xconst_avx512_fma_dot::<{$dim::DIMS}>(x, y),
-                    SelectedArch::Fallback => crate::danger::f32_xany_fallback_nofma_dot(x, y),
+                    SelectedArch::Fallback => crate::danger::generic_xany_fallback_nofma_dot(x, y),
                 }
             }
 
@@ -34,7 +34,7 @@ macro_rules! impl_dangerous_auto_ops {
                     ))]
                     SelectedArch::Avx512 => crate::danger::f32_xconst_avx512_fma_cosine::<{$dim::DIMS}>(x, y),
                     SelectedArch::Fallback => {
-                        crate::danger::f32_xany_fallback_nofma_cosine(x, y)
+                        crate::danger::generic_xany_fallback_nofma_cosine(x, y)
                     },
                 }
             }
@@ -54,7 +54,7 @@ macro_rules! impl_dangerous_auto_ops {
                         crate::danger::f32_xconst_avx512_fma_euclidean::<{$dim::DIMS}>(x, y)
                     },
                     SelectedArch::Fallback => {
-                        crate::danger::f32_xany_fallback_nofma_euclidean(x, y)
+                        crate::danger::generic_xany_fallback_nofma_euclidean(x, y)
                     },
                 }
             }
@@ -119,7 +119,7 @@ macro_rules! impl_dangerous_auto_ops {
                         feature = "nightly"
                     ))]
                     SelectedArch::Avx512 => crate::danger::f32_xconst_avx512_fma_norm::<{$dim::DIMS}>(x),
-                    SelectedArch::Fallback => crate::danger::f32_xany_fallback_nofma_dot(x, x),
+                    SelectedArch::Fallback => crate::danger::generic_xany_fallback_nofma_dot(x, x),
                 }
             }
 
@@ -142,7 +142,7 @@ macro_rules! impl_dangerous_auto_ops {
                         crate::danger::f32_xconst_avx512_nofma_add_value::<{$dim::DIMS}>(x, val)
                     },
                     SelectedArch::Fallback => {
-                        crate::danger::f32_xany_fallback_nofma_add_value(x, val)
+                        crate::danger::generic_xany_fallback_nofma_add_value(x, val)
                     },
                 }
             }
@@ -166,7 +166,7 @@ macro_rules! impl_dangerous_auto_ops {
                         crate::danger::f32_xconst_avx512_nofma_sub_value::<{$dim::DIMS}>(x, val)
                     },
                     SelectedArch::Fallback => {
-                        crate::danger::f32_xany_fallback_nofma_sub_value(x, val)
+                        crate::danger::generic_xany_fallback_nofma_sub_value(x, val)
                     },
                 }
             }
@@ -190,7 +190,7 @@ macro_rules! impl_dangerous_auto_ops {
                         crate::danger::f32_xconst_avx512_nofma_mul_value::<{$dim::DIMS}>(x, val)
                     },
                     SelectedArch::Fallback => {
-                        crate::danger::f32_xany_fallback_nofma_mul_value(x, val)
+                        crate::danger::generic_xany_fallback_nofma_mul_value(x, val)
                     },
                 }
             }
@@ -214,7 +214,7 @@ macro_rules! impl_dangerous_auto_ops {
                         crate::danger::f32_xconst_avx512_nofma_div_value::<{$dim::DIMS}>(x, val)
                     },
                     SelectedArch::Fallback => {
-                        crate::danger::f32_xany_fallback_nofma_div_value(x, val)
+                        crate::danger::generic_xany_fallback_nofma_div_value(x, val)
                     },
                 }
             }
@@ -238,7 +238,7 @@ macro_rules! impl_dangerous_auto_ops {
                         crate::danger::f32_xconst_avx512_nofma_add_vertical::<{$dim::DIMS}>(x, y)
                     },
                     SelectedArch::Fallback => {
-                        crate::danger::f32_xany_fallback_nofma_add_vertical(x, y)
+                        crate::danger::generic_xany_fallback_nofma_add_vertical(x, y)
                     },
                 }
             }
@@ -262,7 +262,7 @@ macro_rules! impl_dangerous_auto_ops {
                         crate::danger::f32_xconst_avx512_nofma_sub_vertical::<{$dim::DIMS}>(x, y)
                     },
                     SelectedArch::Fallback => {
-                        crate::danger::f32_xany_fallback_nofma_sub_vertical(x, y)
+                        crate::danger::generic_xany_fallback_nofma_sub_vertical(x, y)
                     },
                 }
             }
@@ -286,7 +286,7 @@ macro_rules! impl_dangerous_auto_ops {
                         crate::danger::f32_xconst_avx512_nofma_mul_vertical::<{$dim::DIMS}>(x, y)
                     },
                     SelectedArch::Fallback => {
-                        crate::danger::f32_xany_fallback_nofma_mul_vertical(x, y)
+                        crate::danger::generic_xany_fallback_nofma_mul_vertical(x, y)
                     },
                 }
             }
@@ -310,7 +310,7 @@ macro_rules! impl_dangerous_auto_ops {
                         crate::danger::f32_xconst_avx512_nofma_div_vertical::<{$dim::DIMS}>(x, y)
                     },
                     SelectedArch::Fallback => {
-                        crate::danger::f32_xany_fallback_nofma_div_vertical(x, y)
+                        crate::danger::generic_xany_fallback_nofma_div_vertical(x, y)
                     },
                 }
             }
@@ -334,7 +334,7 @@ macro_rules! impl_dangerous_auto_ops {
                         crate::danger::f32_xconst_avx512_nofma_sum_horizontal::<{$dim::DIMS}>(x)
                     },
                     SelectedArch::Fallback => {
-                        crate::danger::f32_xany_fallback_nofma_sum_horizontal(x)
+                        crate::danger::generic_xany_fallback_nofma_sum_horizontal(x)
                     },
                 }
             }
@@ -382,7 +382,7 @@ macro_rules! impl_dangerous_auto_ops {
                         crate::danger::f32_xconst_avx512_nofma_max_horizontal::<{$dim::DIMS}>(x)
                     },
                     SelectedArch::Fallback => {
-                        crate::danger::f32_xany_fallback_nofma_max_horizontal(x)
+                        crate::danger::generic_xany_fallback_nofma_max_horizontal(x)
                     },
                 }
             }
@@ -408,7 +408,9 @@ impl DangerousOps for (XAny, Auto) {
                 feature = "nightly"
             ))]
             SelectedArch::Avx512 => crate::danger::f32_xany_avx512_fma_dot(x, y),
-            SelectedArch::Fallback => crate::danger::f32_xany_fallback_nofma_dot(x, y),
+            SelectedArch::Fallback => {
+                crate::danger::generic_xany_fallback_nofma_dot(x, y)
+            },
         }
     }
 
@@ -426,7 +428,7 @@ impl DangerousOps for (XAny, Auto) {
             ))]
             SelectedArch::Avx512 => crate::danger::f32_xany_avx512_fma_cosine(x, y),
             SelectedArch::Fallback => {
-                crate::danger::f32_xany_fallback_nofma_cosine(x, y)
+                crate::danger::generic_xany_fallback_nofma_cosine(x, y)
             },
         }
     }
@@ -445,7 +447,7 @@ impl DangerousOps for (XAny, Auto) {
             ))]
             SelectedArch::Avx512 => crate::danger::f32_xany_avx512_fma_euclidean(x, y),
             SelectedArch::Fallback => {
-                crate::danger::f32_xany_fallback_nofma_euclidean(x, y)
+                crate::danger::generic_xany_fallback_nofma_euclidean(x, y)
             },
         }
     }
@@ -512,7 +514,9 @@ impl DangerousOps for (XAny, Auto) {
                 feature = "nightly"
             ))]
             SelectedArch::Avx512 => crate::danger::f32_xany_avx512_fma_norm(x),
-            SelectedArch::Fallback => crate::danger::f32_xany_fallback_nofma_dot(x, x),
+            SelectedArch::Fallback => {
+                crate::danger::generic_xany_fallback_nofma_dot(x, x)
+            },
         }
     }
 
@@ -533,7 +537,7 @@ impl DangerousOps for (XAny, Auto) {
                 crate::danger::f32_xany_avx512_nofma_add_value(x, val)
             },
             SelectedArch::Fallback => {
-                crate::danger::f32_xany_fallback_nofma_add_value(x, val)
+                crate::danger::generic_xany_fallback_nofma_add_value(x, val)
             },
         }
     }
@@ -555,7 +559,7 @@ impl DangerousOps for (XAny, Auto) {
                 crate::danger::f32_xany_avx512_nofma_sub_value(x, val)
             },
             SelectedArch::Fallback => {
-                crate::danger::f32_xany_fallback_nofma_sub_value(x, val)
+                crate::danger::generic_xany_fallback_nofma_sub_value(x, val)
             },
         }
     }
@@ -577,7 +581,7 @@ impl DangerousOps for (XAny, Auto) {
                 crate::danger::f32_xany_avx512_nofma_mul_value(x, val)
             },
             SelectedArch::Fallback => {
-                crate::danger::f32_xany_fallback_nofma_mul_value(x, val)
+                crate::danger::generic_xany_fallback_nofma_mul_value(x, val)
             },
         }
     }
@@ -599,7 +603,7 @@ impl DangerousOps for (XAny, Auto) {
                 crate::danger::f32_xany_avx512_nofma_div_value(x, val)
             },
             SelectedArch::Fallback => {
-                crate::danger::f32_xany_fallback_nofma_div_value(x, val)
+                crate::danger::generic_xany_fallback_nofma_div_value(x, val)
             },
         }
     }
@@ -622,7 +626,7 @@ impl DangerousOps for (XAny, Auto) {
                 crate::danger::f32_xany_avx512_nofma_add_vertical(x, y)
             },
             SelectedArch::Fallback => {
-                crate::danger::f32_xany_fallback_nofma_add_vertical(x, y)
+                crate::danger::generic_xany_fallback_nofma_add_vertical(x, y)
             },
         }
     }
@@ -645,7 +649,7 @@ impl DangerousOps for (XAny, Auto) {
                 crate::danger::f32_xany_avx512_nofma_sub_vertical(x, y)
             },
             SelectedArch::Fallback => {
-                crate::danger::f32_xany_fallback_nofma_sub_vertical(x, y)
+                crate::danger::generic_xany_fallback_nofma_sub_vertical(x, y)
             },
         }
     }
@@ -668,7 +672,7 @@ impl DangerousOps for (XAny, Auto) {
                 crate::danger::f32_xany_avx512_nofma_mul_vertical(x, y)
             },
             SelectedArch::Fallback => {
-                crate::danger::f32_xany_fallback_nofma_mul_vertical(x, y)
+                crate::danger::generic_xany_fallback_nofma_mul_vertical(x, y)
             },
         }
     }
@@ -691,7 +695,7 @@ impl DangerousOps for (XAny, Auto) {
                 crate::danger::f32_xany_avx512_nofma_div_vertical(x, y)
             },
             SelectedArch::Fallback => {
-                crate::danger::f32_xany_fallback_nofma_div_vertical(x, y)
+                crate::danger::generic_xany_fallback_nofma_div_vertical(x, y)
             },
         }
     }
@@ -713,7 +717,7 @@ impl DangerousOps for (XAny, Auto) {
                 crate::danger::f32_xany_avx512_nofma_sum_horizontal(x)
             },
             SelectedArch::Fallback => {
-                crate::danger::f32_xany_fallback_nofma_sum_horizontal(x)
+                crate::danger::generic_xany_fallback_nofma_sum_horizontal(x)
             },
         }
     }
@@ -757,7 +761,7 @@ impl DangerousOps for (XAny, Auto) {
                 crate::danger::f32_xany_avx512_nofma_max_horizontal(x)
             },
             SelectedArch::Fallback => {
-                crate::danger::f32_xany_fallback_nofma_max_horizontal(x)
+                crate::danger::generic_xany_fallback_nofma_max_horizontal(x)
             },
         }
     }

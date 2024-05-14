@@ -5,8 +5,8 @@ use crate::math::*;
 ///
 /// ```py
 /// D: int
-/// total: f32
-/// x: [f32; D]
+/// total: T
+/// x: [T; D]
 ///
 /// for i in 0..D:
 ///     total = total + x[i]
@@ -16,8 +16,12 @@ use crate::math::*;
 ///
 /// This method in theory is safe, but like the rest of the dangerous API, makes
 /// no guarantee that it will always remain safe with no strings attached.
-pub unsafe fn f32_xany_fallback_nofma_sum_horizontal(x: &[f32]) -> f32 {
-    sum::<AutoMath>(x)
+pub unsafe fn generic_xany_fallback_nofma_sum_horizontal<T>(x: &[T]) -> T
+where
+    T: Copy,
+    AutoMath: Math<T>,
+{
+    sum::<T, AutoMath>(x)
 }
 
 #[allow(unused)]
@@ -26,8 +30,8 @@ pub unsafe fn f32_xany_fallback_nofma_sum_horizontal(x: &[f32]) -> f32 {
 ///
 /// ```py
 /// D: int
-/// total: [f32; D]
-/// matrix: [[f32; D]; N]
+/// total: [T; D]
+/// matrix: [[T; D]; N]
 ///
 /// for i in 0..N:
 ///     for j in 0..D:
@@ -37,24 +41,32 @@ pub unsafe fn f32_xany_fallback_nofma_sum_horizontal(x: &[f32]) -> f32 {
 /// # Safety
 ///
 /// All vectors within the matrix **MUST** be the same length.
-pub unsafe fn f32_xany_fallback_nofma_sum_vertical(matrix: &[&[f32]]) -> Vec<f32> {
-    sum_vertical::<AutoMath>(matrix)
+pub unsafe fn generic_xany_fallback_nofma_sum_vertical<T>(matrix: &[&[T]]) -> Vec<T>
+where
+    T: Copy,
+    AutoMath: Math<T>,
+{
+    sum_vertical::<T, AutoMath>(matrix)
 }
 
 #[inline(always)]
-unsafe fn sum<M: Math<f32>>(arr: &[f32]) -> f32 {
+unsafe fn sum<T, M>(arr: &[T]) -> T
+where
+    T: Copy,
+    M: Math<T>,
+{
     let len = arr.len();
     let offset_from = len % 8;
 
-    let mut extra = 0.0;
-    let mut acc1 = 0.0;
-    let mut acc2 = 0.0;
-    let mut acc3 = 0.0;
-    let mut acc4 = 0.0;
-    let mut acc5 = 0.0;
-    let mut acc6 = 0.0;
-    let mut acc7 = 0.0;
-    let mut acc8 = 0.0;
+    let mut extra = M::zero();
+    let mut acc1 = M::zero();
+    let mut acc2 = M::zero();
+    let mut acc3 = M::zero();
+    let mut acc4 = M::zero();
+    let mut acc5 = M::zero();
+    let mut acc6 = M::zero();
+    let mut acc7 = M::zero();
+    let mut acc8 = M::zero();
 
     let mut i = 0;
     while i < (len - offset_from) {
@@ -94,15 +106,19 @@ unsafe fn sum<M: Math<f32>>(arr: &[f32]) -> f32 {
     acc1 = M::add(acc1, acc3);
     acc5 = M::add(acc5, acc7);
 
-    M::add(acc1, acc5) + extra
+    M::add(M::add(acc1, acc5), extra)
 }
 
 #[inline(always)]
-unsafe fn sum_vertical<M: Math<f32>>(matrix: &[&[f32]]) -> Vec<f32> {
+unsafe fn sum_vertical<T, M>(matrix: &[&[T]]) -> Vec<T>
+where
+    T: Copy,
+    M: Math<T>,
+{
     let len = matrix[0].len();
     let offset_from = len % 8;
 
-    let mut results = vec![0.0; len];
+    let mut results = vec![M::zero(); len];
 
     let mut i = 0;
     while i < offset_from {
@@ -119,14 +135,14 @@ unsafe fn sum_vertical<M: Math<f32>>(matrix: &[&[f32]]) -> Vec<f32> {
     }
 
     while i < len {
-        let mut acc1 = 0.0;
-        let mut acc2 = 0.0;
-        let mut acc3 = 0.0;
-        let mut acc4 = 0.0;
-        let mut acc5 = 0.0;
-        let mut acc6 = 0.0;
-        let mut acc7 = 0.0;
-        let mut acc8 = 0.0;
+        let mut acc1 = M::zero();
+        let mut acc2 = M::zero();
+        let mut acc3 = M::zero();
+        let mut acc4 = M::zero();
+        let mut acc5 = M::zero();
+        let mut acc6 = M::zero();
+        let mut acc7 = M::zero();
+        let mut acc8 = M::zero();
 
         for m in 0..matrix.len() {
             let arr = *matrix.get_unchecked(m);
@@ -174,7 +190,7 @@ mod tests {
     #[test]
     fn test_xany_nofma_sum() {
         let (x, _) = get_sample_vectors(131);
-        let sum = unsafe { f32_xany_fallback_nofma_sum_horizontal(&x) };
+        let sum = unsafe { generic_xany_fallback_nofma_sum_horizontal(&x) };
         assert_is_close(sum, x.iter().sum::<f32>());
     }
 
@@ -197,7 +213,7 @@ mod tests {
             expected_vertical_sum[i] = sum;
         }
 
-        let sum = unsafe { f32_xany_fallback_nofma_sum_vertical(&matrix_view) };
+        let sum = unsafe { generic_xany_fallback_nofma_sum_vertical(&matrix_view) };
         assert_eq!(sum, expected_vertical_sum);
     }
 }

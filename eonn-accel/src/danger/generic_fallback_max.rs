@@ -1,27 +1,33 @@
+use crate::math::*;
+
 #[inline]
-/// Computes the horizontal maximum of the given vector that is `[f32; N]`.
+/// Computes the horizontal maximum of the given vector that is `[T; N]`.
 ///
 /// # Safety
 ///
 /// This method in theory is safe, but like the rest of the dangerous API, makes
 /// no guarantee that it will always remain safe with no strings attached.
-pub unsafe fn f32_xany_fallback_nofma_max_horizontal(arr: &[f32]) -> f32 {
+pub unsafe fn generic_xany_fallback_nofma_max_horizontal<T>(arr: &[T]) -> T
+where
+    T: Copy,
+    AutoMath: Math<T>,
+{
     let len = arr.len();
     let offset_from = len % 8;
 
-    let mut acc1 = f32::NEG_INFINITY;
-    let mut acc2 = f32::NEG_INFINITY;
-    let mut acc3 = f32::NEG_INFINITY;
-    let mut acc4 = f32::NEG_INFINITY;
-    let mut acc5 = f32::NEG_INFINITY;
-    let mut acc6 = f32::NEG_INFINITY;
-    let mut acc7 = f32::NEG_INFINITY;
-    let mut acc8 = f32::NEG_INFINITY;
+    let mut acc1 = AutoMath::min();
+    let mut acc2 = AutoMath::min();
+    let mut acc3 = AutoMath::min();
+    let mut acc4 = AutoMath::min();
+    let mut acc5 = AutoMath::min();
+    let mut acc6 = AutoMath::min();
+    let mut acc7 = AutoMath::min();
+    let mut acc8 = AutoMath::min();
 
     let mut i = 0;
     while i < offset_from {
         let x = *arr.get_unchecked(i);
-        acc1 = acc1.max(x);
+        acc1 = AutoMath::cmp_max(acc1, x);
 
         i += 1;
     }
@@ -36,56 +42,60 @@ pub unsafe fn f32_xany_fallback_nofma_max_horizontal(arr: &[f32]) -> f32 {
         let x7 = *arr.get_unchecked(i + 6);
         let x8 = *arr.get_unchecked(i + 7);
 
-        acc1 = acc1.max(x1);
-        acc2 = acc2.max(x2);
-        acc3 = acc3.max(x3);
-        acc4 = acc4.max(x4);
-        acc5 = acc5.max(x5);
-        acc6 = acc6.max(x6);
-        acc7 = acc7.max(x7);
-        acc8 = acc8.max(x8);
+        acc1 = AutoMath::cmp_max(acc1, x1);
+        acc2 = AutoMath::cmp_max(acc2, x2);
+        acc3 = AutoMath::cmp_max(acc3, x3);
+        acc4 = AutoMath::cmp_max(acc4, x4);
+        acc5 = AutoMath::cmp_max(acc5, x5);
+        acc6 = AutoMath::cmp_max(acc6, x6);
+        acc7 = AutoMath::cmp_max(acc7, x7);
+        acc8 = AutoMath::cmp_max(acc8, x8);
 
         i += 8;
     }
 
-    acc1 = acc1.max(acc2);
-    acc3 = acc3.max(acc4);
-    acc5 = acc5.max(acc6);
-    acc7 = acc7.max(acc8);
+    acc1 = AutoMath::cmp_max(acc1, acc2);
+    acc3 = AutoMath::cmp_max(acc3, acc4);
+    acc5 = AutoMath::cmp_max(acc5, acc6);
+    acc7 = AutoMath::cmp_max(acc7, acc8);
 
-    acc1 = acc1.max(acc3);
-    acc5 = acc5.max(acc7);
+    acc1 = AutoMath::cmp_max(acc1, acc3);
+    acc5 = AutoMath::cmp_max(acc5, acc7);
 
-    acc1.max(acc5)
+    AutoMath::cmp_max(acc1, acc5)
 }
 
 #[allow(unused)]
 #[inline]
-/// Computes the horizontal maximum of the given vector that is `[[f32; DIMS]; N]`.
+/// Computes the horizontal maximum of the given vector that is `[[T; DIMS]; N]`.
 ///
 /// # Safety
 ///
 /// Each vector in the matrix must be the same size, this routine assumes the dimensions
 /// of all vectors in the matrix are equal to the dimensions of the first vector in
 /// the matrix.
-pub unsafe fn f32_xany_fallback_nofma_max_vertical(matrix: &[&[f32]]) -> Vec<f32> {
+pub unsafe fn generic_xany_fallback_nofma_max_vertical<T>(matrix: &[&[T]]) -> Vec<T>
+where
+    T: Copy,
+    AutoMath: Math<T>,
+{
     let len = matrix[0].len();
     let offset_from = len % 8;
 
-    let mut max_values = vec![0.0; len];
+    let mut max_values = vec![AutoMath::zero(); len];
 
     // We work our way horizontally by taking steps of 8 and finding
     // the max of for each of the lanes vertically through the matrix.
     let mut i = 0;
     while i < (len - offset_from) {
-        let mut acc1 = f32::NEG_INFINITY;
-        let mut acc2 = f32::NEG_INFINITY;
-        let mut acc3 = f32::NEG_INFINITY;
-        let mut acc4 = f32::NEG_INFINITY;
-        let mut acc5 = f32::NEG_INFINITY;
-        let mut acc6 = f32::NEG_INFINITY;
-        let mut acc7 = f32::NEG_INFINITY;
-        let mut acc8 = f32::NEG_INFINITY;
+        let mut acc1 = AutoMath::min();
+        let mut acc2 = AutoMath::min();
+        let mut acc3 = AutoMath::min();
+        let mut acc4 = AutoMath::min();
+        let mut acc5 = AutoMath::min();
+        let mut acc6 = AutoMath::min();
+        let mut acc7 = AutoMath::min();
+        let mut acc8 = AutoMath::min();
 
         // Vertical max of the 8 elements.
         for m in 0..matrix.len() {
@@ -101,14 +111,14 @@ pub unsafe fn f32_xany_fallback_nofma_max_vertical(matrix: &[&[f32]]) -> Vec<f32
             let x7 = *arr.get_unchecked(i + 6);
             let x8 = *arr.get_unchecked(i + 7);
 
-            acc1 = acc1.max(x1);
-            acc2 = acc2.max(x2);
-            acc3 = acc3.max(x3);
-            acc4 = acc4.max(x4);
-            acc5 = acc5.max(x5);
-            acc6 = acc6.max(x6);
-            acc7 = acc7.max(x7);
-            acc8 = acc8.max(x8);
+            acc1 = AutoMath::cmp_max(acc1, x1);
+            acc2 = AutoMath::cmp_max(acc2, x2);
+            acc3 = AutoMath::cmp_max(acc3, x3);
+            acc4 = AutoMath::cmp_max(acc4, x4);
+            acc5 = AutoMath::cmp_max(acc5, x5);
+            acc6 = AutoMath::cmp_max(acc6, x6);
+            acc7 = AutoMath::cmp_max(acc7, x7);
+            acc8 = AutoMath::cmp_max(acc8, x8);
         }
 
         *max_values.get_unchecked_mut(i) = acc1;
@@ -124,13 +134,13 @@ pub unsafe fn f32_xany_fallback_nofma_max_vertical(matrix: &[&[f32]]) -> Vec<f32
     }
 
     while i < len {
-        let mut acc = f32::NEG_INFINITY;
+        let mut acc = AutoMath::min();
         for m in 0..matrix.len() {
             let arr = *matrix.get_unchecked(m);
             debug_assert_eq!(arr.len(), len);
 
             let x = *arr.get_unchecked(i);
-            acc = acc.max(x);
+            acc = AutoMath::cmp_max(acc, x);
         }
 
         *max_values.get_unchecked_mut(i) = acc;
@@ -149,7 +159,7 @@ mod tests {
     #[test]
     fn test_xany_nofma_max_horizontal() {
         let (x, _) = get_sample_vectors(537);
-        let max = unsafe { f32_xany_fallback_nofma_max_horizontal(&x) };
+        let max = unsafe { generic_xany_fallback_nofma_max_horizontal(&x) };
         assert_eq!(max, x.iter().fold(f32::NEG_INFINITY, |acc, v| acc.max(*v)));
     }
 
@@ -172,7 +182,7 @@ mod tests {
             expected_vertical_max[i] = max;
         }
 
-        let max = unsafe { f32_xany_fallback_nofma_max_vertical(&matrix_view) };
+        let max = unsafe { generic_xany_fallback_nofma_max_vertical(&matrix_view) };
         assert_eq!(max, expected_vertical_max);
     }
 }

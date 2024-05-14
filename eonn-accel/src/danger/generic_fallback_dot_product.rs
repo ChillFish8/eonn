@@ -2,18 +2,26 @@ use crate::danger::utils::rollup_scalar_x8;
 use crate::math::*;
 
 #[inline]
-/// Computes the dot product of two `f32` vectors.
+/// Computes the dot product of two `T` vectors.
 ///
 /// # Safety
 ///
 /// Vectors **MUST** be equal in length, otherwise this routine
 /// will become immediately UB due to out of bounds pointer accesses.
-pub unsafe fn f32_xany_fallback_nofma_dot(x: &[f32], y: &[f32]) -> f32 {
-    fallback_dot::<AutoMath>(x, y)
+pub unsafe fn generic_xany_fallback_nofma_dot<T>(x: &[T], y: &[T]) -> T
+where
+    T: Copy,
+    AutoMath: Math<T>,
+{
+    fallback_dot::<T, AutoMath>(x, y)
 }
 
 #[inline]
-pub(super) unsafe fn fallback_dot<M: Math<f32>>(x: &[f32], y: &[f32]) -> f32 {
+pub(super) unsafe fn fallback_dot<T, M>(x: &[T], y: &[T]) -> T
+where
+    T: Copy,
+    M: Math<T>,
+{
     debug_assert_eq!(
         y.len(),
         x.len(),
@@ -26,14 +34,14 @@ pub(super) unsafe fn fallback_dot<M: Math<f32>>(x: &[f32], y: &[f32]) -> f32 {
     // We do this manual unrolling to allow the compiler to vectorize
     // the loop and avoid some branching even if we're not doing it explicitly.
     // This made a significant difference in benchmarking ~8x
-    let mut acc1 = 0.0;
-    let mut acc2 = 0.0;
-    let mut acc3 = 0.0;
-    let mut acc4 = 0.0;
-    let mut acc5 = 0.0;
-    let mut acc6 = 0.0;
-    let mut acc7 = 0.0;
-    let mut acc8 = 0.0;
+    let mut acc1 = M::zero();
+    let mut acc2 = M::zero();
+    let mut acc3 = M::zero();
+    let mut acc4 = M::zero();
+    let mut acc5 = M::zero();
+    let mut acc6 = M::zero();
+    let mut acc7 = M::zero();
+    let mut acc8 = M::zero();
 
     let mut i = 0;
     while i < offset_from {
@@ -75,7 +83,7 @@ pub(super) unsafe fn fallback_dot<M: Math<f32>>(x: &[f32], y: &[f32]) -> f32 {
         i += 8;
     }
 
-    rollup_scalar_x8::<f32, M>(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
+    rollup_scalar_x8::<T, M>(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8)
 }
 
 #[cfg(test)]
@@ -86,7 +94,7 @@ mod tests {
     #[test]
     fn test_f32_x1024_nofma_dot() {
         let (x, y) = get_sample_vectors(1024);
-        let dist = unsafe { f32_xany_fallback_nofma_dot(&x, &y) };
+        let dist = unsafe { generic_xany_fallback_nofma_dot(&x, &y) };
         let expected = simple_dot(&x, &y);
         assert_is_close(dist, expected);
     }
@@ -94,7 +102,7 @@ mod tests {
     #[test]
     fn test_f32_xany_nofma_dot() {
         let (x, y) = get_sample_vectors(514);
-        let dist = unsafe { f32_xany_fallback_nofma_dot(&x, &y) };
+        let dist = unsafe { generic_xany_fallback_nofma_dot(&x, &y) };
         let expected = simple_dot(&x, &y);
         assert_is_close(dist, expected);
     }

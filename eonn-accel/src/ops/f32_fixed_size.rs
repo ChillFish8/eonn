@@ -6,19 +6,19 @@ impl<D: Dim> DangerousOps for (D, Fallback) {
     #[inline]
     unsafe fn dot(&self, x: &[f32], y: &[f32]) -> f32 {
         assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
-        crate::danger::f32_xany_fallback_nofma_dot(x, y)
+        crate::danger::generic_xany_fallback_nofma_dot(x, y)
     }
 
     #[inline]
     unsafe fn cosine(&self, x: &[f32], y: &[f32]) -> f32 {
         assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
-        crate::danger::f32_xany_fallback_nofma_cosine(x, y)
+        crate::danger::generic_xany_fallback_nofma_cosine(x, y)
     }
 
     #[inline]
     unsafe fn squared_euclidean(&self, x: &[f32], y: &[f32]) -> f32 {
         assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
-        crate::danger::f32_xany_fallback_nofma_euclidean(x, y)
+        crate::danger::generic_xany_fallback_nofma_euclidean(x, y)
     }
 
     #[inline]
@@ -35,56 +35,56 @@ impl<D: Dim> DangerousOps for (D, Fallback) {
 
     #[inline]
     unsafe fn squared_norm(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xany_fallback_nofma_dot(x, x)
+        crate::danger::generic_xany_fallback_nofma_dot(x, x)
     }
 
     #[inline]
     unsafe fn add_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xany_fallback_nofma_add_value(x, val)
+        crate::danger::generic_xany_fallback_nofma_add_value(x, val)
     }
 
     #[inline]
     unsafe fn sub_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xany_fallback_nofma_sub_value(x, val)
+        crate::danger::generic_xany_fallback_nofma_sub_value(x, val)
     }
 
     #[inline]
     unsafe fn mul_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xany_fallback_nofma_mul_value(x, val)
+        crate::danger::generic_xany_fallback_nofma_mul_value(x, val)
     }
 
     #[inline]
     unsafe fn div_value(&self, x: &mut [f32], val: f32) {
-        crate::danger::f32_xany_fallback_nofma_div_value(x, val)
+        crate::danger::generic_xany_fallback_nofma_div_value(x, val)
     }
 
     #[inline]
     unsafe fn add_vertical(&self, x: &mut [f32], y: &[f32]) {
         assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
-        crate::danger::f32_xany_fallback_nofma_add_vertical(x, y)
+        crate::danger::generic_xany_fallback_nofma_add_vertical(x, y)
     }
 
     #[inline]
     unsafe fn sub_vertical(&self, x: &mut [f32], y: &[f32]) {
         assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
-        crate::danger::f32_xany_fallback_nofma_sub_vertical(x, y)
+        crate::danger::generic_xany_fallback_nofma_sub_vertical(x, y)
     }
 
     #[inline]
     unsafe fn mul_vertical(&self, x: &mut [f32], y: &[f32]) {
         assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
-        crate::danger::f32_xany_fallback_nofma_mul_vertical(x, y)
+        crate::danger::generic_xany_fallback_nofma_mul_vertical(x, y)
     }
 
     #[inline]
     unsafe fn div_vertical(&self, x: &mut [f32], y: &[f32]) {
         assert_eq!(x.len(), y.len(), "Lengths of `x` and `y` must be equal");
-        crate::danger::f32_xany_fallback_nofma_div_vertical(x, y)
+        crate::danger::generic_xany_fallback_nofma_div_vertical(x, y)
     }
 
     #[inline]
     unsafe fn sum(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xany_fallback_nofma_sum_horizontal(x)
+        crate::danger::generic_xany_fallback_nofma_sum_horizontal(x)
     }
 
     #[inline]
@@ -94,7 +94,7 @@ impl<D: Dim> DangerousOps for (D, Fallback) {
 
     #[inline]
     unsafe fn max(&self, x: &[f32]) -> f32 {
-        crate::danger::f32_xany_fallback_nofma_max_horizontal(x)
+        crate::danger::generic_xany_fallback_nofma_max_horizontal(x)
     }
 }
 

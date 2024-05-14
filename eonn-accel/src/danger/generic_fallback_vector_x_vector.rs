@@ -6,8 +6,8 @@ use crate::math::*;
 ///
 /// ```py
 /// D: int
-/// x: [f32; D]
-/// y: [f32; D]
+/// x: [T; D]
+/// y: [T; D]
 ///
 /// for i in 0..D:
 ///     x[i] = x[i] / y[i]
@@ -16,7 +16,11 @@ use crate::math::*;
 /// # Safety
 ///
 /// Lengths of `x` and `y` **MUST** be equal.
-pub unsafe fn f32_xany_fallback_nofma_div_vertical(x: &mut [f32], y: &[f32]) {
+pub unsafe fn generic_xany_fallback_nofma_div_vertical<T>(x: &mut [T], y: &[T])
+where
+    T: Copy,
+    AutoMath: Math<T>,
+{
     f32_op_vertical(AutoMath::div, x, y)
 }
 
@@ -26,8 +30,8 @@ pub unsafe fn f32_xany_fallback_nofma_div_vertical(x: &mut [f32], y: &[f32]) {
 ///
 /// ```py
 /// D: int
-/// x: [f32; D]
-/// y: [f32; D]
+/// x: [T; D]
+/// y: [T; D]
 ///
 /// for i in 0..D:
 ///     x[i] = x[i] * y[i]
@@ -36,7 +40,11 @@ pub unsafe fn f32_xany_fallback_nofma_div_vertical(x: &mut [f32], y: &[f32]) {
 /// # Safety
 ///
 /// Lengths of `x` and `y` **MUST** be equal.
-pub unsafe fn f32_xany_fallback_nofma_mul_vertical(x: &mut [f32], y: &[f32]) {
+pub unsafe fn generic_xany_fallback_nofma_mul_vertical<T>(x: &mut [T], y: &[T])
+where
+    T: Copy,
+    AutoMath: Math<T>,
+{
     f32_op_vertical(AutoMath::mul, x, y)
 }
 
@@ -46,8 +54,8 @@ pub unsafe fn f32_xany_fallback_nofma_mul_vertical(x: &mut [f32], y: &[f32]) {
 ///
 /// ```py
 /// D: int
-/// x: [f32; D]
-/// y: [f32; D]
+/// x: [T; D]
+/// y: [T; D]
 ///
 /// for i in 0..D:
 ///     x[i] = x[i] + y[i]
@@ -56,7 +64,11 @@ pub unsafe fn f32_xany_fallback_nofma_mul_vertical(x: &mut [f32], y: &[f32]) {
 /// # Safety
 ///
 /// Lengths of `x` and `y` **MUST** be equal.
-pub unsafe fn f32_xany_fallback_nofma_add_vertical(x: &mut [f32], y: &[f32]) {
+pub unsafe fn generic_xany_fallback_nofma_add_vertical<T>(x: &mut [T], y: &[T])
+where
+    T: Copy,
+    AutoMath: Math<T>,
+{
     f32_op_vertical(AutoMath::add, x, y)
 }
 
@@ -66,8 +78,8 @@ pub unsafe fn f32_xany_fallback_nofma_add_vertical(x: &mut [f32], y: &[f32]) {
 ///
 /// ```py
 /// D: int
-/// x: [f32; D]
-/// y: [f32; D]
+/// x: [T; D]
+/// y: [T; D]
 ///
 /// for i in 0..D:
 ///     x[i] = x[i] + y[i]
@@ -76,14 +88,19 @@ pub unsafe fn f32_xany_fallback_nofma_add_vertical(x: &mut [f32], y: &[f32]) {
 /// # Safety
 ///
 /// Lengths of `x` and `y` **MUST** be equal.
-pub unsafe fn f32_xany_fallback_nofma_sub_vertical(x: &mut [f32], y: &[f32]) {
+pub unsafe fn generic_xany_fallback_nofma_sub_vertical<T>(x: &mut [T], y: &[T])
+where
+    T: Copy,
+    AutoMath: Math<T>,
+{
     f32_op_vertical(AutoMath::sub, x, y)
 }
 
 #[inline(always)]
-unsafe fn f32_op_vertical<O>(op: O, x: &mut [f32], y: &[f32])
+unsafe fn f32_op_vertical<T, O>(op: O, x: &mut [T], y: &[T])
 where
-    O: Fn(f32, f32) -> f32,
+    T: Copy,
+    O: Fn(T, T) -> T,
 {
     debug_assert_eq!(x.len(), y.len());
 
@@ -147,7 +164,7 @@ mod tests {
             .map(|(x, y)| x / y)
             .collect::<Vec<f32>>();
 
-        unsafe { f32_xany_fallback_nofma_div_vertical(&mut x, &y) };
+        unsafe { generic_xany_fallback_nofma_div_vertical(&mut x, &y) };
 
         assert_is_close_vector(&x, &expected_res);
     }
@@ -162,7 +179,7 @@ mod tests {
             .map(|(x, y)| x * y)
             .collect::<Vec<f32>>();
 
-        unsafe { f32_xany_fallback_nofma_mul_vertical(&mut x, &y) };
+        unsafe { generic_xany_fallback_nofma_mul_vertical(&mut x, &y) };
 
         assert_is_close_vector(&x, &expected_res);
     }
@@ -177,7 +194,7 @@ mod tests {
             .map(|(x, y)| x + y)
             .collect::<Vec<f32>>();
 
-        unsafe { f32_xany_fallback_nofma_add_vertical(&mut x, &y) };
+        unsafe { generic_xany_fallback_nofma_add_vertical(&mut x, &y) };
 
         assert_is_close_vector(&x, &expected_res);
     }
@@ -192,7 +209,7 @@ mod tests {
             .map(|(x, y)| x - y)
             .collect::<Vec<f32>>();
 
-        unsafe { f32_xany_fallback_nofma_sub_vertical(&mut x, &y) };
+        unsafe { generic_xany_fallback_nofma_sub_vertical(&mut x, &y) };
 
         assert_is_close_vector(&x, &expected_res);
     }

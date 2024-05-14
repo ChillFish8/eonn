@@ -1,55 +1,75 @@
 use crate::math::*;
 
 #[inline]
-/// Divides each element in the provided mutable `[f32; DIMS]` vector by `value`.
+/// Divides each element in the provided mutable `[T; DIMS]` vector by `value`.
 ///
 /// # Safety
 ///
 /// Vectors **MUST** be `DIMS` elements in length and divisible by 128,
 /// otherwise this function becomes immediately UB due to out of bounds
 /// access.
-pub unsafe fn f32_xany_fallback_nofma_div_value(arr: &mut [f32], divider: f32) {
-    f32_xany_fallback_nofma_mul_value(arr, 1.0 / divider)
+pub unsafe fn generic_xany_fallback_nofma_div_value<T>(arr: &mut [T], divider: T)
+where
+    T: Copy,
+    AutoMath: Math<T>,
+{
+    generic_xany_fallback_nofma_mul_value(arr, AutoMath::div(AutoMath::one(), divider))
 }
 
 #[inline]
-/// Multiplies each element in the provided mutable `[f32; DIMS]` vector by `value`.
+/// Multiplies each element in the provided mutable `[T; DIMS]` vector by `value`.
 ///
 /// # Safety
 ///
 /// Vectors **MUST** be `DIMS` elements in length and divisible by 128,
 /// otherwise this function becomes immediately UB due to out of bounds
 /// access.
-pub unsafe fn f32_xany_fallback_nofma_mul_value(arr: &mut [f32], multiplier: f32) {
-    f32_xany_fallback_mul_impl::<AutoMath>(arr, multiplier)
+pub unsafe fn generic_xany_fallback_nofma_mul_value<T>(arr: &mut [T], multiplier: T)
+where
+    T: Copy,
+    AutoMath: Math<T>,
+{
+    generic_xany_fallback_mul_impl::<T, AutoMath>(arr, multiplier)
 }
 
 #[inline]
-/// Multiplies each element in the provided mutable `[f32; DIMS]` vector by `value`.
+/// Multiplies each element in the provided mutable `[T; DIMS]` vector by `value`.
 ///
 /// # Safety
 ///
 /// Vectors **MUST** be `DIMS` elements in length and divisible by 128,
 /// otherwise this function becomes immediately UB due to out of bounds
 /// access.
-pub unsafe fn f32_xany_fallback_nofma_add_value(arr: &mut [f32], value: f32) {
-    f32_xany_fallback_add_impl::<AutoMath>(arr, value)
+pub unsafe fn generic_xany_fallback_nofma_add_value<T>(arr: &mut [T], value: T)
+where
+    T: Copy,
+    AutoMath: Math<T>,
+{
+    generic_xany_fallback_add_impl::<T, AutoMath>(arr, value)
 }
 
 #[inline]
-/// Multiplies each element in the provided mutable `[f32; DIMS]` vector by `value`.
+/// Multiplies each element in the provided mutable `[T; DIMS]` vector by `value`.
 ///
 /// # Safety
 ///
 /// Vectors **MUST** be `DIMS` elements in length and divisible by 128,
 /// otherwise this function becomes immediately UB due to out of bounds
 /// access.
-pub unsafe fn f32_xany_fallback_nofma_sub_value(arr: &mut [f32], value: f32) {
-    f32_xany_fallback_sub_impl::<AutoMath>(arr, value)
+pub unsafe fn generic_xany_fallback_nofma_sub_value<T>(arr: &mut [T], value: T)
+where
+    T: Copy,
+    AutoMath: Math<T>,
+{
+    generic_xany_fallback_sub_impl::<T, AutoMath>(arr, value)
 }
 
 #[inline(always)]
-unsafe fn f32_xany_fallback_mul_impl<M: Math<f32>>(arr: &mut [f32], multiplier: f32) {
+unsafe fn generic_xany_fallback_mul_impl<T, M>(arr: &mut [T], multiplier: T)
+where
+    T: Copy,
+    M: Math<T>,
+{
     let len = arr.len();
     let offset_from = arr.len() % 8;
 
@@ -85,7 +105,11 @@ unsafe fn f32_xany_fallback_mul_impl<M: Math<f32>>(arr: &mut [f32], multiplier: 
 }
 
 #[inline(always)]
-unsafe fn f32_xany_fallback_add_impl<M: Math<f32>>(arr: &mut [f32], value: f32) {
+unsafe fn generic_xany_fallback_add_impl<T, M>(arr: &mut [T], value: T)
+where
+    T: Copy,
+    M: Math<T>,
+{
     let len = arr.len();
     let offset_from = arr.len() % 8;
 
@@ -121,7 +145,11 @@ unsafe fn f32_xany_fallback_add_impl<M: Math<f32>>(arr: &mut [f32], value: f32) 
 }
 
 #[inline(always)]
-unsafe fn f32_xany_fallback_sub_impl<M: Math<f32>>(arr: &mut [f32], value: f32) {
+unsafe fn generic_xany_fallback_sub_impl<T, M>(arr: &mut [T], value: T)
+where
+    T: Copy,
+    M: Math<T>,
+{
     let len = arr.len();
     let offset_from = arr.len() % 8;
 
@@ -166,7 +194,7 @@ mod tests {
         let value = 2.0;
         let (mut x, _) = get_sample_vectors(557);
         let expected = x.iter().copied().map(|v| v / value).collect::<Vec<_>>();
-        unsafe { f32_xany_fallback_nofma_div_value(&mut x, value) };
+        unsafe { generic_xany_fallback_nofma_div_value(&mut x, value) };
         assert_is_close_vector(&x, &expected);
     }
 
@@ -175,7 +203,7 @@ mod tests {
         let value = 2.0;
         let (mut x, _) = get_sample_vectors(557);
         let expected = x.iter().copied().map(|v| v * value).collect::<Vec<_>>();
-        unsafe { f32_xany_fallback_nofma_mul_value(&mut x, value) };
+        unsafe { generic_xany_fallback_nofma_mul_value(&mut x, value) };
         assert_is_close_vector(&x, &expected);
     }
 
@@ -184,7 +212,7 @@ mod tests {
         let value = 2.0;
         let (mut x, _) = get_sample_vectors(557);
         let expected = x.iter().copied().map(|v| v + value).collect::<Vec<_>>();
-        unsafe { f32_xany_fallback_nofma_add_value(&mut x, value) };
+        unsafe { generic_xany_fallback_nofma_add_value(&mut x, value) };
         assert_is_close_vector(&x, &expected);
     }
 
@@ -193,7 +221,7 @@ mod tests {
         let value = 2.0;
         let (mut x, _) = get_sample_vectors(557);
         let expected = x.iter().copied().map(|v| v - value).collect::<Vec<_>>();
-        unsafe { f32_xany_fallback_nofma_sub_value(&mut x, value) };
+        unsafe { generic_xany_fallback_nofma_sub_value(&mut x, value) };
         assert_is_close_vector(&x, &expected);
     }
 }

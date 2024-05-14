@@ -1,5 +1,8 @@
-use crate::danger::f32_fallback_dot_product::fallback_dot;
-use crate::danger::{f32_xany_fallback_nofma_div_value, f32_xany_fallback_nofma_dot};
+use crate::danger::generic_fallback_dot_product::fallback_dot;
+use crate::danger::{
+    generic_xany_fallback_nofma_div_value,
+    generic_xany_fallback_nofma_dot,
+};
 use crate::math::*;
 
 #[inline]
@@ -21,12 +24,12 @@ pub unsafe fn f32_xany_fallback_nofma_angular_hyperplane(
     fallback_angular_hyperplane::<AutoMath>(x, y, &mut hyperplane);
 
     let mut norm_hyperplane =
-        f32_xany_fallback_nofma_dot(&hyperplane, &hyperplane).sqrt();
+        generic_xany_fallback_nofma_dot(&hyperplane, &hyperplane).sqrt();
     if norm_hyperplane.abs() < f32::EPSILON {
         norm_hyperplane = 1.0;
     }
 
-    f32_xany_fallback_nofma_div_value(&mut hyperplane, norm_hyperplane);
+    generic_xany_fallback_nofma_div_value(&mut hyperplane, norm_hyperplane);
 
     hyperplane
 }
@@ -47,12 +50,12 @@ pub(crate) unsafe fn fallback_angular_hyperplane<M: Math<f32>>(
         "Provided hyperplane buffer must match"
     );
 
-    let mut norm_x = fallback_dot::<M>(x, x).sqrt();
+    let mut norm_x = fallback_dot::<_, M>(x, x).sqrt();
     if norm_x.abs() < f32::EPSILON {
         norm_x = 1.0;
     }
 
-    let mut norm_y = fallback_dot::<M>(y, y).sqrt();
+    let mut norm_y = fallback_dot::<_, M>(y, y).sqrt();
     if norm_y.abs() < f32::EPSILON {
         norm_y = 1.0;
     }

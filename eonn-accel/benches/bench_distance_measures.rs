@@ -80,18 +80,18 @@ benchmark_distance_measure!(
 
 benchmark_distance_measure!(
     "f32_fallback_nofma_dot",
-    x1024 = f32_xany_fallback_nofma_dot,
-    xany = f32_xany_fallback_nofma_dot,
+    x1024 = generic_xany_fallback_nofma_dot,
+    xany = generic_xany_fallback_nofma_dot,
 );
 benchmark_distance_measure!(
     "f32_fallback_nofma_cosine",
-    x1024 = f32_xany_fallback_nofma_cosine,
-    xany = f32_xany_fallback_nofma_cosine,
+    x1024 = generic_xany_fallback_nofma_cosine,
+    xany = generic_xany_fallback_nofma_cosine,
 );
 benchmark_distance_measure!(
     "f32_fallback_nofma_euclidean",
-    x1024 = f32_xany_fallback_nofma_euclidean,
-    xany = f32_xany_fallback_nofma_euclidean,
+    x1024 = generic_xany_fallback_nofma_euclidean,
+    xany = generic_xany_fallback_nofma_euclidean,
 );
 
 criterion_group!(

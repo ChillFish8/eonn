@@ -17,13 +17,38 @@ impl Math<f32> for FastMath {
     }
 
     #[inline(always)]
+    fn max() -> f32 {
+        f32::INFINITY
+    }
+
+    #[inline(always)]
+    fn min() -> f32 {
+        f32::NEG_INFINITY
+    }
+
+    #[inline(always)]
     fn sqrt(a: f32) -> f32 {
         a.sqrt()
     }
 
     #[inline(always)]
-    fn eq(a: f32, b: f32) -> bool {
+    fn abs(a: f32) -> f32 {
+        a.abs()
+    }
+
+    #[inline(always)]
+    fn cmp_eq(a: f32, b: f32) -> bool {
         a == b
+    }
+
+    #[inline(always)]
+    fn cmp_min(a: f32, b: f32) -> f32 {
+        a.min(b)
+    }
+
+    #[inline(always)]
+    fn cmp_max(a: f32, b: f32) -> f32 {
+        a.max(b)
     }
 
     #[inline(always)]
@@ -75,13 +100,38 @@ impl Math<f64> for FastMath {
     }
 
     #[inline(always)]
+    fn max() -> f64 {
+        f64::INFINITY
+    }
+
+    #[inline(always)]
+    fn min() -> f64 {
+        f64::NEG_INFINITY
+    }
+
+    #[inline(always)]
     fn sqrt(a: f64) -> f64 {
         a.sqrt()
     }
 
     #[inline(always)]
-    fn eq(a: f64, b: f64) -> bool {
+    fn abs(a: f64) -> f64 {
+        a.abs()
+    }
+
+    #[inline(always)]
+    fn cmp_eq(a: f64, b: f64) -> bool {
         a == b
+    }
+
+    #[inline(always)]
+    fn cmp_min(a: f64, b: f64) -> f64 {
+        a.min(b)
+    }
+
+    #[inline(always)]
+    fn cmp_max(a: f64, b: f64) -> f64 {
+        a.max(b)
     }
 
     #[inline(always)]

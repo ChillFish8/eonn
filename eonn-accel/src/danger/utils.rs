@@ -13,9 +13,9 @@ pub const fn _MM_SHUFFLE(z: u32, y: u32, x: u32, w: u32) -> i32 {
 
 #[inline(always)]
 pub fn cosine<T: Copy, M: Math<T>>(dot_product: T, norm_x: T, norm_y: T) -> T {
-    if M::eq(norm_x, M::zero()) && M::eq(norm_y, M::zero()) {
+    if M::cmp_eq(norm_x, M::zero()) && M::cmp_eq(norm_y, M::zero()) {
         M::zero()
-    } else if M::eq(norm_x, M::zero()) || M::eq(norm_y, M::zero()) {
+    } else if M::cmp_eq(norm_x, M::zero()) || M::cmp_eq(norm_y, M::zero()) {
         M::zero()
     } else {
         M::sub(
